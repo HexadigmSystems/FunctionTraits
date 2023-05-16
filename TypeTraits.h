@@ -51,6 +51,7 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 // Standard C++ header
 #include <string_view>
@@ -344,8 +345,7 @@ namespace Private
         // shouldn't be a template since "T" will always be a "float" but in
         // order to prevent the "static_assert" from always triggering as
         // described we make it a template anyway. Note that we arbitrarily
-        // choose "float" BTW as explained in the "GetPrettyFunction()"
-        // comments.
+        // choose "float" as explained in the "GetPrettyFunction()" comments.
         //////////////////////////////////////////////////////////////////////
         template <typename T = float>
         static constexpr tstring_view::size_type GetTypeNameOffset() noexcept
@@ -495,20 +495,20 @@ namespace Private
             #endif
         }
 
-        ////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
         // GetTypeNameLen(). Returns the length of template arg "T" within
         // __PRETTY_FUNCTION__ or (for MSFT only) __FUNCSIG__. If "T" is an
-        // an int for instance and it actually appears in the latter string
-        // as "int" (always the case at this writing for all supported
-        // compilers but not guaranteed - "signed int" or "unsigned int" is
-        // always possible for future compilers), then it returns 3 (if it
-        // is in fact "int" - if it resolves to "signed int" for some
-        // reason then 10 would be returned of course, or if "unsigned int"
-        // then 12 would be returned). Note that as explained in the
-        // comments preceding function "GetPrettyFunction()" above, we
-        // leverage our knowledge of type float to help us calculate the
-        // length of "T". See "GetPrettyFunction()" for details.
-        ////////////////////////////////////////////////////////////////////
+        // int for instance and it actually appears in the latter string as
+        // "int" (always the case at this writing for all supported compilers
+        // but not guaranteed - "signed int" or "unsigned int" is always
+        // possible for future compilers), then it returns 3 (if it is in
+        // fact "int" - if it resolves to "signed int" for some reason then
+        // 10 would be returned of course, or if "unsigned int" then 12 would
+        // be returned). Note that as explained in the comments preceding
+        // function "GetPrettyFunction()" above, we leverage our knowledge of
+        // type float to help us calculate the length of "T". See
+        // "GetPrettyFunction()" for details.
+        //////////////////////////////////////////////////////////////////////
         template <typename T>
         static constexpr tstring_view::size_type GetTypeNameLen() noexcept
         {
@@ -766,24 +766,22 @@ namespace Private
 // writing)
 //
 // The bottom line is that you can change our implementation function's
-// signature if you wish and it will still work correctly. Note that if
-// a given compiler vendor ever changes the format of
-// __PRETTY_FUNCTION__ itself however (or __FUNCSIG__ for MSFT only),
-// then that could potentially break the function as noted but again,
-// the "static_assert" just below will normally trigger any issue
-// (and/or other "static_asserts" in the implementation itself), and
-// you'll then have to fix the implementation function for this
-// template to deal with it ("Private::TypeNameImpl::Get()" as it's
-// currently called at this writing). It seems very unlikely a compiler
-// vendor will ever change the format however, let alone in a way that
-// will break this function, unless it's done to deal with some new C++
-// feature perhaps but who knows.
+// signature if you wish and it will still work correctly. Note that if a
+// given compiler vendor ever changes the format of __PRETTY_FUNCTION__
+// itself however (or __FUNCSIG__ for MSFT only), then that could
+// potentially break the function as noted but again, the "static_asserts"
+// in the implementation will normall trigger if this occurs, and you'll
+// then have to fix the implementation function for this template to deal
+// with it ("Private::TypeNameImpl::Get()" as it's currently called at
+// this writing). It seems very unlikely a compiler vendor will ever
+// change the format however, let alone in a way that will break this
+// function, unless it's done to deal with some new C++ feature perhaps
+// but who knows.
 //
-// Long story short, our implementation function should normally be
-// very stable but compilation will fail with an appropriate error if
-// something goes wrong (again, see the "static_assert" just below but
-// others in the private implementation function called by this
-// template might also trigger their own "static_assert").
+// Long story short, our implementation function should normally be very
+// stable but compilation will fail with an appropriate error if something
+// goes wrong (again, via the the "static_asserts" in the private
+// implementation function called by this template).
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline constexpr tstring_view TypeName_v = Private::TypeNameImpl::Get<T>();
@@ -926,7 +924,7 @@ inline constexpr bool IsTuple_v = IsTuple<T>::value;
 ///////////////////////////////////////////////////////////////////////////
 // Declarations mostly associated with struct "FunctionTraits" declared
 // further below (the latter struct itself plus additional support
-// declarations including helper aliases mostly associated with
+// declarations including helper templates mostly associated with
 // "FunctionTraits" - all code that follows for the remainder of this
 // file). "FunctionTraits" itself is used to retrieve information about
 // any function including (most notably) its return type and the type of
@@ -935,8 +933,8 @@ inline constexpr bool IsTuple_v = IsTuple<T>::value;
 // template's only argument (see next paragraph), but see the helper alias
 // templates "ReturnType_t" and "ArgType_t" declared later on for an even
 // easier (less verbose) way to access the return type and arg types of
-// any function (and other helper aliases also exist). They take the same
-// template arg and simply wrap the appropriate aliases of
+// any function (and other helper templates also exist). They take the
+// same template arg and simply wrap the appropriate aliases of
 // "FunctionTraits" demo'd in the example below. They're easier to use
 // than "FunctionTraits" directly however, and should normally be relied
 // on. The example below shows how to do it using "FunctionTraits" but the
@@ -1093,18 +1091,19 @@ namespace Private
 {
     ///////////////////////////////////////////////////////////////////
     // "IsFunctor" (primary template). Primary template inherits from
-    // "std::false_type" if "T" is *not* a functor. Otherwise, if it
-    // is a functor then the specialization just below kicks in
-    // instead (inheriting from "std::true_type"). If true then by
-    // definition "T" must be a class or struct with a member
-    // function called "operator()". Note that if "T::operator()" is
-    // overloaded then the primary template will kick in since which
-    // "operator()" to use becomes ambiguous. In this case you'll
-    // have to target the specific "operator()" overload you're
-    // interested by taking its address and casting it to the exact
-    // signature you're interested in (in order to disambiguate it).
-    // You can't rely on this trait IOW (since it will fail to identify
-    // "T" as a functor due to the ambiguity).
+    // "std::false_type" if "T" is *not* a functor or reference to a
+    // functor. Otherwise, if it is a functor or reference to a
+    // functor then the specialization just below kicks in instead
+    // (inheriting from "std::true_type"). If true then by definition
+    // "T" must be a class or struct (or reference to one) with a
+    // member function called "operator()". Note that if
+    // "T::operator()" is overloaded then the primary template will
+    // kick in since which "operator()" to use becomes ambiguous. In
+    // this case you'll have to target the specific "operator()"
+    // overload you're interested by taking its address and casting it
+    // to the exact signature you're interested in (in order to
+    // disambiguate it). You can't rely on this trait IOW (since it
+    // will fail to identify "T" as a functor due to the ambiguity).
     ///////////////////////////////////////////////////////////////////
     template <typename T, typename = void>
     struct IsFunctor : std::false_type
@@ -1118,7 +1117,7 @@ namespace Private
     /////////////////////////////////////////////////////////////////
     template <typename T>
     struct IsFunctor<T,
-                        std::void_t<decltype(&T::operator())>
+                     std::void_t<decltype(&std::remove_reference_t<T>::operator())>
                     > : std::true_type
     {
     };
@@ -1354,7 +1353,7 @@ namespace Private
     // add a pointer to "T", resulting in "T *", and then immediately
     // removing the pointer and checking if the resulting type is a
     // function (by passing it to "std::is_function_v"). If "T" isn't a
-    // function at all, such as an "int" or even a pointer or reference
+    // function at all, such as an "int", or even a pointer or reference
     // to a function (or even a reference type like "int &" which will
     // fail when we attempt to convert it to "int & *" - pointers to
     // references are illegal in C++ so SFINAE will always fail), then
@@ -1377,20 +1376,21 @@ namespace Private
     // 
     //     Abominable Function Types (by Alisdair Meredith)
     //     https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
-    // 
+    //
     // You can't create a pointer to a function that has any of these
-    // qualifiers (we're not dealing pointer-to-member syntax here, but
-    // the actual raw function type), so this SFINAE context fails and
-    // the primary template above therefore kicks in instead (inheriting
-    // from "std::false_type" meaning "T" does not qualify as a free
-    // function even though it's a valid function type, because "T"
-    // contains one of the above qualifiers - it must be a non-static
-    // member function type as well as an abominable function).
+    // qualifiers (we're not with dealing pointer-to-member syntax
+    // here, but the actual raw function type), so this SFINAE context
+    // fails and the primary template above therefore kicks in instead
+    // (inheriting from "std::false_type" meaning "T" does not qualify
+    // as a free function even though it's a valid function type,
+    // because "T" contains one of the above qualifiers - it must be a
+    // non-static member function type as well as an abominable
+    // function).
     ///////////////////////////////////////////////////////////////////
     template <typename T>
     struct IsFreeFunction<T,
-                            std::enable_if_t<std::is_function_v<std::remove_pointer_t<T *>>>
-                            > : std::true_type
+                          std::enable_if_t<std::is_function_v<std::remove_pointer_t<T *>>>
+                         > : std::true_type
     {
     };
 
@@ -1476,44 +1476,44 @@ struct IsTraitsFunction : std::false_type
 template <typename T>
 struct IsTraitsFunction<T,
                         std::enable_if_t<Private::IsFreeFunction_v<RemoveRefAndPtr<T>> || // 1) Is "T" a free function (includes static member functions).
-                                                                                            //    See (long) comments just above "Private::IsFreeFunction"
-                                                                                            //    for details. Note that this item (1) excludes pointers and
-                                                                                            //    references to free functions which are handled by items 2-4
-                                                                                            //    below. This item (1) only targets the function's actual C++
-                                                                                            //    type which is never a pointer or a reference. The actual C++
-                                                                                            //    type for functions isn't used that often in practice however
-                                                                                            //    (typically), since free function names decay to a pointer to
-                                                                                            //    the function in most expressions so item 3 below is usually
-                                                                                            //    encountered more frequently (though item 1 does occur sometimes
-                                                                                            //    so it's correctly handled). In any case, if "T" is *not* an
-                                                                                            //    actual function type then ...
-                                                                                            // 2) Is "T" a reference to a free function (rare in practice) or ...
-                                                                                            // 3) Is "T" a (possibly cv-qualified) pointer to a free function
-                                                                                            //    (the most common case in practice since free function names
-                                                                                            //    decay to a pointer to the function in most expressions) or ...
-                                                                                            // 4) Is "T" a reference to a (possibly cv-qualified) pointer to
-                                                                                            //    a free function (rare in practice)
-                                                                                            // *) If none of the above hold then "T" isn't a free function (or
-                                                                                            //    a reference to one or a pointer to one or a reference to a
-                                                                                            //    pointer to one) so we go on to check if it's a pointer to a
-                                                                                            //    non-static member function ...
-                                            std::is_member_function_pointer_v<std::remove_reference_t<T>> || // 1) Is T a (possibly cv-qualified) pointer to a
-                                                                                                            //    non-static member function (the most common
-                                                                                                            //    case for non-static member functions in
-                                                                                                            //    practice) or ...
-                                                                                                            // 2) Is T a reference to a (possibly cv-qualified)
-                                                                                                            //    pointer to a non-static member function (rare
-                                                                                                            //    in practice) but ...
-                                                                                                            // X) Note that "T" *cannot* be a reference to a
-                                                                                                            //    member function (not supported in C++ itself
-                                                                                                            //    so we don't check for it) though 2) just
-                                                                                                            //    above does support references to pointers to
-                                                                                                            //    non-static member functions
-                                            Private::IsFunctor_v<T> // Is "T" a functor (i.e., does it have a non-static member
-                                                                    // function named "operator()" that's not overloaded since
-                                                                    // overloads would be ambiguous)
+                                                                                          //    See (long) comments just above "Private::IsFreeFunction"
+                                                                                          //    for details. Note that this item (1) excludes pointers and
+                                                                                          //    references to free functions which are handled by items 2-4
+                                                                                          //    below. This item (1) only targets the function's actual C++
+                                                                                          //    type which is never a pointer or a reference. The actual C++
+                                                                                          //    type for functions isn't used that often in practice however
+                                                                                          //    (typically), since free function names decay to a pointer to
+                                                                                          //    the function in most expressions so item 3 below is usually
+                                                                                          //    encountered more frequently (though item 1 does occur sometimes
+                                                                                          //    so it's correctly handled). In any case, if "T" is *not* an
+                                                                                          //    actual function type then ...
+                                                                                          // 2) Is "T" a reference to a free function (rare in practice) or ...
+                                                                                          // 3) Is "T" a (possibly cv-qualified) pointer to a free function
+                                                                                          //    (the most common case in practice since free function names
+                                                                                          //    decay to a pointer to the function in most expressions) or ...
+                                                                                          // 4) Is "T" a reference to a (possibly cv-qualified) pointer to
+                                                                                          //    a free function (rare in practice)
+                                                                                          // *) If none of the above hold then "T" isn't a free function (or
+                                                                                          //    a reference to one or a pointer to one or a reference to a
+                                                                                          //    pointer to one) so we go on to check if it's a pointer to a
+                                                                                          //    non-static member function ...
+                                         std::is_member_function_pointer_v<std::remove_reference_t<T>> || // 1) Is T a (possibly cv-qualified) pointer to a
+                                                                                                          //    non-static member function (the most common
+                                                                                                          //    case for non-static member functions in
+                                                                                                          //    practice) or ...
+                                                                                                          // 2) Is T a reference to a (possibly cv-qualified)
+                                                                                                          //    pointer to a non-static member function (rare
+                                                                                                          //    in practice) but ...
+                                                                                                          // X) Note that "T" *cannot* be a reference to a
+                                                                                                          //    member function (not supported in C++ itself
+                                                                                                          //    so we don't check for it) though 2) just
+                                                                                                          //    above does support references to pointers to
+                                                                                                          //    non-static member functions
+                                         Private::IsFunctor_v<T> // Is "T" a functor (i.e., does it have a non-static member
+                                                                 // function named "operator()" that's not overloaded since
+                                                                 // overloads would be ambiguous)
                                         >
-                        > : std::true_type
+                       > : std::true_type
 {
 };
 
@@ -1565,11 +1565,11 @@ inline constexpr bool IsTraitsFunction_v = IsTraitsFunction<T>::value;
     //      }
     /////////////////////////////////////////////////////////////////
     #define STATIC_ASSERT_IS_TRAITS_FUNCTION(T) static_assert(IsTraitsFunction_v<T>, "\"" #T "\" isn't a function type suitable for passing to \"FunctionTraits\". " \
-                                                                                        "See comments preceding \"IsTraitsFunction\" for details but for all intents " \
-                                                                                        "and purpose any legal type identifying a function will normally do (i.e., free " \
-                                                                                        "functions which include static members functions, pointers and references to " \
-                                                                                        "free functions, references to pointers to free functions, pointers to non-static " \
-                                                                                        "member functions, references to pointers to member functions, and functors");
+                                                                                     "See comments preceding \"IsTraitsFunction\" for details but for all intents " \
+                                                                                     "and purpose any legal type identifying a function will normally do (i.e., free " \
+                                                                                     "functions which include static members functions, pointers and references to " \
+                                                                                     "free functions, references to pointers to free functions, pointers to non-static " \
+                                                                                     "member functions, references to pointers to member functions, and functors");
 
     // See comment block above
     #define TRAITS_FUNCTION_C typename
@@ -1710,42 +1710,33 @@ enum class CallingConvention
 ///////////////////////////////////////////////////////////////////////////
 // CallingConventionToString(). WYSIWYG
 ///////////////////////////////////////////////////////////////////////////
-template <typename T = void> // Never required, but prevents "static_assert" from always triggering below
 inline constexpr tstring_view CallingConventionToString(const CallingConvention callingConvention) noexcept
 {
-    //////////////////////////////////////////
-    // Template arg only required to support
-    // "static_assert" below so no reason to
-    // ever pass anything else anything for
-    // it)
-    //////////////////////////////////////////
-    static_assert(std::is_same_v<T, void>);
-
     tstring_view str;
 
-	switch (callingConvention)
-	{
+    switch (callingConvention)
+    {
         case CallingConvention::Cdecl:
-			str = _T("Cdecl");
-			break;
+            str = _T("Cdecl");
+            break;
         case CallingConvention::Stdcall:
-			str = _T("Stdcall");
-			break;			
+            str = _T("Stdcall");
+            break;
         case CallingConvention::Fastcall:
-			str = _T("Fastcall");
-			break;			
+            str = _T("Fastcall");
+            break;
         case CallingConvention::Vectorcall:
-			str = _T("Vectorcall");
-			break;
+            str = _T("Vectorcall");
+        break;
     #ifdef STDEXT_CC_REGCALL
         case CallingConvention::Regcall:
-			str = _T("Regcall");
-			break;			
+            str = _T("Regcall");
+            break;
     #endif
         case CallingConvention::Thiscall:
-			str = _T("Thiscall");
-			break;
-	}
+            str = _T("Thiscall");
+            break;
+    }
 
     return str;
 }
@@ -1778,16 +1769,16 @@ inline constexpr bool CallingConventionReplacedWithCdecl(const CallingConvention
     {
         #define IS_REPLACED_WITH_CDECL(CC) std::is_same_v<void CC (), void STDEXT_CC_CDECL ()>
         constexpr bool ReplacedWithCdecl[] = { false, // STDEXT_CC_CDECL never replaced with itself (for purposes of this
-                                                        // function), and it's always supported regardless (so it never gets
-                                                        // replaced, let alone with itself)
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL),
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL),
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL), // Comma required if STDEXT_CC_REGCALL
-                                                                                                // #defined just below (harmless if not)
-                                                #ifdef STDEXT_CC_REGCALL
-                                                    IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL)
-                                                #endif
-                                                };
+                                                      // function), and it's always supported regardless (so it never gets
+                                                      // replaced, let alone with itself)
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL),
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL),
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL), // Comma required if STDEXT_CC_REGCALL
+                                                                                             // #defined just below (harmless if not)
+                                               #ifdef STDEXT_CC_REGCALL
+                                                   IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL)
+                                               #endif
+                                             };
         #undef IS_REPLACED_WITH_CDECL // Done with this
 
         return ReplacedWithCdecl[static_cast<std::size_t>(callingConvention)];
@@ -1818,16 +1809,16 @@ inline constexpr bool CallingConventionReplacedWithCdecl(const CallingConvention
 
         #define IS_REPLACED_WITH_CDECL(CC) std::is_same_v<void (CC AnyClass::*)(), void (STDEXT_CC_CDECL AnyClass::*)()>
         constexpr bool ReplacedWithCdecl[] = { false, // STDEXT_CC_CDECL never replaced with itself (for purposes of this
-                                                        // function), and it's always supported regardless (so it never gets
-                                                        // replaced, let alone with itself)
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL),
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL),
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL),
-                                                #ifdef STDEXT_CC_REGCALL
-                                                    IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL),
-                                                #endif
-                                                IS_REPLACED_WITH_CDECL(STDEXT_CC_THISCALL)
-                                                };
+                                                      // function), and it's always supported regardless (so it never gets
+                                                      // replaced, let alone with itself)
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL),
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL),
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL),
+                                               #ifdef STDEXT_CC_REGCALL
+                                                   IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL),
+                                               #endif
+                                               IS_REPLACED_WITH_CDECL(STDEXT_CC_THISCALL)
+                                             };
         #undef IS_REPLACED_WITH_CDECL// Done with this
 
         return ReplacedWithCdecl[static_cast<std::size_t>(callingConvention)];
@@ -1854,32 +1845,23 @@ enum class RefQualifier
 ///////////////////////////////////////////////////////////////////////////
 // RefQualifierToString(). WYSIWYG
 ///////////////////////////////////////////////////////////////////////////
-template <typename T = void> // Never required, but prevents "static_assert" from always triggering below
 inline constexpr tstring_view RefQualifierToString(const RefQualifier refQualifier,
                                                    const bool useAmpersands = true) noexcept
 {
-    //////////////////////////////////////////
-    // Template arg only required to support
-    // "static_assert" below so no reason to
-    // ever pass anything else anything for
-    // it)
-    //////////////////////////////////////////
-    static_assert(std::is_same_v<T, void>);
-
     tstring_view str;
 
-	switch (refQualifier)
-	{
+    switch (refQualifier)
+    {
         case RefQualifier::None:
-			str = _T("None");
-			break;
+            str = _T("None");
+            break;
         case RefQualifier::LValue:
-			str = useAmpersands ? _T("&") : _T("LValue");
-			break;			
+            str = useAmpersands ? _T("&") : _T("LValue");
+            break;
         case RefQualifier::RValue:
-			str = useAmpersands ? _T("&&") : _T("RValue");
-			break;
-	}
+            str = useAmpersands ? _T("&&") : _T("RValue");
+            break;
+    }
 
     return str;
 }
@@ -1914,16 +1896,16 @@ template <typename F, // Function's full type
           typename ReturnTypeT, // Function's return type
           CallingConvention CallingConventionT, // Function's calling convention (implicitly or explicitly declared in the function)
           bool IsVariadicT, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
-          typename ClassT, // Applicable to non-static member functions only (use the "IsMemberFunc" constant below to check this).
-                            // Stores the class (type) this non-static member function belongs to. Always "void" if not a member
-                            // function.
-          bool IsConstT, // Applicable to non-static member functions only (use the "IsMemberFunc" constant below to check this).
-                            // Set to "true" if a "const" member function or "false" otherwise. Always false if not a member function.
-          bool IsVolatileT, // Applicable to non-static member functions only (use the "IsMemberFunc" constant below to check this).
+          typename ClassT, // Applicable to non-static member functions only (use the "IsMemberFunction" constant below to check this).
+                           // Stores the class (type) this non-static member function belongs to. Always "void" if not a member
+                           // function.
+          bool IsConstT, // Applicable to non-static member functions only (use the "IsMemberFunction" constant below to check this).
+                         // Set to "true" if a "const" member function or "false" otherwise. Always false if not a member function.
+          bool IsVolatileT, // Applicable to non-static member functions only (use the "IsMemberFunction" constant below to check this).
                             // Set to "true" if a "volatile" member function or "false" otherwise. Always false if not a member function.
-          RefQualifier RefQualifierT, // Applicable to non-static member functions only (use the "IsMemberFunc" constant below to check
-                                        // this). Set to the given "RefQualifier" enumerator if one is present in the function (& or &&).
-                                        // Always "RefQualifier::None" otherwise (therefore always the case if not a member function)
+          RefQualifier RefQualifierT, // Applicable to non-static member functions only (use the "IsMemberFunction" constant below to check
+                                      // this). Set to the given "RefQualifier" enumerator if one is present in the function (& or &&).
+                                      // Always "RefQualifier::None" otherwise (therefore always the case if not a member function)
           bool IsNoexceptT, // "true" if the function is declared "noexcept" or "false" otherwise
           typename... ArgsT> // Function's arguments (types) in left-to-right order of declaration (as would be expected)
 struct FunctionTraitsBase
@@ -1979,36 +1961,36 @@ struct FunctionTraitsBase
     ////////////////////////////////////////////////////////////////////
     // Applicable to non-static member functions only. Stores the class
     // (type) this non-static member function belongs to. Always "void"
-    // otherwise. Use the "IsMemberFunc" constant below to check this.
-    // Note that at this writing, the following isn't supported for
-    // static member functions (it's always void for them) since C++
-    // doesn't provide any simple or clean way to detect them in the
-    // context that "FunctionTraits" is used.
+    // otherwise. Use the "IsMemberFunction" member below to check
+    // this. Note that at this writing, the following isn't supported
+    // for static member functions (it's always void for them) since
+    // C++ doesn't provide any simple or clean way to detect them in
+    // the context that "FunctionTraits" is used.
     ////////////////////////////////////////////////////////////////////
     using Class = ClassT; 
 
-    //////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
     // Is non-static member function declared with the "const" keyword.
-    // Applicable to non-static member functions only (use the "IsMemberFunc"
-    // constant below to check this). Always false otherwise (N/A in this
-    // case)
-    //////////////////////////////////////////////////////////////////////////
+    // Applicable to non-static member functions only (use the
+    // "IsMemberFunction" member below to check this). Always false
+    // otherwise (N/A in this case)
+    /////////////////////////////////////////////////////////////////////
     constexpr static bool IsConst = IsConstT; 
 
-    //////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     // Is non-static member function declared with the "volatile" keyword.
-    // Applicable to non-static member functions only (use the "IsMemberFunc"
-    // constant below to check this). Always false otherwise (N/A in this
-    // case)
-    //////////////////////////////////////////////////////////////////////////
+    // Applicable to non-static member functions only (use the
+    // "IsMemberFunction" member below to check this). Always false
+    // otherwise (N/A in this case)
+    ////////////////////////////////////////////////////////////////////////
     constexpr static bool IsVolatile = IsVolatileT;
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // Is non-static member function declared with a reference-qualifier (& or
-    // &&). Applicable to non-static member functions only (use the "IsMemberFunc"
-    // constant below to check this). Always "RefQualifier::None" otherwise (N/A
-    // in this case).
-    ///////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // Is non-static member function declared with a reference-qualifier
+    // (& or &&). Applicable to non-static member functions only (use the
+    // "IsMemberFunction" member below to check this). Always
+    // "RefQualifier::None" otherwise (N/A in this case).
+    //////////////////////////////////////////////////////////////////////
     constexpr static enum RefQualifier RefQualifier = RefQualifierT;
 
     // "true" if the function is declared "noexcept" or "false" otherwise
@@ -2101,22 +2083,31 @@ struct FunctionTraitsBase
 
     //////////////////////////////////////////////////////////////
     // Returns true if the function represented by this traits
-    // struct is a non-static member function or false otherwise
-    // (in the latter case it's either a free function or a
-    // static member function). If true then the "Class",
-    // "IsConst" and "IsVolatile" members above can be inspected.
-    // They're always "void", "false" and "false" respectively
-    // otherwise. Please note that at this writing, the following
-    // isn't supported for *static* member functions (it's always
-    // false for them), since C++ doesn't provide any simple or
-    // clean (ergonomically satisfying) way to detect them that I
-    // could find (in the context of using a traits class like
-    // "FunctionTraits"). Therefore, even though a static member
-    // function is a member function, the following always
-    // returns false for it (hopefully a future C++ release will
-    // allow us to revisit the situation)
+    // struct is a non-static member function (including
+    // functors), or false otherwise (in the latter case it's
+    // either a free function or a static member function). If
+    // true then the "Class", "IsConst", "IsVolatile" and
+    // "RefQualifier" members above can be inspected. They're
+    // always "void", "false", "false" and "RefQualifier::None"
+    // respectively otherwise. Please note that at this writing,
+    // the following isn't supported for *static* member
+    // functions (it's always false for them), since C++ doesn't
+    // provide any simple or clean (ergonomically satisfying) way
+    // to detect them that I could find (in the context of using
+    // a traits class like "FunctionTraits"). Therefore, even
+    // though a static member function is a member function, the
+    // following always returns false for it (hopefully a future
+    // C++ release will allow us to revisit the situation)
     //////////////////////////////////////////////////////////////
-    constexpr static bool IsMemberFunc = !std::is_void_v<Class>;
+    constexpr static bool IsMemberFunction = !std::is_void_v<Class>;
+
+    //////////////////////////////////////////////////////////////
+    // Returns true if the function represented by this traits
+    // struct is a free function (including static member
+    // functions) or false otherwise (in the latter case it must
+    // be a member function including functors).
+    //////////////////////////////////////////////////////////////
+    constexpr static bool IsFreeFunction = !IsMemberFunction;
 
     //////////////////////////////////////////////////////////////////////////
     // Was this class instantiated from a functor? Always "false" here as
@@ -2130,8 +2121,9 @@ struct FunctionTraitsBase
     // specialization only), then it means "FunctionTraits" was instantiated
     // on the functor given by the "Class" alias member seen further above.
     // The "Type" alias further above therefore stores the type of
-    // "Class::operator()".
-        
+    // "Class::operator()". Note that when true, member "IsMemberFunction"
+    // is also guaranteed to be true.
+    //
     // IMPORTANT: Note that if someone instantiates "FunctionTraits" using
     // the actual type of "operator()" for its template arg, opposed to the
     // functor itself (the class containing "operator()"), then "IsFunctor"
@@ -2232,7 +2224,6 @@ struct FunctionTraits
 #define MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ARGS) \
     MAKE_FREE_FUNC_TRAITS_3(CC, CALLING_CONVENTION, ARGS, false) \
     MAKE_FREE_FUNC_TRAITS_3(CC, CALLING_CONVENTION, ARGS, true)
-
     
 /////////////////////////////////////////////////////////////
 // Macro for internal use only (invokes macro just above).
@@ -2276,7 +2267,7 @@ MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_STDCALL,    CallingConvention::Stdc
 MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_FASTCALL,   CallingConvention::Fastcall)
 MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_VECTORCALL, CallingConvention::Vectorcall)
 #ifdef STDEXT_CC_REGCALL
-    MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_REGCALL,    CallingConvention::Regcall)
+    MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_REGCALL, CallingConvention::Regcall)
 #endif
 #undef MAKE_FREE_FUNC_TRAITS_NON_VARIADIC // Done with this
 
@@ -2417,9 +2408,9 @@ MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_STDCALL,    CallingConvention::St
 MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_FASTCALL,   CallingConvention::Fastcall)
 MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_VECTORCALL, CallingConvention::Vectorcall)
 #ifdef STDEXT_CC_REGCALL
-    MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_REGCALL,    CallingConvention::Regcall)
+    MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_REGCALL, CallingConvention::Regcall)
 #endif
-MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_THISCALL,   CallingConvention::Thiscall)
+MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_THISCALL, CallingConvention::Thiscall)
 #undef MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC // Done with this
 
 ///////////////////////////////////////////////////////
@@ -2486,11 +2477,11 @@ MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_CDECL, CallingConvention::Cdecl, (Args..., .
 //       Example 2 (lambda - note that lambdas are just functors)
 //       --------------------------------------------------------
 //       const auto myLambda = [](float val, const std::string &str)
-//                                {
-//                                     int rc;
-//                                     // ...
-//                                     return rc;
-//                                };
+//                               {
+//                                   int rc;
+//                                   // ...
+//                                   return rc;
+//                               };
 // 
 //       ///////////////////////////////////////////////////////////////
 //       // Resolves to "int" (lambda's return type). Following helper
@@ -2510,7 +2501,7 @@ MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_CDECL, CallingConvention::Cdecl, (Args..., .
 template <typename T>
 struct FunctionTraits<T,
                       0, // Always zero (don't change it or this specialization won't kick in)
-                      std::enable_if_t<Private::IsFunctor_v<T>>> : FunctionTraits<decltype(&T::operator())>
+                      std::enable_if_t<Private::IsFunctor_v<T>>> : FunctionTraits<decltype(&std::remove_reference_t<T>::operator())>
 {
     //////////////////////////////////////////////////////////
     // Overrides the same member in the "FunctionTraitsBase"
@@ -2626,25 +2617,33 @@ inline constexpr bool IsFunctionTraits_v = IsFunctionTraits<T>::value;
 #endif
 
 /////////////////////////////////////////////////////////////////////////
-// FunctionTraitsArgCount_v. Helper alias yielding
+// FunctionTraitsArgCount_v. Helper template yielding
 // "FunctionTraitsT::ArgCount" (number of args in the function
 // represented by "FunctionTraits" not including variadic args if any),
 // where "FunctionTraitsT" is a "FunctionTraits" specialization. Note
-// that there's usually no benefit to this particular alias however
+// that there's usually no benefit to this particular template however
 // compared to calling "FunctionTraitsT::ArgCount" directly (there's no
 // reduction in verbosity), but it's provided for consistency anyway (to
-// ensure an alias is available for all members of"FunctionTraits"). In
-// most cases you should rely on the "ArgCount_v" helper alias instead
-// however, which just defers to "FunctionTraitsArgCount_v" and is
-// easier to use.
+// ensure a helper template is available for all members
+// of"FunctionTraits"). In most cases you should rely on the
+// "ArgCount_v" helper template instead however, which just defers to
+// "FunctionTraitsArgCount_v" and is easier to use.
+//
+// IMPORTANT:
+// ---------
+// Please note that if you wish to check if a function's argument list is
+// completely empty, then inspecting this helper template for zero (0) is
+// not sufficient, since it may return zero but still contain variadic
+// args. To check for a completely empty argument list, call
+// "IsFunctionTraitsEmptyArgList_v" instead. See this for further details.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
-// (concept kicks in in C++20 or later so failure is guaranteed - in
-// C++17 or earlier however there is no guarantee compilation will fail
-// but usually will for other reasons - longer story but since C++20 or
-// later is fast becoming the norm we won't worry about it - pass the
-// expected "FunctionTraits" template arg and everything will be fine).
+// (concept kicks in in C++20 or later so failure is guaranteed - in C++17
+// or earlier however there is no guarantee compilation will fail but
+// usually will for other reasons - longer story but since C++20 or later
+// is fast becoming the norm we won't worry about it - pass the expected
+// "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr std::size_t FunctionTraitsArgCount_v = FunctionTraitsT::ArgCount;
@@ -2756,16 +2755,16 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 using FunctionTraitsArgTypes_t = typename FunctionTraitsT::ArgTypes;
 
 //////////////////////////////////////////////////////////////////////
-// FunctionTraitsCallingConvention_v. Helper alias template yielding
-// "FunctionTraitsT::CallingConvention" (the calling convention of
-// the function repesented by "FunctionTraitsT"), where
+// FunctionTraitsCallingConvention_v. Helper template template
+// yielding "FunctionTraitsT::CallingConvention" (the calling
+// convention of the function repesented by "FunctionTraitsT"), where
 // "FunctionTraitsT" is a "FunctionTraits" specialization. Note that
-// there's usually no benefit to this particular alias however
-// compared to calling "FunctionTraitsT::CallingConvention" directly
-// (there's no reduction in verbosity) but it's provided for
-// consistency anyway (to ensure an alias is available for all
-// members of "FunctionTraits"). In most cases you should rely on
-// "CallingConvention_v" helper alias instead however, which just
+// there's usually no benefit to this particular helper template
+// however compared to calling "FunctionTraitsT::CallingConvention"
+// directly (there's no reduction in verbosity) but it's provided for
+// consistency anyway (to ensure a helper template is available for
+// all members of "FunctionTraits"). In most cases you should rely on
+// "CallingConvention_v" helper template instead however, which just
 // defers to "FunctionTraitsCallingConvention_v" and is easier to
 // use.
 //
@@ -2846,18 +2845,44 @@ using FunctionTraitsFunctionType_t = typename FunctionTraitsT::Type;
 template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr tstring_view FunctionTraitsTypeName_v = TypeName_v<FunctionTraitsFunctionType_t<FunctionTraitsT>>;
 
+///////////////////////////////////////////////////////////////////////////
+// IsFunctionTraitsFreeFunction_v. Helper template yielding
+// "FunctionTraitsT::IsFreeFunction" (true or false to indicate if the
+// function repesented by "FunctionTraitsT" is a free function including
+// static member functions), where "FunctionTraitsT" is a "FunctionTraits"
+// specialization. Note that there's usually no benefit to this particular
+// template however compared to calling "FunctionTraitsT::IsFreeFunction"
+// directly (there's no reduction in verbosity), but it's provided for
+// consistency anyway (to ensure a template is available for all members
+// of "FunctionTraits"). In most cases you should rely on the
+// "IsFreeFunction_v" helper template instead however, which just defers
+// to "IsFunctionTraitsFreeFunction_v" and is easier to use.
+//
+// Lastly, note that the "FunctionTraitsT" template arg must be a
+// "FunctionTraits" specialization or compilation will normally fail
+// (concept kicks in in C++20 or later so failure is guaranteed - in C++17
+// or earlier however there is no guarantee compilation will fail but
+// usually will for other reasons - longer story but since C++20 or later
+// is fast becoming the norm we won't worry about it - pass the expected
+// "FunctionTraits" template arg and everything will be fine).
+///////////////////////////////////////////////////////////////////////////
+template <FUNCTION_TRAITS_C FunctionTraitsT>
+inline constexpr bool IsFunctionTraitsFreeFunction_v = FunctionTraitsT::IsFreeFunction;
+
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsFunctor_v. Helper alias yielding
+// IsFunctionTraitsFunctor_v. Helper template yielding
 // "FunctionTraitsT::IsFunctor" (true or false to indicate if the
 // function repesented by "FunctionTraitsT" is a functor), where
-// "FunctionTraitsT" is a "FunctionTraits" specialization. Note that
-// there's usually no benefit to this particular alias however compared
-// to calling "FunctionTraitsT::Functor" directly (there's no reduction
-// in verbosity), but it's provided for consistency anyway (to ensure an
-// alias is available for all members of "FunctionTraits"). In most
-// cases you should rely on the "IsFunctor_v" helper alias instead
-// however, which just defers to "IsFunctionTraitsFunctor_v" and is
-// easier to use.
+// "FunctionTraitsT" is a "FunctionTraits" specialization. If "true"
+// then note that "IsFunctionTraitsMemberFunction_v" is also guaranteed
+// to return true. Please note that there's usually no benefit to this
+// particular helper template however compared to calling
+// "FunctionTraitsT::IsFunctor" directly (there's no reduction in
+// verbosity), but it's provided for consistency anyway (to ensure a
+// helper template is available for all members of "FunctionTraits"). In
+// most cases you should rely on the "IsFunctor_v" helper template
+// instead however, which just defers to "IsFunctionTraitsFunctor_v" and
+// is easier to use.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -2871,24 +2896,24 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr bool IsFunctionTraitsFunctor_v = FunctionTraitsT::IsFunctor;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsMemberFunction_v. Helper alias yielding
-// "FunctionTraitsT::IsMemberFunc" (which stores "true" if
-// "FunctionTraitsT" represents a non-static member function or false
-// otherwise ), where "FunctionTraitsT" is a "FunctionTraits"
+// IsFunctionTraitsMemberFunction_v. Helper template yielding
+// "FunctionTraitsT::IsMemberFunction" (which stores "true" if
+// "FunctionTraitsT" represents a non-static member function including
+// functors), where "FunctionTraitsT" is a "FunctionTraits"
 // specialization. Note that there's usually no benefit to this
-// particular alias however compared to calling
-// "FunctionTraitsT::IsMemberFunc" directly (there's no reduction in
-// verbosity), but it's provided for consistency anyway (to ensure an
-// alias is available for all members of"FunctionTraits"). In most cases
-// you should rely on the "IsMemberFunction_v" helper alias instead
-// however, which just defers to "IsFunctionTraitsMemberFunction_v" and
-// is easier to use.
+// particular helper template however compared to calling
+// "FunctionTraitsT::IsMemberFunction" directly (there's no reduction in
+// verbosity), but it's provided for consistency anyway (to ensure a
+// helper template is available for all members of"FunctionTraits"). In
+// most cases you should rely on the "IsMemberFunction_v" helper
+// template instead however, which just defers to
+// "IsFunctionTraitsMemberFunction_v" and is easier to use.
 //
 // Note that you might want to invoke the following to determine if
 // "FunctionTraits" does in fact target a non-static member function
-// before invoking any other alias specific to non-static member
+// before invoking any other helper template specific to non-static member
 // functions only (if you don't know this ahead of time). The following
-// aliases are affected:
+// templates are affected:
 //
 //     1) FunctionTraitsMemberFunctionClass_t
 //     2) MemberFunctionTraitsClassName
@@ -2906,20 +2931,20 @@ inline constexpr bool IsFunctionTraitsFunctor_v = FunctionTraitsT::IsFunctor;
 // expected "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsMemberFunction_v = FunctionTraitsT::IsMemberFunc;
+inline constexpr bool IsFunctionTraitsMemberFunction_v = FunctionTraitsT::IsMemberFunction;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsMemberFunctionConst_v. Helper alias yielding
+// IsFunctionTraitsMemberFunctionConst_v. Helper template yielding
 // "FunctionTraitsT::IsConst" (storing true or false to indicate if the
 // non-static function repesented by "FunctionTraitsT" is declared with
 // the "const" qualifier), where "FunctionTraitsT" is a "FunctionTraits"    
 // specialization. Note that there's usually no benefit to this
-// particular alias however compared to calling
+// particular helper template however compared to calling
 // "FunctionTraitsT::IsConst" directly (there's no reduction in
-// verbosity), but it's provided for consistency anyway (to ensure an
-// alias is available for all members of "FunctionTraits"). In most
-// cases you should rely on the "IsMemberFunctionConst_v" helper alias
-// instead however, which just defers to
+// verbosity), but it's provided for consistency anyway (to ensure a
+// helper template is available for all members of "FunctionTraits"). In
+// most cases you should rely on the "IsMemberFunctionConst_v" helper
+// template instead however, which just defers to
 // "IsFunctionTraitsMemberFunctionConst_v" and is easier to use.
 //
 // Note that this member is always false for free functions and static
@@ -2939,17 +2964,17 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr bool IsFunctionTraitsMemberFunctionConst_v = FunctionTraitsT::IsConst;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsMemberFunctionVolatile_v. Helper alias yielding
+// IsFunctionTraitsMemberFunctionVolatile_v. Helper template yielding
 // "FunctionTraitsT::IsVolatile" (storing true or false to indicate if
 // the non-static function repesented by "FunctionTraitsT" is declared
 // with the "volatile" qualifier), where "FunctionTraitsT" is a
 // "FunctionTraits" specialization. Note that there's usually no benefit
-// to this particular alias however compared to calling
+// to this particular helper template however compared to calling
 // "FunctionTraitsT::IsVolatile" directly (there's no reduction in
-// verbosity), but it's provided for consistency anyway (to ensure an
-// alias is available for all members of "FunctionTraits"). In most
-// cases you should rely on the "IsMemberFunctionVolatile_v" helper
-// alias instead however, which just defers to
+// verbosity), but it's provided for consistency anyway (to ensure a
+// helper template is available for all members of "FunctionTraits"). In
+// most cases you should rely on the "IsMemberFunctionVolatile_v" helper
+// template instead however, which just defers to
 // "IsFunctionTraitsMemberFunctionVolatile_v" and is easier to use.
 //
 // Note that this member is always false for free functions and static
@@ -2969,17 +2994,17 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr bool IsFunctionTraitsMemberFunctionVolatile_v = FunctionTraitsT::IsVolatile;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsNoexcept_v. Helper alias yielding
+// IsFunctionTraitsNoexcept_v. Helper template yielding
 // "FunctionTraitsT::IsNoexcept" (true or false to indicate if the
 // function repesented by "FunctionTraitsT" is declared as "noexcept"),
 // where "FunctionTraitsT" is a "FunctionTraits" specialization. Note
-// that there's usually no benefit to this particular alias however
-// compared to calling "FunctionTraitsT::IsNoexcept" directly (there's
-// no reduction in verbosity), but it's provided for consistency anyway
-// (to ensure an alias is available for all members of "FunctionTraits").
-// In most cases you should rely on the "IsNoexcept_v" helper alias
-// instead however, which just defers to "IsFunctionTraitsNoexcept_v"
-// and is easier to use.
+// that there's usually no benefit to this particular helper template
+// however compared to calling "FunctionTraitsT::IsNoexcept" directly
+// (there's no reduction in verbosity), but it's provided for
+// consistency anyway (to ensure a helper template is available for all
+// members of "FunctionTraits"). In most cases you should rely on the
+// "IsNoexcept_v" helper template instead however, which just defers to
+// "IsFunctionTraitsNoexcept_v" and is easier to use.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -2993,25 +3018,26 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr bool IsFunctionTraitsNoexcept_v = FunctionTraitsT::IsNoexcept;
 
 //////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsVariadic_v. Helper alias yielding
-// "FunctionTraitsT::IsVariadic" (the type of the function repesented by
-// "FunctionTraitsT"), where "FunctionTraitsT" is a "FunctionTraits"
-// specialization. Note that there's usually no benefit to this
-// particular alias however compared to calling
-// "FunctionTraitsT::IsVariadic" directly (there's no reduction in
-// verbosity), but it's provided for consistency anyway (to ensure an
-// alias is available for all members of "FunctionTraits"). In most
-// cases you should rely on the "IsVariadic_v" helper alias instead
-// however, which just defers to "IsFunctionTraitsVariadic_v" and is
-// easier to use.
+// IsFunctionTraitsVariadic_v. Helper template yielding
+// "FunctionTraitsT::IsVariadic" (the type of the function repesented
+// by "FunctionTraitsT"), where "FunctionTraitsT" is a
+// "FunctionTraits" specialization. Note that there's usually no
+// benefit to this particular helper template however compared to
+// calling "FunctionTraitsT::IsVariadic" directly (there's no
+// reduction in verbosity), but it's provided for consistency anyway
+// (to ensure a helper template is available for all members of
+// "FunctionTraits"). In most cases you should rely on the
+// "IsVariadic_v" helper template instead however, which just defers
+// to "IsFunctionTraitsVariadic_v" and is easier to use.
 //
 // Note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
 // (concept kicks in in C++20 or later so failure is guaranteed - in
-// C++17 or earlier however there is no guarantee compilation will fail
-// but usually will for other reasons - longer story but since C++20 or
-// later is fast becoming the norm we won't worry about it - pass the
-// expected "FunctionTraits" template arg and everything will be fine).
+// C++17 or earlier however there is no guarantee compilation will
+// fail but usually will for other reasons - longer story but since
+// C++20 or later is fast becoming the norm we won't worry about it -
+// pass the expected "FunctionTraits" template arg and everything
+// will be fine).
 //////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr bool IsFunctionTraitsVariadic_v = FunctionTraitsT::IsVariadic;
@@ -3053,18 +3079,19 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr tstring_view FunctionTraitsMemberFunctionClassName_v = TypeName_v<FunctionTraitsMemberFunctionClass_t<FunctionTraitsT>>;
 
 /////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionRefQualifier_v. Helper alias yielding
+// FunctionTraitsMemberFunctionRefQualifier_v. Helper template yielding
 // "FunctionTraitsT::RefQualifier" (which stores the reference qualifier
 // "&" or "&&" if the non-static function repesented by
 // "FunctionTraitsT" is declared with either), where "FunctionTraitsT"
 // is a "FunctionTraits" specialization. Note that there's usually no
-// benefit to this particular alias however compared to calling
-// "FunctionTraitsT::RefQualifier" directly (there's no reduction in
-// verbosity), but it's provided for consistency anyway (to ensure an
-// alias is available for all members of "FunctionTraits"). In most
-// cases you should rely on the "IsMemberFunctionRefQualifier_v" helper
-// alias instead however, which just defers to
-// "IsMemberFunctionTraitsRefQualifier_v" and is easier to use.
+// benefit to this particular helper template however compared to
+// calling "FunctionTraitsT::RefQualifier" directly (there's no
+// reduction in verbosity), but it's provided for consistency anyway (to
+// ensure a helper template is available for all members of
+// "FunctionTraits"). In most cases you should rely on the
+// "IsMemberFunctionRefQualifier_v" helper template instead however,
+// which just defers to "IsMemberFunctionTraitsRefQualifier_v" and is
+// easier to use.
 //
 // Note that this member is always "RefQualifier::None" for free
 // functions and static member functions (not applicable to them). You
@@ -3140,12 +3167,54 @@ using FunctionTraitsReturnType_t = typename FunctionTraitsT::ReturnType;
 template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr tstring_view FunctionTraitsReturnTypeName_v = TypeName_v<FunctionTraitsReturnType_t<FunctionTraitsT>>;
 
+////////////////////////////////////////////////////////////////////////////
+// IsFunctionTraitsEmptyArgList_v. Helper template returning "true" if the
+// function represented by "FunctionTraitsT" has an empty arg list (it has
+// no args whatsoever including variadic args), or "false" otherwise (where
+// "FunctionTraitsT" is a "FunctionTraits" specialization). If true then
+// note that the "FunctionTraitsArgCount_v" helper is guaranteed to return
+// zero (0), and the "IsFunctionTraitsVariadic_v" helper is guaranteed to
+// return false. Please note that in most cases you should rely on the
+// "IsEmptyArgList_v" helper template instead however, which just defers to
+// "IsFunctionTraitsEmptyArgList_v" and is easier to use.
+//
+// IMPORTANT:
+// ----------
+// Note that you should rely on this helper to determine if a function's
+// argument list is completely empty opposed to checking the
+// "FunctionTraitsArgCount_v" helper for zero (0), since the latter returns
+// zero only if the function represented by "FunctionTraitsT" has no
+// non-variadic args. If it has variadic args but no others, i.e., its
+// argument list is "(...)", then the argument list isn't completely empty
+// even though "FunctionTraitsArgCount_v" returns zero (since it still has
+// variadic args). Caution advised.
+//
+// Lastly, note that the "FunctionTraitsT" template arg must be a
+// "FunctionTraits" specialization or compilation will normally fail
+// (concept kicks in in C++20 or later so failure is guaranteed - in C++17
+// or earlier however there is no guarantee compilation will fail but
+// usually will for other reasons - longer story but since C++20 or later
+// is fast becoming the norm we won't worry about it - pass the expected
+// "FunctionTraits" template arg and everything will be fine).
+////////////////////////////////////////////////////////////////////////////
+template <FUNCTION_TRAITS_C FunctionTraitsT>
+inline constexpr bool IsFunctionTraitsEmptyArgList_v = FunctionTraitsArgCount_v<FunctionTraitsT> == 0 && // Zero (non-variadic) args
+                                                       !IsFunctionTraitsVariadic_v<FunctionTraitsT>; // Not variadic
+
 /////////////////////////////////////////////////////////////////////////
-// ArgCount_v. Helper alias for "FunctionTraits::ArgCount" which yields
-// the number of args in function "F" not including variadic args if
-// any (i.e., where the last arg is "..."). Less verbose however than
+// ArgCount_v. Helper template for "FunctionTraits::ArgCount" which
+// yields the number of args in function "F" not including variadic args
+// if any (i.e., where the last arg is "..."). Less verbose however than
 // creating a "FunctionTraits" directly from "F" and accessing its
 // "ArgCount" member. The following provides a convenient wrappper.
+//
+// IMPORTANT:
+// ---------
+// Please note that if you wish to check if a function's argument list
+// is completely empty, then inspecting this helper template for zero
+// (0) is not sufficient, since it may return zero but still contain
+// variadic args. To check for a completely empty argument list, call
+// "IsEmptyArgList_v" instead. See this for further details.
 /////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr std::size_t ArgCount_v = FunctionTraitsArgCount_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -3231,7 +3300,7 @@ template <TRAITS_FUNCTION_C F>
 using ArgTypes_t = FunctionTraitsArgTypes_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 ///////////////////////////////////////////////////////////////////////////////
-// CallingConvention_v. Helper alias for "FunctionTraits::CallingConvention"
+// CallingConvention_v. Helper template for "FunctionTraits::CallingConvention"
 // which yields the calling convention of function "F" but less verbose than
 // creating a "FunctionTraits" directly from "F" and accessing its
 // "CallingConvention" member. The following provides a convenient wrappper.
@@ -3276,8 +3345,8 @@ inline constexpr tstring_view CallingConventionName_v = FunctionTraitsCallingCon
 //       using MyFunctionType = FunctionType_t<decltype(MyFunction)>;
 //       // using MyFunctionType = FunctionType_t<void (const std::string &, int)>; // This will also work (same as above but passing function's type on-the-fly)
 //       // using MyFunctionType = FunctionType_t<void (*)(const std::string &, int)>; // ... and this too (but now using a pointer to the function so the type
-//                                                                                   // will now reflect that - references to the function will also work, and
-//                                                                                   // references to pointers to the function as well)
+//                                                                                     // will now reflect that - references to the function will also work, and
+//                                                                                     // references to pointers to the function as well)
 ////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 using FunctionType_t = FunctionTraitsFunctionType_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -3290,42 +3359,77 @@ using FunctionType_t = FunctionTraitsFunctionType_t<FunctionTraits<F>>; // Defer
 template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view FunctionTypeName_v = FunctionTraitsTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
+///////////////////////////////////////////////////////////////////////////
+// IsEmptyArgList_v. Helper template yielding "true" if the function
+// represented by "F" has an empty arg list (it has no args whatsoever
+// including variadic args), or "false" otherwise. If true then note that
+// the "ArgCount_v" helper is guaranteed to return zero (0), and the
+// "IsVariadic_v" helper is guaranteed to return false. Note that this
+// helper template is less verbose than creating a "FunctionTraits"
+// directly from "F" and calling its own "IsFunctionTraitsEmptyArgList_v"
+// helper. The follow wraps the latter call for you.
+//
+// IMPORTANT:
+// ----------
+// Note that you should rely on this helper to determine if a function's
+// argument list is completely empty opposed to checking the "ArgCount_v"
+// helper for zero (0), since the latter returns zero only if "F" has no
+// non-variadic args. If it has variadic args but no others, i.e., its
+// argument list is "(...)", then the argument list isn't completely empty
+// even though "ArgCount_v" returns zero (since it still has variadic
+// args). Caution advised.
+///////////////////////////////////////////////////////////////////////////
+template <TRAITS_FUNCTION_C F>
+inline constexpr bool IsEmptyArgList_v = IsFunctionTraitsEmptyArgList_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+//////////////////////////////////////////////////////////////////////////////
+// IsFreeFunction_v. Helper template for "FunctionTraits::IsFreeFunction"
+// which stores "true" if "F" is a free function (including static member
+// functions) or false otherwise. This helper template is less verbose
+// however than creating a "FunctionTraits" directly from "F" and accessing
+// its "IsFreeFunction" member. The following provides a convenient wrappper.
+//////////////////////////////////////////////////////////////////////////////
+template <TRAITS_FUNCTION_C F>
+inline constexpr bool IsFreeFunction_v = IsFunctionTraitsFreeFunction_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
 ///////////////////////////////////////////////////////////////////////
-// IsFunctor_v. Helper alias for "FunctionTraits::IsFunctor" which
-// stores "true" if "F" is a functor or false otherwise. This helper
-// alias is less verbose however than creating a "FunctionTraits"
-// directly from "F" and accessing its "IsFunctor" member. The
-// following provides a convenient wrappper.
+// IsFunctor_v. Helper template for "FunctionTraits::IsFunctor" which
+// stores "true" if "F" is a functor or false otherwise (if "true"
+// then note that "IsMemberFunction_v" is also guaranteed to return
+// true). This helper template is less verbose however than creating a
+// "FunctionTraits" directly from "F" and accessing its "IsFunctor"
+// member. The following provides a convenient wrappper.
 ///////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsFunctor_v = IsFunctionTraitsFunctor_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-///////////////////////////////////////////////////////////////////////
-// IsMemberFunction_v. Helper alias for "FunctionTraits::IsMemberFunc"
+///////////////////////////////////////////////////////////////////////////
+// IsMemberFunction_v. Helper template for "FunctionTraits::IsMemberFunction"
 // which stores "true" if "F" is a non-static member function (or a
-// functor) or "false" otherwise (in the latter case "F" will always
-// be either a free function or static member function). This helper
-// alias is less verbose however than creating a "FunctionTraits"
-// directly from "F" and accessing its "IsMemberFunc" member. Note
-// that you might want to invoke the following to determine if "F" is
-// in fact a non-static member function before invoking any other
-// alias specific to non-static member functions only (if you don't
-// know this ahead of time). The following aliases are affected:
+// functor) or "false" otherwise (in the latter case "F" will always be
+// either a free function or static member function - see
+// "IsFreeFunction_v"). This helper template is less verbose however than
+// creating a "FunctionTraits" directly from "F" and accessing its
+// "IsMemberFunction" member. Note that you might want to invoke the
+// following to determine if "F" is in fact a non-static member function
+// before invoking any other helper template specific to non-static member
+// functions only (if you don't know this ahead of time). The following
+// templates are affected:
 //
-//        1) MemberFunctionClass_t
-//        2) MemberFunctionClassName_v
-//        3) IsMemberFunctionConst_v
-//        4) IsMemberFunctionVolatile_v
-//        4) MemberFunctionRefQualifier_v
-//        6) MemberFunctionRefQualifierName_v
-/////////////////////////////////////////////////////////////////////////
+//     1) MemberFunctionClass_t
+//     2) MemberFunctionClassName_v
+//     3) IsMemberFunctionConst_v
+//     4) IsMemberFunctionVolatile_v
+//     4) MemberFunctionRefQualifier_v
+//     6) MemberFunctionRefQualifierName_v
+///////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsMemberFunction_v = IsFunctionTraitsMemberFunction_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-/////////////////////////////////////////////////////////////////////////
-// IsMemberFunctionConst_v. Helper alias for "FunctionTraits::IsConst"
+//////////////////////////////////////////////////////////////////////////
+// IsMemberFunctionConst_v. Helper template for "FunctionTraits::IsConst"
 // which stores "true" if "F" is a non-static member function with a
-// "const" cv-qualifier or false otherwise. This helper alias is less
+// "const" cv-qualifier or false otherwise. This helper template is less
 // verbose however than creating a "FunctionTraits" directly from "F"
 // and accessing its "IsConst" member. The following provides a
 // convenient wrappper. Note that this member is always false for free
@@ -3333,38 +3437,38 @@ inline constexpr bool IsMemberFunction_v = IsFunctionTraitsMemberFunction_v<Func
 // may therefore want to call "IsMemberFunction_v" to determine if "F"
 // is a non-static member function before invoking the following (if
 // required).
-/////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsMemberFunctionConst_v = IsFunctionTraitsMemberFunctionConst_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-/////////////////////////////////////////////////////////////////////////////
-// IsMemberFunctionVolatile_v. Helper alias for "FunctionTraits::IsVolatile"
-// which stores "true" if "F" is a non-static member function with a
-// "volatile" cv-qualifier or false otherwise. This helper alias is less
-// verbose however than creating a "FunctionTraits" directly from "F" and
-// accessing its "IsVolatile" member. The following provides a convenient
-// wrappper. Note that this member is always false for free functions and
-// static member functions (not applicable to them). You may therefore want
-// to call "IsMemberFunction_v" to determine if "F" is a non-static member
-// function before invoking the following (if required).
-/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+// IsMemberFunctionVolatile_v. Helper template for "FunctionTraits::IsVolatile"
+// which stores "true" if "F" is a non-static member function with a "volatile"
+// cv-qualifier or false otherwise. This helper template is less verbose however
+// than creating a "FunctionTraits" directly from "F" and accessing its
+// "IsVolatile" member. The following provides a convenient wrappper. Note that
+// this member is always false for free functions and static member functions
+// (not applicable to them). You may therefore want to call
+// "IsMemberFunction_v" to determine if "F" is a non-static member function
+// before invoking the following (if required).
+/////////////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsMemberFunctionVolatile_v = IsFunctionTraitsMemberFunctionVolatile_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-///////////////////////////////////////////////////////////////////////
-// IsNoexcept_v. Helper alias for "FunctionTraits::IsNoexcept" which
+/////////////////////////////////////////////////////////////////////////
+// IsNoexcept_v. Helper template for "FunctionTraits::IsNoexcept" which
 // stores "true" if "F" is declared as "noexcept" or false otherwise.
-// This helper alias is less verbose however than creating a
+// This helper template is less verbose however than creating a
 // "FunctionTraits" directly from "F" and accessing its "IsNoexcept"
 // member. The following provides a convenient wrappper.
-///////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsNoexcept_v = IsFunctionTraitsNoexcept_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 /////////////////////////////////////////////////////////////////////////
-// IsVariadic_v. Helper alias for "FunctionTraits::IsVariadic" which
+// IsVariadic_v. Helper template for "FunctionTraits::IsVariadic" which
 // stores "true" if "F" is a variadic function (last arg is "...") or
-// false otherwise. This helper alias is less verbose however than
+// false otherwise. This helper template is less verbose however than
 // creating a "FunctionTraits" directly from "F" and accessing its
 // "IsVariadic" member. The following provides a convenient wrappper.
 /////////////////////////////////////////////////////////////////////////
@@ -3396,11 +3500,11 @@ template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view MemberFunctionClassName_v = FunctionTraitsMemberFunctionClassName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 //////////////////////////////////////////////////////////////////////////
-// MemberFunctionRefQualifier_v. Helper alias for
+// MemberFunctionRefQualifier_v. Helper template for
 // "FunctionTraits::RefQualifier" which stores the reference qualifier
 // for "F" if it's a non-static member function with a "&" or "&&"
 // reference-qualifier or "RefQualifier::None" otherwise. This helper
-// alias is less verbose however than creating a "FunctionTraits"
+// template is less verbose however than creating a "FunctionTraits"
 // directly from "F" and accessing its "RefQualifier" member. The
 // following provides a convenient wrappper. Note that this member is
 // always "RefQualifier::None" for free functions and static member
@@ -3455,50 +3559,60 @@ using ReturnType_t = FunctionTraitsReturnType_t<FunctionTraits<F>>; // Defers to
 template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view ReturnTypeName_v = FunctionTraitsReturnTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-///////////////////////////////////////////////////////////////
-// For internal use only (by template "IsForEachFunctor" just
-// after this namespace)
-///////////////////////////////////////////////////////////////
-namespace Private
-{
-    template <typename FunctorT>
-    using ForEachCallOperator0_t = decltype(&FunctorT::template operator()<std::size_t(0)>);
-}
-
-/////////////////////////////////////////////////////////////
-// "IsForEachFunctor" (primary template). Determines if
-// template are "T" is a functor whose "operator()" member
-// has the following signature (and if so "T" qualifies as a
-// functor that can be passed to function template "ForEach()"
-// declared later on):
+////////////////////////////////////////////////////////////////////////////
+// "IsForEachFunctor" (primary template). Determines if template arg "T" is
+// a functor type whose "operator()" member has the following signature and
+// is also callable in the context of whether "T" is "const" and/or
+// "volatile" and or an lvalue or rvalue (read on):
 //
-//    template <std::size_t I>
-//    bool operator()();
+//     template <std::size_t I>
+//     bool operator()() [const] [volatile] [&|&&];
 //
-// The only criteria checked is:
+// If "T" contains this function AND it can also be called on an instance
+// of "T" (again, read on), then "T" qualifies as a functor that can be
+// passed to function template "ForEach()" declared later on. Note that the
+// specialization just below does the actual work of checking for this. It
+// simply invokes the above function template in an unevaluated context
+// using "std::declval()" as follows:
 //
-//     1) It's a template taking a single "std::size_t"
-//        template arg as seen above (representing the Ith
-//        iteration the function's being called for when
-//        an object of type "T" is passed to "ForEach()" - 
-//        it's named "I" to reflect this, i.e., the Ith
-//        iteration analogous to "i" in a classic "for"
-//        loop like "for(i = 0; i < N; ++i)", though the
-//        name "i" or "I" isn't relevant)
-//     2) It returns a bool (note that for now we don't check
-//        for "const bool" or references to bools since few
-//        will ever have reason to use them)
-//     3) It takes no arguments
+//     T::operator<0>()
 //
-// No other criteria is checked, such as whether its "const",
-// "noexcept", etc. Note that the primary template kicks in
-// only if the above does *not* hold for "T", in which case
-// the primary template inherits from "std::false_type".
-// Otherwise, if it does hold then the specialization just
-// below kicks in instead, which inherits from
-// "std::true_type". The specialization does the actual work
-// of checking the above criteria
-/////////////////////////////////////////////////////////////
+// If the call succeeds then "operator()" must not only exist as a member
+// of "T" with a "bool" return type (we check for this as well), but it's
+// also callable in the context of whether "T" is "const" and/or "volatile"
+// and or an lvalue or rvalue. Note that to qualify as an lvalue for
+// purposes of "IsForEachFunctor", "T" must be an lvalue reference such as
+// "int &". To qualify as an rvalue, "T" must either be a non-reference
+// type such as a plain "int" OR an rvalue reference such as "int &&". The
+// behaviour of what qualifies as an lvalue and rvalue for purposes of
+// using "IsForEachFunctor" therefore follows the usual perfect forwarding
+// rules for function template arguments (where an lvalue reference for "T"
+// means the function's "T &&" argument collapses to an lvalue reference,
+// and a non-reference type or rvalue reference type for "T" means the
+// function's "T &&" argument is an rvalue reference - read up on perfect
+// forwarding for details if you're not already familiar this).
+//
+// As an example, if "T" contains the above "operator()" template but it's
+// not declared with the "const" qualifier but "T" itself is (declared
+// "const"), then calling the function as shown above fails since you can't
+// call a non-const member function using a constant object. The primary
+// template therefore kicks in, inheriting from "std::false_type".
+// Similarly, if "operator()" is declared with the "&&" reference qualifier
+// (rare as this is in practice), but "T" is an lvalue reference, then
+// again, the above call fails since you can't invoke a member function
+// declared with the "&&" (rvalue) reference qualifier using an lvalue
+// reference. Again, the primary template will therefore kick in (once
+// again inheriting from "std::false_type"). The upshot is that not only
+// must "operator()" exist as a member of "T", it must also be callable in
+// the context of "T" itself (whether "T" is "const" and/or "volatile"
+// and/or an lvalue reference, rvalue reference or non-reference - in all
+// cases "operator()" must be properly declared to support calls based on
+// the cv-qualifiers and/or lvalue/rvalue state of "T" itself as described
+// above). If it is then the specialization kicks in and "IsForEachFunctor"
+// therefore inherits from "std::true_type" (meaning "T" is a suitable
+// functor type for passing as the 2nd template arg of function template
+// "ForEach()").
+////////////////////////////////////////////////////////////////////////////
 template <typename T, typename = void>
 struct IsForEachFunctor : std::false_type
 {
@@ -3507,14 +3621,31 @@ struct IsForEachFunctor : std::false_type
 /////////////////////////////////////////////////////////////////
 // Specialization of "IsForEachFunctor" (primary) template just
 // above. This specialization does all the work. See primary
-// template above for details.
+// template above for details. Note that calls to "declval(T)"
+// return "T &&" (unless "T" is void - see "declval()" docs) so
+// the following call to this works according to the usual
+// perfect forwarding rules in C++. That is, if "T" is an lvalue
+// reference then "declval()" returns an lvalue reference (due
+// to the C++ reference collapsing rules), otherwise "T" must be
+// an a non-reference or an rvalue reference so "declval"
+// returns an rvalue reference (in either case). In all cases
+// "declval()" therefore returns the same function argument type
+// used in a perfect forwarding function. Such arguments are
+// always of the type "T &&" which resolves to an lvalue
+// reference only if "T" is an lvalue reference (again, due to
+// the C++ reference collapsing rules), or an rvalue reference
+// if "T" is a non-reference or rvalue reference. "declval()"
+// therefore returns the exact same type as a perfectly
+// forwarded argument after plugging in "T" which is what we
+// require here (we're invoking "operator()" on that argument in
+// the following call in an unevaluated context simply to make
+// sure it can be invoked - the primary template kicks in via
+// SFINAE otherwise).
 /////////////////////////////////////////////////////////////////
 template <typename T>
 struct IsForEachFunctor<T,
-                        std::enable_if_t<ArgCount_v<Private::ForEachCallOperator0_t<T>> == 0 && // "T::operator()" template exists and takes no args
-                                         std::is_same_v<ReturnType_t<Private::ForEachCallOperator0_t<T>>, bool> && // "T::operator()" exists and returns a bool
-                                         MemberFunctionRefQualifier_v<Private::ForEachCallOperator0_t<T>> != RefQualifier::RValue>  // "T::operator()" exists and doesn't have the "&&" reference qualifier
-                                                                                                                                    // (highly unlikely but we check anyway - we only do lvalue calls)
+                        // See explanation of "declval()" in comments above
+                        std::enable_if_t<std::is_same_v<decltype(std::declval<T>().template operator()<std::size_t(0)>()), bool>>
                        > : std::true_type
 {
 };
@@ -3564,11 +3695,8 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
     //          // ...
     //      }
     /////////////////////////////////////////////////////////////////
-    #define STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(T) static_assert(IsForEachFunctor_v<T>, "\"" #T "\" must be a functor whose \"operator()\" member is a template with a single " \
-                                                                                      "\"std::size_t\" template arg (representing the \"Ith\" invocation of the functor) and " \
-                                                                                      "the function itself takes no arguments and returns a bool (note that rvalue-qualifiers " \
-                                                                                      "aren't supported on the function though these would be extremely rare). Functor is " \
-                                                                                      "therefore suitable for passing to \"ForEach()\"");
+    #define STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(T) static_assert(IsForEachFunctor_v<T>);
+
     // See comment block above
     #define FOR_EACH_FUNCTOR_C typename
 #endif
@@ -3586,14 +3714,41 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
     /////////////////////////////////////////////////////
     namespace Private
     {
+        /////////////////////////////////////////////////////////////
+        // class ForEachImpl. Private implementation class used by
+        // function template "ForEach()" declared just after this
+        // private namespace. See this for details. Note that in the
+        // following class, "ForEachFunctorT" is always the same
+        // template type passed to "ForEach()", so either "T &" for
+        // the lvalue case or just plain "T" or "T &&" for the rvalue
+        // case (for the "rvalue" case however usually just plain
+        // "T" as per the usual perfect forwarding rules when
+        // invoking such functions via implicit type deduction).
+        ///////////////////////////////////////////////////////////
         template <std::size_t N, typename ForEachFunctorT>
         class ForEachImpl
         {
             STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(ForEachFunctorT);
 
         public:
-            constexpr ForEachImpl(ForEachFunctorT& functor) noexcept
-                : m_Functor(functor)
+            /////////////////////////////////////////////////////////
+            // Constructor. Note that we always pass "functor" by a
+            // "std::forward" reference so "functor" resolves to "&"
+            // or "&&" accordingly
+            /////////////////////////////////////////////////////////
+            constexpr ForEachImpl(ForEachFunctorT&& functor) noexcept
+                ///////////////////////////////////////////////////////////
+                // "std::forward" required when "ForEachFunctorT" is "&&".
+                // Both "functor" and "m_Functor" are therefore "&&" but
+                // "functor" is still an lvalue because it's named (rvalue
+                // references that are named are lvalues!). Therefore
+                // illegal to bind an lvalue (functor) to an rvalue
+                // reference (m_Functor) so "std::forward" is required to
+                // circumvent this (for the "&&" case it returns an "&&"
+                // reference but it's now unnamed so an rvalue and therefore
+                // suitable for initializing "m_Functor")
+                ///////////////////////////////////////////////////////////
+                : m_Functor(std::forward<ForEachFunctorT>(functor))
             {
             }
 
@@ -3602,7 +3757,19 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
             {
                 if constexpr (I < N)
                 {
-                    if (m_Functor.template operator()<I>())
+                    //////////////////////////////////////////////////////////
+                    // Note: Call to "std::forward()" here required to:
+                    // 
+                    //    1) Perfect forward "m_Functor" back to "&" or "&&"
+                    //       accordingly
+                    //    2) In the "&&" case, invoke "operator()" in the
+                    //       context of an rvalue (in particular, can't do
+                    //       this on "m_Functor" directly, without invoking
+                    //       "std::forward", since "m_Functor" is an lvalue
+                    //       so the lvalue version of "operator()" would kick
+                    //       in in the following call instead!!)
+                    //////////////////////////////////////////////////////////
+                    if (std::forward<ForEachFunctorT>(m_Functor).template operator()<I>())
                     {
                         ////////////////////////////////////////////////
                         // Recursive call (in spirit anyway - actually
@@ -3623,7 +3790,14 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
             }
 
         private:
-            ForEachFunctorT& m_Functor;
+            /////////////////////////////////////////////////////
+            // Note: Resolves to "&" in the lvalue case or "&&"
+            // otherwise (by the usual C++ reference collapsing
+            // rules - "ForEachFunctorT" is always "T &" in the
+            // former case or either plain "T" or "T &&"
+            // otherwise)
+            /////////////////////////////////////////////////////
+            ForEachFunctorT &&m_Functor;
         };
     }
 #endif // #if CPP17_OR_EARLIER
@@ -3729,17 +3903,84 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 //     ForEach<std::tuple_size_v<TupleT>>(displayTupleElement);
 ///////////////////////////////////////////////////////////////////
 template <std::size_t N, FOR_EACH_FUNCTOR_C ForEachFunctorT>
-inline constexpr bool ForEach(ForEachFunctorT& functor)
+inline constexpr bool ForEach(ForEachFunctorT&& functor)
 {
     // Lambda templates not supported until C++20
     #if CPP20_OR_LATER
-        // Lambda template
+        ////////////////////////////////////////////////////////////
+        // Lambda template we'll be calling "N" times for the given
+        // template arg "N" in "ForEach()" (the function you're now
+        // reading). Each iteration invokes "functor", where
+        // processing stops after "N" calls to "functor" or 
+        // "functor" returns false, whichever comes first (false only
+        // returned if "functor" wants to break like a normal "for"
+        // loop, which rarely happens in practice so we usually
+        // iterate "N" times)
+        //
+        // IMPORTANT:
+        // ---------
+        // The parameter "functor" (we'll call this the "outer"
+        // functor) is always a reference type so it's always of
+        // the form "T&" or "T&&". The following lambda captures it
+        // by (lvalue) reference as seen so it effectively creates
+        // an (lvalue) reference (member) variable that either
+        // looks like this:
+        //
+        //     T& &functor;
+        //
+        // or this:
+        //
+        //     T&& &functor;
+        //
+        // We'll call this the "inner" functor. In either case
+        // however the usual reference collapsing rules then kick
+        // in so it always resolves to this (Google for these
+        // rules if you're not already familiar):
+        //
+        //     T& functor;
+        //
+        // IOW, the inner "functor" is always an lvalue reference
+        // inside the lambda even when the outer "functor" is an
+        // rvalue reference. We therefore need to invoke
+        // "std::forward" on it in the lambda below so that we get
+        // back the correct "&" or "&&" reference of the outer
+        // "functor" itself, which we then invoke in the correct
+        // "&" or "&&" context below. See comments below.
+        ////////////////////////////////////////////////////////////
         const auto process = [&functor]<std::size_t I>
-                             (auto &process) // Using same name as the "process" lambda itself but it always refers to it
+                             (const auto &process)
                              {
                                  if constexpr (I < N)
                                  {
-                                     if (functor.template operator()<I>())
+                                     //////////////////////////////////////////////////////////
+                                     // See comments above. We call "std::forward()" here to
+                                     // convert the inner "functor" back to the correct "&" or
+                                     // "&&" reference type of the outer "functor" (note that
+                                     // the inner "functor" member variable we're working with
+                                     // here is always an lvalue reference as described in the
+                                     // comments above). We then immediately invoke the
+                                     // functor in this context noting that it wouldn't work
+                                     // correctly in the "&&" case if we assigned the return
+                                     // value of "std::forward" to a variable first and then
+                                     // invoked the functor. We need to invoke the functor
+                                     // using the return value of "std::forward" directly,
+                                     // on-the-fly as seen. If we assigned it to a variable
+                                     // first instead then in the "&&" case we'd have a
+                                     // variable of type "&&" but since the variable has a
+                                     // name it would be an lvalue, since named variables are
+                                     // always lvalues (even for "&&" reference variables).
+                                     // Invoking the functor on that lvalue variable would
+                                     // therefore call the functor in the context of an
+                                     // lvalue, not an rvalue which is what we require (so,
+                                     // for instance, if the "operator()" member of "functor"
+                                     // has an "&&" reference qualifier, though this would be
+                                     // rare in practice but still always possible, a compiler
+                                     // error would occur since we'd be attempting to call
+                                     // that function using an lvalue which isn't legal -
+                                     // doing it using the rvalue returned directly by
+                                     // "std::forward()" works correctly).
+                                     //////////////////////////////////////////////////////////
+                                     if (std::forward<ForEachFunctorT>(functor).template operator()<I>())
                                      {
                                          ////////////////////////////////////////////////
                                          // Recursive call (in spirit anyway - actually
@@ -3762,71 +4003,125 @@ inline constexpr bool ForEach(ForEachFunctorT& functor)
         return process.template operator()<0>(process);
     #else
         STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(ForEachFunctorT);
-        return Private::ForEachImpl<N, ForEachFunctorT>(functor).template Process<0>();
+
+        //////////////////////////////////////////////////////////
+        // Create an instance of "Private::ForEachImpl" and
+        // invoke its "Process()" member function template,
+        // passing 0 for its template arg (to start processing
+        // the first iteration). The latter function then
+        // recursively invokes itself, calling "functor" "N"
+        // times or until "functor" returns false, whichever
+        // comes first (false only returned if "functor" wants to
+        // break like a normal "for" loop, which rarely happens
+        // in practice so we usually iterate "N" times)
+        //
+        // Note: The "ForEachFunctorT" template arg we're passing
+        // here as the 2nd template arg of class of
+        // "Private::ForEachImpl "means that the latter's
+        // constructor will take the same arg type as "functor"
+        // itself (& or && as usual). We then call "std::forward"
+        // as seen to pass "functor" to the constructor. Note
+        // that "std::forward" is mandatory here because
+        // "functor" is an lvalue even in the "&&" case (since
+        // it's named - named rvalue references are still
+        // lvalues). Attempting to pass "functor" directly would
+        // therefore cause a compiler error since you can't bind
+        // an lvalue (functor) to an rvalue reference (the arg
+        // type that the "Private::ForEachImpl" constructor is
+        // expecting in this case).
+        ///////////////////////////////////////////////////////////
+        return Private::ForEachImpl<N, ForEachFunctorT>(std::forward<ForEachFunctorT>(functor)).template Process<0>();
     #endif
 }
 
-///////////////////////////////////////////////////////////////
-// For internal use only (by template "IsForEachTupleFunctor"
-// just after this namespace)
-///////////////////////////////////////////////////////////////
-namespace Private
-{
-    template <typename FunctorT>
-    using ForEachTupleCallOperator0_t = decltype(&FunctorT::template operator()<std::size_t(0), void>);
-}
-
-//////////////////////////////////////////////////////////////
-// "IsForEachTupleFunctor" (primary template). Determines if
-// template arg "T" is a functor whose "operator()" member
-// has the following signature  (and if so "T" qualifies as a
-// functor that can be passed to function template
-// "ForEachTupleType()" declared later on):
+////////////////////////////////////////////////////////////////////////////
+// "IsForEachTupleFunctor" (primary template). Determines if template arg
+// "T" is a functor type whose "operator()" member has the following
+// signature and is also callable in the context of whether "T" is "const"
+// and/or "volatile" and or an lvalue or rvalue (read on):
 //
-//    template <std::size_t I, typename TupleElementT>
-//    bool operator()();
+//     template <std::size_t I, typename TupleElementT>
+//     bool operator()() [const] [volatile] [&|&&];
 //
-// The only criteria checked is:
+// If "T" contains this function AND it can also be called on an instance
+// of "T" (again, read on), then "T" qualifies as a functor that can be
+// passed to function template "ForEachTupleType()" declared later on. Note
+// that the specialization just below does the actual work of checking for
+// this. It simply invokes the above function template in an unevaluated
+// context using "std::declval()" as follows:
 //
-//     1) It's a template taking a "std::size_t" template arg
-//        as seen (representing the "Ith" type in a tuple,
-//        called "I" above to reflect this, though what you
-//        call it isn't relevant), AND a 2nd "typename"
-//        template arg as seen (representing the type of the
-//        "Ith" tuple element for the given "I", which I've
-//        called "TupleElementT above to reflect the same name
-//        used in C++ itself, i.e., see "std::tuple_element"
-//        but again, the name "TupleElementT" isn't relevant).
-//     2) It returns a bool (note that for now we don't check
-//        for "const bool" or references to bools since few
-//        will ever have reason to use them)
-//     3) It takes no arguments
+//     T::operator<0, void>()
 //
-// No other criteria is checked, such as whether its "const",
-// "noexcept", etc. Note that the primary template kicks in
-// only if the above does *not* hold for "T" in which case
-// the primary template inherits from "std::false_type".
-// Otherwise, if it does hold then the specialiation below
-// kicks in instead, which inherits from "std::true_type". The
-// specialization does the actual work of checking the above
-// criteria.
-//////////////////////////////////////////////////////////////
+// If the call succeeds then "operator()" must not only exist as a member
+// of "T" with a "bool" return type (we check for this as well), but it's
+// also callable in the context of whether "T" is "const" and/or "volatile"
+// and or an lvalue or rvalue. Note that to qualify as an lvalue for
+// purposes of "IsForEachTupleFunctor", "T" must be an lvalue reference
+// such as "int &". To qualify as an rvalue, "T" must either be a
+// non-reference type such as a plain "int" OR an rvalue reference such as
+// "int &&". The behaviour of what qualifies as an lvalue and rvalue for
+// purposes of using "IsForEachTupleFunctor" therefore follows the usual
+// perfect forwarding rules for function template arguments (where an
+// lvalue reference for "T" means the function's "T &&" argument collapses
+// to an lvalue reference, and a non-reference type or rvalue reference
+// type for "T" means the function's "T &&" argument is an rvalue reference
+// - read up on perfect forwarding for details if you're not already
+// familiar this).
+//
+// As an example, if "T" contains the above "operator()" template but it's
+// not declared with the "const" qualifier but "T" itself is (declared
+// "const"), then calling the function as shown above fails since you can't
+// call a non-const member function using a constant object. The primary
+// template therefore kicks in, inheriting from "std::false_type".
+// Similarly, if "operator()" is declared with the "&&" reference qualifier
+// (rare as this is in practice), but "T" is an lvalue reference, then
+// again, the above call fails since you can't invoke a member function
+// declared with the "&&" (rvalue) reference qualifier using an lvalue
+// reference. Again, the primary template will therefore kick in (once
+// again inheriting from "std::false_type"). The upshot is that not only
+// must "operator()" exist as a member of "T", it must also be callable in
+// the context of "T" itself (whether "T" is "const" and/or "volatile"
+// and/or an lvalue reference, rvalue reference or non-reference - in all
+// cases "operator()" must be properly declared to support calls based on
+// the cv-qualifiers and/or lvalue/rvalue state of "T" itself as described
+// above). If it is then the specialization kicks in and
+// "IsForEachTupleFunctor" therefore inherits from "std::true_type"
+// (meaning "T" is a suitable functor type for passing as the 2nd template
+// arg of function template "ForEachTupleType()").
+////////////////////////////////////////////////////////////////////////////
 template <typename T, typename = void>
 struct IsForEachTupleFunctor : std::false_type
 {
 };
 
-//////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 // Specialization of "IsForEachTupleFunctor" (primary) template
-// just above. This specialization does all the work. See primary
-// template above for details.
-//////////////////////////////////////////////////////////////////
+// just above. This specialization does all the work. See
+// primary template above for details. Note that calls to
+// "declval(T)" return "T &&" (unless "T" is void - see
+// "declval()" docs) so the following call to this works
+// according to the usual perfect forwarding rules in C++. That
+// is, if "T" is an lvalue reference then "declval()" returns an
+// lvalue reference (due to the C++ reference collapsing rules),
+// otherwise "T" must be an a non-reference or an rvalue
+// reference so "declval" returns an rvalue reference (in either
+// case). In all cases "declval()" therefore returns the same
+// function argument type used in a perfect forwarding function.
+// Such arguments are always of the type "T &&" which resolves
+// to an lvalue reference only if "T" is an lvalue reference
+// (again, due to the C++ reference collapsing rules), or an
+// rvalue reference if "T" is a non-reference or rvalue
+// reference. "declval()" therefore returns the exact same type
+// as a perfectly forwarded argument after plugging in "T" which
+// is what we require here (we're invoking "operator()" on that
+// argument in the following call in an unevaluated context
+// simply to make sure it can be invoked - the primary template
+// kicks in via SFINAE otherwise).
+/////////////////////////////////////////////////////////////////
 template <typename T>
 struct IsForEachTupleFunctor<T,
-                             std::enable_if_t<ArgCount_v<Private::ForEachTupleCallOperator0_t<T>> == 0 && // "T::operator()" template exists and takes no args
-                                              std::is_same_v<ReturnType_t<Private::ForEachTupleCallOperator0_t<T>>, bool> && // "T::operator()" exists and returns a bool
-                                              MemberFunctionRefQualifier_v<Private::ForEachTupleCallOperator0_t<T>> != RefQualifier::RValue> // "T::operator()" exists and doesn't have the "&&" reference qualifier
-                                                                                                                                                // (highly unlikely but we check anyway - we only do lvalue calls)
+                             // See explanation of "declval()" in comments above
+                             std::enable_if_t<std::is_same_v<decltype(std::declval<T>().template operator()<std::size_t(0), void>()), bool>>
                             > : std::true_type
 {
 };
@@ -3879,12 +4174,8 @@ inline constexpr bool IsForEachTupleFunctor_v = IsForEachTupleFunctor<T>::value;
     //          // ...
     //      }
     //////////////////////////////////////////////////////////////////
-    #define STATIC_ASSERT_IS_FOR_EACH_TUPLE_FUNCTOR(T) static_assert(IsForEachTupleFunctor_v<T>, "\"" #T "\" must be a functor whose \"operator()\" member is a template with " \
-                                                                                                 "a \"std::size_t\" template arg (representing the \"Ith\" tuple element), a " \
-                                                                                                 "\"typename\" template arg (representing the type of the \"Ith\" element). " \
-                                                                                                 "and the function itself takes no arguments and returns a bool (note that " \
-                                                                                                 "rvalue-qualifiers aren't supported on the function either, though these would " \
-                                                                                                 "extremely rare). Functor is therefore suitable for passing to \"ForEachTupleType()\"");
+    #define STATIC_ASSERT_IS_FOR_EACH_TUPLE_FUNCTOR(T) static_assert(IsForEachTupleFunctor_v<T>);
+
     // See comment block above
     #define FOR_EACH_TUPLE_FUNCTOR_C typename
 #endif
@@ -3900,7 +4191,7 @@ inline constexpr bool IsForEachTupleFunctor_v = IsForEachTupleFunctor<T>::value;
 // (we're processing code for C++17 or later) so if the #defined constant
 // CPP17_OR_EARLIER we're testing just below is false (0), then we're
 // guaranteed to be processing C++20 or later (again, because we know that
-// the #defined constant CPP17_OR_LATER is currently true)
+// the #defined constant CPP17_OR_LATER is currently true).
 // /////////////////////////////////////////////////////////////////////////
 #if CPP17_OR_EARLIER
     ///////////////////////////////////////////////////
@@ -3908,7 +4199,19 @@ inline constexpr bool IsForEachTupleFunctor_v = IsForEachTupleFunctor<T>::value;
     // just after this namespace)
     ///////////////////////////////////////////////////
     namespace Private
-    {
+    {   
+        /////////////////////////////////////////////////////////////
+        // class ProcessTupleType. Private implementation class
+        // used by function template "ForEachTupleType()" declared
+        // just after this private namespace. See this for
+        // details.  Note that in the following class,
+        // "ForEachTupleFunctorT" is always the same template type
+        // passed to "ForEachTupleType()", so either "T &" for the
+        // lvalue case or just plain "T" or "T &&" for the rvalue
+        // case (for the "rvalue" case however usually just plain
+        // "T" as per the usual perfect forwarding rules when
+        // invoking such functions via implicit type deduction).
+        ///////////////////////////////////////////////////////////
         template <typename TupleT, typename ForEachTupleFunctorT>
         class ProcessTupleType
         {
@@ -3916,8 +4219,25 @@ inline constexpr bool IsForEachTupleFunctor_v = IsForEachTupleFunctor<T>::value;
             STATIC_ASSERT_IS_FOR_EACH_TUPLE_FUNCTOR(ForEachTupleFunctorT);
 
         public:
-            constexpr ProcessTupleType(ForEachTupleFunctorT& functor) noexcept
-                : m_Functor(functor)
+            /////////////////////////////////////////////////////////
+            // Constructor. Note that we always pass "functor" by a
+            // "std::forward" reference so "functor" resolves to "&"
+            // or "&&" accordingly
+            /////////////////////////////////////////////////////////
+            constexpr ProcessTupleType(ForEachTupleFunctorT &&functor) noexcept
+                ///////////////////////////////////////////////////////////
+                // "std::forward" required when "ForEachTupleFunctorT" is
+                // "&&". Both "functor" and "m_Functor" are therefore "&&"
+                // but "functor" is still an lvalue because it's named
+                // (rvalue references that are named are lvalues!).
+                // Therefore illegal to bind an lvalue (functor) to an
+                // rvalue reference (m_Functor) so "std::forward" is
+                // required to circumvent this (for the "&&" case it
+                // returns an "&&" reference but it's now unnamed so an
+                // rvalue and therefore suitable for initializing
+                // "m_Functor")
+                ///////////////////////////////////////////////////////////
+                : m_Functor(std::forward<ForEachTupleFunctorT>(functor))
             {
             }
 
@@ -3925,172 +4245,315 @@ inline constexpr bool IsForEachTupleFunctor_v = IsForEachTupleFunctor<T>::value;
             constexpr bool operator()() const
             {
                 using TupleElement_t = std::tuple_element_t<I, TupleT>;
-                return m_Functor.template operator()<I, TupleElement_t>();
+
+                //////////////////////////////////////////////////////////
+                // Note: Call to "std::forward()" here required to:
+                // 
+                //    1) Perfect forward "m_Functor" back to "&" or "&&"
+                //       accordingly
+                //    2) In the "&&" case, invoke "operator()" in the
+                //       context of an rvalue (in particular, can't do
+                //       this on "m_Functor" directly, without invoking
+                //       "std::forward", since "m_Functor" is an lvalue
+                //       so the lvalue version of "operator()" would kick
+                //       in in the following call instead!!)
+                //////////////////////////////////////////////////////////
+                return std::forward<ForEachTupleFunctorT>(m_Functor).template operator()<I, TupleElement_t>();
             }
 
         private:
-            ForEachTupleFunctorT& m_Functor;
+            /////////////////////////////////////////////////////
+            // Note: Resolves to "&" in the lvalue case or "&&"
+            // otherwise (by the usual C++ reference collapsing
+            // rules - "ForEachTupleFunctorT" is always "T &"
+            // in the former case or either plain "T" or "T &&"
+            // otherwise)
+            /////////////////////////////////////////////////////
+            ForEachTupleFunctorT &&m_Functor;
         };
     }
 #endif
 
+/////////////////////////////////////////////////////////////////////////
+// ForEachTupleType(). Iterates all tuple elements in "TupleT" where
+// "TupleT" is a "std::tuple" specialization, and invokes the given
+// "functor" for each. The effect of this function is that all types in
+// "TupleT" are iterated or none if "TupleT" is empty. For each type in
+// "TupleT", the given "functor" is invoked as noted. "functor" must be
+// a functor with the following functor (template) signature (where
+// items in square brackets are optional - note that an invalid functor
+// will trigger the FOR_EACH_TUPLE_FUNCTOR_C concept in C++20 or later,
+// or a "static_assert" in C++17, since we don't support earlier
+// versions - compile fails either way)
+//
+//     template <std::size_t I, typename TupleElementT>
+//     bool operator()() [const] [volatile] [ref-qualifier] [noexcept];
+//
+// Note that lambdas with this signature are also (therefore) supported
+// in C++20 or later (since lambda templates aren't supported in earlier
+// versions of C++ so you'll have to roll your own functor template if
+// targeting C++17). Note that free functions or other non-static member
+// functions besides "operator()" are not currently supported (but may
+// be in a future release):
+//
+//     Example
+//     -------
+//     ////////////////////////////////////////////////////////
+//     // Some tuple whose types you wish to iterate (display
+//     // in this example - see "displayTupleType" lambda
+//     // below).
+//     ////////////////////////////////////////////////////////
+//     std::tuple<int, float, double> someTuple;
+//
+//     /////////////////////////////////////////////////////////////////
+//     // Lambda that will be invoked just below, once for each type in
+//     // "someTuple()" above (where template arg "I" is the zero-based
+//     // "Ith" index of the type in "someTuple", and "TupleElementT" is
+//     // its type). Note that lambda templates are supported in C++20
+//     // and later only. For C++17 (this header doesn't support earlier
+//     // versions), you need to roll your own functor instead (with a
+//     // template version of "operator()" equivalent to this lambda)
+//     /////////////////////////////////////////////////////////////////
+//     const auto displayTupleType = []<std::size_t I, typename TupleElementT>()
+//                                   {
+//                                       /////////////////////////////////////////////////////////
+//                                       // Display the type of the (zero-based) "Ith" type in
+//                                       // "someTuple" using the following format (shown here
+//                                       // for "I" equals zero so "TupleElementT" is therefore
+//                                       // an "int", but whatever "I" and "TupleElementT" are
+//                                       // on each iteration - note that we increment zero-based
+//                                       // "I" by 1 however to display it as 1-based since it's
+//                                       // more natural for display purposes):
+//                                       //
+//                                       //    1) int
+//                                       //
+//                                       // Note that we never come through here if the tuple
+//                                       // represented by "someTuple" is empty.
+//                                       /////////////////////////////////////////////////////////
+//                                       tcout << (I + 1) << _T(") ") << TypeName_v<TupleElementT> << _T("\n");
+//
+//                                       //////////////////////////////////////////////
+//                                       // Return true to continue iterating (false
+//                                       // would stop iterating, equivalent to a
+//                                       // "break" statement in a regular "for" loop)
+//                                       //////////////////////////////////////////////
+//                                       return true;
+//                                   };
+//
+//     ///////////////////////////////////////////////////////////////
+//     // Iterate all tuple elements in "someTuple" meaning once for
+//     // each type in "someTuple()" above. Invokes "displayTupleType"
+//     // above for each. Outputs the following:
+//     //
+//     //     1) int
+//     //     2) float
+//     //     3) double
+//     //
+//     // Note that "ForEachTupleType()" returns true if the functor
+//     // you pass ("displayTupleType" in this example) returns true
+//     // or false otherwise (useful if your functor needs to "break"
+//     // like a normal "for" loop for any reason - iteration
+//     // immediately stops if it returns false and the following
+//     // therefore returns false). Always returns true in the above
+//     // example (and typically in most real-world code as well)
+//     ///////////////////////////////////////////////////////////////
+//     ForEachTupleType<decltype(someTuple)>(displayTupleType);
+/////////////////////////////////////////////////////////////////////////
 template <TUPLE_C TupleT, FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
-inline constexpr bool ForEachTupleType(ForEachTupleFunctorT& functor)
+inline constexpr bool ForEachTupleType(ForEachTupleFunctorT&& functor)
 {
     #if CPP17_OR_EARLIER
-        ////////////////////////////////////////////////
-        // In C++20 or later our TUPLE_C concept kicks
-        // in instead (in the function's template arg - 
-        // TUPLE_C simply resolves to the "typename"
-        // keyword in C++17 or earlier).
-        ////////////////////////////////////////////////
+        /////////////////////////////////////////////
+        // Kicks in if C++ 17 or earlier, otherwise
+        // TUPLE_C concept kicks in above instead
+        // (latter simply resolves to the "typename"
+        // keyword in C++17 or earlier)
+        /////////////////////////////////////////////
         STATIC_ASSERT_IS_TUPLE(TupleT)
 
-        ////////////////////////////////////////////////////
-        // In C++20 or later our FOR_EACH_TUPLE_FUNCTOR_C
-        // concept kicks in instead (in the function's
-        // template arg). FOR_EACH_TUPLE_FUNCTOR_C simply
-        // resolves to the "typename" keyword in C++17 or
-        // earlier).
-        ////////////////////////////////////////////////////
+        ///////////////////////////////////////////////
+        // Kicks in if C++ 17 or earlier, otherwise
+        // FOR_EACH_TUPLE_FUNCTOR_C concept kicks in
+        // above instead (latter simply resolves to
+        // the "typename" keyword in C++17 or earlier)
+        ///////////////////////////////////////////////
         STATIC_ASSERT_IS_FOR_EACH_TUPLE_FUNCTOR(ForEachTupleFunctorT)
     #endif
 
-    ////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     // IMPORTANT
     // ---------
-    // (Note: You need not read this (very) long
-    // explanation since we've correctly worked around it
-    // as described below, but I've included it here for
-    // posterity).
+    // (Note: You need not read this (very) long explanation since
+    // we've correctly worked around it as described below, but I've
+    // included it here for posterity).
     //
-    // The following call checks for zero as seen (true
-    // only when "TupleT" is empty), in order to completely
-    // bypass the call to "ForEach()" seen further below
-    // (when "TupleT" isn't empty). There's no need to call
-    // "ForEach()" further below if the tuple is empty
-    // since there's nothing to iterate. Note however that
-    // the latter call to "ForEach()" itself will also
-    // handle an empty tuple, since it will immediately
-    // return true if its "N" template arg is zero (0). The
-    // following check for an empty tuple would therefore
-    // seem to be redundant (unnecessary), since
-    // "ForEach()" also correctly deals with the situation.
-    // However, there's a subtle issue at play here that
-    // requires us not to call "ForEach()" when the tuple
-    // is in fact empty. Doing so would mean that the
-    // "operator()" template member of the
-    // "processTupleType" functor we're passing to
-    // "ForEach" below will be specialized on zero, (its
-    // "std::size_t" template arg will be zero), even
-    // though it will never actually be called by
-    // "ForEach()" (since the tuple is empty). "operator()"
-    // is still specialized on zero however because when
-    // "ForEach()" is stamped out on the template args we
-    // pass it, "IsForEachFunctor_v" is called to check if
-    // the 2nd template arg of "ForEach()" is a valid
-    // functor type. This occurs via a "static_assert" in
-    // C++17 or a concept in C++20 or later, but in either
-    // case "IsForEachFunctor_v" is called and the
-    // implementation for this stamps out a copy of the
-    // functor's "operator()" template arg, again, doing so
-    // with template arg zero (0). "operator()" isn't
-    // actually called at this time however, only stamped
-    // out (specialized on template arg zero), simply to
-    // make sure the functor type being passed is valid. If
-    // not then "IsForEachFunctor_v" will return false and
-    // the "static_assert" in C++17 or concept in C++20 or
-    // later will correctly trap the situation at compile
-    // time (i.e., an invalid type is being passed for the
-    // 2nd template arg of "ForEach"). However, if the 1st
-    // template arg of "ForEach", namely "N" (the number of
-    // iterations it will be called for), is zero itself,
-    // then although the functor's "operator()" template
-    // member will never be called since "N" is zero as
-    // noted (so there will beno iterations),
-    // "IsForEachFunctor_v" itself will still stamp out
-    // "operator()" with its "std::size_t" template arg set
-    // to zero (0) as just described. Note that
-    // "IsForEachFunctor_v" has no choice but to stamp out
-    // "operator()" since there's no other way in C++ for
-    // it do its job at this writing (check if a type is a
-    // functor with a template member, in this case
-    // "operator()" with a "std::size_t" template arg).
+    // The following call checks for zero as seen (true only when
+    // "TupleT" is empty), in order to completely bypass the call to
+    // "ForEach()" seen further below (when "TupleT" isn't empty).
+    // There's no need to call "ForEach()" further below if the
+    // tuple is empty since there's nothing to iterate. Note however
+    // that the latter call to "ForEach()" itself will also handle
+    // an empty tuple, since it will immediately return true if its
+    // "N" template arg is zero (0). The following check for an
+    // empty tuple would therefore seem to be redundant
+    // (unnecessary), since "ForEach()" also correctly deals with
+    // the situation. However, there's a subtle issue at play here
+    // that requires us not to call "ForEach()" when the tuple is in
+    // fact empty. Doing so would mean that the "operator()"
+    // template member of the "processTupleType" functor we're
+    // passing to "ForEach" below will be specialized on zero, (its
+    // "std::size_t" template arg will be zero), even though it will
+    // never actually be called by "ForEach()" (since the tuple is
+    // empty). "operator()" is still specialized on zero however
+    // because when "ForEach()" is stamped out on the template args
+    // we pass it, "IsForEachFunctor_v" is called to check if the
+    // 2nd template arg of "ForEach()" is a valid functor type. This
+    // occurs via a "static_assert" in C++17 or a concept in C++20
+    // or later, but in either case "IsForEachFunctor_v" is called
+    // and the implementation for this stamps out a copy of the
+    // functor's "operator()" template arg, again, doing so with
+    // template arg zero (0). "operator()" isn't actually called at
+    // this time however, only stamped out (specialized on template
+    // arg zero), simply to make sure the functor type being passed
+    // is valid. If not then "IsForEachFunctor_v" will return false
+    // and the "static_assert" in C++17 or concept in C++20 or later
+    // will correctly trap the situation at compile time (i.e., an
+    // invalid type is being passed for the 2nd template arg of
+    // "ForEach"). However, if the 1st template arg of "ForEach",
+    // namely "N" (the number of iterations it will be called for),
+    // is zero itself, then although the functor's "operator()"
+    // template member will never be called since "N" is zero as
+    // noted (so there will beno iterations), "IsForEachFunctor_v"
+    // itself will still stamp out "operator()" with its
+    // "std::size_t" template arg set to zero (0) as just described.
+    // Note that "IsForEachFunctor_v" has no choice but to stamp out
+    // "operator()" since there's no other way in C++ for it do its
+    // job at this writing (check if a type is a functor with a
+    // template member, in this case "operator()" with a
+    // "std::size_t" template arg).
     //
     // There's a problem with this situation however. Our
-    // (identical) implementation of "operator()" seen in
-    // both the lambda below (for C++20 and later), or in
-    // class "Private::ProcessTupleType" (C++17 only), both
-    // call "std::tuple_element_t<I, TupleT>", but if the
-    // "TupleT" template are we're passing to this is
-    // empty, then it's illegal to call it for any index
-    // including zero (since the tuple is empty so even
-    // index zero is out of bounds). Template "I" in this
-    // call (zero) is therefore an invalid index so
-    // compilation will therefore fail (but not in C++17
-    // for reasons unknown - read on). The upshot is that
-    // when dealing with an empty tuple, i.e., the "TupleT"
-    // template arg of the function you're now reading is
-    // empty, we can't call "ForEach()" because even though
-    // it won't iterate the functor it's being passed
-    // (since the "N" template arg of "ForEach()" will be
-    // zero in this case), the call to "IsForEachFunctor_v"
-    // that occurs merely by stamping out "ForEach()" will
-    // cause the call to "std::tuple_element_t<I, TupleT>"
-    // in our functor to choke during compilation (since
-    // it's stamped out with its "I" template arg set to
-    // zero but the "TupleT" template arg is empty so "I"
-    // is an illegal index). Again, this occurs even though
-    // the code is never actually called, but it's illegal
+    // (identical) implementation of "operator()" seen in both the
+    // lambda below (for C++20 and later), or in class
+    // "Private::ProcessTupleType" (C++17 only), both call
+    // "std::tuple_element_t<I, TupleT>", but if the "TupleT"
+    // template are we're passing to this is empty, then it's
+    // illegal to call it for any index including zero (since the
+    // tuple is empty so even index zero is out of bounds). Template
+    // "I" in this call (zero) is therefore an invalid index so
+    // compilation will therefore fail (but not in C++17 for reasons
+    // unknown - read on). The upshot is that when dealing with an
+    // empty tuple, i.e., the "TupleT" template arg of the function
+    // you're now reading is empty, we can't call "ForEach()"
+    // because even though it won't iterate the functor it's being
+    // passed (since the "N" template arg of "ForEach()" will be
+    // zero in this case), the call to "IsForEachFunctor_v" that
+    // occurs merely by stamping out "ForEach()" will cause the call
+    // to "std::tuple_element_t<I, TupleT>" in our functor to choke
+    // during compilation (since it's stamped out with its "I"
+    // template arg set to zero but the "TupleT" template arg is
+    // empty so "I" is an illegal index). Again, this occurs even
+    // though the code is never actually called, but it's illegal
     // even to stamp it out in this case.
     //
-    // Please note that as previously mentioned, this
-    // situation only occurs in C++20 or later. In this
-    // case the lambda seen in the code below would trigger
-    // the problem without explicit action to circumvent it
-    // (which the following "if constexpr" does), but in
-    // C++17 the problem doesn't occur. In C++17 the same
+    // Please note that as previously mentioned, this situation only
+    // occurs in C++20 or later. In this case the lambda seen in the
+    // code below would trigger the problem without explicit action
+    // to circumvent it (which the following "if constexpr" does),
+    // but in C++17 the problem doesn't occur. In C++17 the same
     // code seen in the lambda below exists but in
-    // "Private::ProcessTupleType::operator()" instead (the
-    // lambda below targets C++20 or later only), but for
-    // reasons unknown (I haven't investigated), in C++17
-    // no compilation error occurs on the call to
-    // "std::tuple_element_t<I, TupleT>" (as described).
-    // It's likely (presumably) not being stampled out in
-    // this case. Testing shows however that if we allowed
-    // the same code to be compiled in C++20, instead of
-    // the lambda below (that we actually rely on in C++20
-    // or later), it will also fail. IOW, this whole
-    // situation surrounding "std::tuple_element_t<I,
-    // TupleT>" only starts surfacing in C++20 so something
-    // clearly has changed between C++17 and C++20 (since
-    // what compiled without error in C++17 now fails in
-    // C++20). This should be investigated but it's a moot
-    // point for now since the following "if constexpr"
-    // statemement prevents the issue altogether
-    ////////////////////////////////////////////////////////
+    // "Private::ProcessTupleType::operator()" instead (the lambda
+    // below targets C++20 or later only), but for reasons unknown
+    // (I haven't investigated), in C++17 no compilation error
+    // occurs on the call to "std::tuple_element_t<I, TupleT>" (as
+    // described). It's likely (presumably) not being stampled out
+    // in this case. Testing shows however that if we allowed the
+    // same code to be compiled in C++20, instead of the lambda
+    // below (that we actually rely on in C++20 or later), it will
+    // also fail. IOW, this whole situation surrounding
+    // "std::tuple_element_t<I, TupleT>" only starts surfacing in
+    // C++20 so something clearly has changed between C++17 and
+    // C++20 (since what compiled without error in C++17 now fails
+    // in C++20). This should be investigated but it's a moot point
+    // for now since the following "if constexpr" statemement
+    // prevents the issue altogether
+    /////////////////////////////////////////////////////////////////
     if constexpr (std::tuple_size_v<TupleT> != 0)
     {
         // Lambda templates not supported until C++20
         #if CPP20_OR_LATER
-            const auto processTupleType = [&]<std::size_t I>()
+            ////////////////////////////////////////////////////////
+            // Lambda template we'll be calling once for each type
+            // in template arg "TupleT" (equivalent to the
+            // "Private::ProcessTupleType" functor in C++17 or
+            // earlier below). Each iteration invokes "functor",
+            // where processing stops after all types in "TupleT"
+            // have been processed or "functor" returns false,
+            // whichever comes first  (false only returned if
+            // "functor" wants to break like a normal "for" loop,
+            // which rarely happens in practice so we usually
+            // iterate all tuple types in "TupleT")
+            //
+            // IMPORTANT:
+            // ---------
+            // See the IMPORTANT comments about the capture of
+            // "functor" in function template "ForEach()" (in the
+            // comments preceding its own lambda template). The
+            // same situation described there applies here as well.
+            ////////////////////////////////////////////////////////
+            const auto processTupleType = [&functor]<std::size_t I>()
                                           {
                                               using TupleElement_t = std::tuple_element_t<I, TupleT>;
-                                              return functor.template operator()<I, TupleElement_t>();
+
+                                              /////////////////////////////////////////////////////
+                                              // IMPORTANT:
+                                              // ---------
+                                              // See the IMPORTANT comments inside the lambda of
+                                              // function template "ForEach()" (just before its
+                                              // own call to "std::forward()"). The same situation
+                                              // described there applies here as well.
+                                              /////////////////////////////////////////////////////
+                                              return std::forward<ForEachTupleFunctorT>(functor).template operator()<I, TupleElement_t>();
                                           };
         #else // C++17 (using our own functor instead, equivalent to above lambda) ...
-            const Private::ProcessTupleType<TupleT, ForEachTupleFunctorT> processTupleType(functor);
+            ////////////////////////////////////////////////////////////
+            // Create an instance of "Private::ProcessTupleType", a
+            // functor we'll be calling once for each type in template
+            // arg "TupleT" (equivalent to the lambda in C++20 or later
+            // above). Each iteration invokes "functor", where
+            // processing stops after all types in "TupleT" have been
+            // processed or "functor" returns false, whichever comes
+            // first (false only returned if "functor" wants to break
+            // like a normal "for" loop, which rarely happens in
+            // practice so we usually iterate all types in "TupleT")
+            //
+            // Note: The "ForEachTupleFunctorT" template arg we're
+            // passing here as the 2nd template arg of class of
+            // "Private::ProcessTupleType" means that the latter's
+            // constructor will take the same arg type as "functor"
+            // itself (& or && as usual). We then call "std::forward"
+            // as seen to pass "functor" to the constructor. Note that
+            // "std::forward" is mandatory here because "functor" is an
+            // lvalue even in the && case (since it's named - named
+            // rvalue references are still lvalues). Attempting to pass
+            // "functor" directly would therefore cause a compiler
+            // error since you can't bind an lvalue (functor) to an
+            // rvalue reference (the arg type that the
+            // "Private::ProcessTupleType" constructor is expecting in
+            // this case).
+            ////////////////////////////////////////////////////////////
+            const Private::ProcessTupleType<TupleT, ForEachTupleFunctorT> processTupleType(std::forward<ForEachTupleFunctorT>(functor));
         #endif
 
-        //////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////
         // Defer to this function template further above, passing the
-        // number of elements in the tuple as the function's template arg,
-        // and "processTupleType" as the function's functor arg. The
-        // "FunctorT" template arg of "ForEach()" is therefore deduced to
-        // be the type of "processTupleType". "ForEach()" will then
-        // invoke this functor once for each element in the tuple given
-        // by "TupleT".
-        //////////////////////////////////////////////////////////////////
+        // number of elements in the tuple as the function's template
+        // arg, and "processTupleType" as the function's functor arg.
+        // The "ForEachFunctorT" template arg of "ForEach()" is
+        // therefore deduced to be the type of "processTupleType".
+        // "ForEach()" will then invoke this functor once for each
+        // element in the tuple given by "TupleT".
+        ///////////////////////////////////////////////////////////////
         return ForEach<std::tuple_size_v<TupleT>>(processTupleType);
     }
     else
@@ -4099,38 +4562,38 @@ inline constexpr bool ForEachTupleType(ForEachTupleFunctorT& functor)
     }
 }
 
-///////////////////////////////////////////////////////////////////
-// ForEachFunctionTraitsArg(). Iterates all tuple elements in
-// member "FunctionTraitsT::ArgTypes", where "FunctionTraitsT" is
-// a "FunctionTraits" specialization, and invokes the given
-// "functor" for each. Also see helper function "ForEachArg()"
-// just below which just defers to the function you're now reading
-// (and easier to use so you should normally use it instead - the
-// function you're now reading should normally be used only if you
-// already have an existing "FunctionTraits" you're working with,
-// otherwise "ForEachArg()" creates a "FunctionTraits" for you so
-// it's less verbose than calling the following function directly).
+/////////////////////////////////////////////////////////////////////////
+// ForEachFunctionTraitsArg(). Iterates all tuple elements in member
+// "FunctionTraitsT::ArgTypes", where "FunctionTraitsT" is a
+// "FunctionTraits" specialization, and invokes the given "functor" for
+// each. Also see helper function "ForEachArg()" just below which just
+// defers to the function you're now reading (and easier to use so you
+// should normally use it instead - the function you're now reading
+// should normally be used only if you already have an existing
+// "FunctionTraits" you're working with, otherwise "ForEachArg()"
+// creates a "FunctionTraits" for you so it's less verbose than calling
+// the following function directly).
 //
-// The effect of this function is that all (non-variadic) args in
-// the function that the given "FunctionTraits" was specialized on
-// are iterated or none if that function has no args. For each
-// argument type, the given "functor" is invoked as noted.
-// "functor" must be a functor with the following functor (template)
-// signature (where items in square brackets are optional - note
-// that an invalid functor will trigger the FOR_EACH_TUPLE_FUNCTOR_C
-// concept in C++20 or later, or a "static_assert" in C++17, since
-// we don't support earlier versions - compile fails either way):
+// The effect of this function is that all (non-variadic) args in the
+// function that the given "FunctionTraits" was specialized on are
+// iterated or none if that function has no args. For each argument
+// type, the given "functor" is invoked as noted. "functor" must be a
+// functor with the following functor (template) signature (where items
+// in square brackets are optional - note that an invalid functor will
+// trigger the FOR_EACH_TUPLE_FUNCTOR_C concept in C++20 or later, or a
+// "static_assert" in C++17, since we don't support earlier versions -
+// compile fails either way):
 //
 //     template <std::size_t I, typename ArgTypeT>
-//     bool operator()() [const] [volatile] [lvalue-ref-qualifier] [noexcept];
+//     bool operator()() [const] [volatile] [ref-qualifier] [noexcept];
 //
-// Note that lambdas with this signature are also (therefore)
-// supported in C++20 or later (since lambda templates aren't
-// supported in earlier versions of C++ so you'll have to roll
-// your own functor template if targeting C++17). Note that free
-// functions or other non-static member functions besides
-// "operator()" are not currently supported (but may be in a
-// future release):
+// Note that lambdas with this signature are also (therefore) supported
+// in C++20 or later (since lambda templates aren't supported in earlier
+// versions of C++ so you'll have to roll your own functor template if
+// targeting C++17). Note that free functions or other non-static member
+// functions besides "operator()" are not currently supported (but may
+// be in a future release):
+//
 //
 //     Example
 //     -------
@@ -4216,9 +4679,9 @@ inline constexpr bool ForEachTupleType(ForEachTupleFunctorT& functor)
 //     // real-world code as well)
 //     /////////////////////////////////////////////////////////////
 //     ForEachFunctionTraitsArg<SomeFuncTraits>(displayArgType);
-///////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT, FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
-inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT& functor)
+inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT&& functor)
 {
     #if CPP17_OR_EARLIER
         ///////////////////////////////////////////////
@@ -4238,8 +4701,17 @@ inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT& functor)
         STATIC_ASSERT_IS_FOR_EACH_TUPLE_FUNCTOR(ForEachTupleFunctorT)
     #endif
 
-    // Defer to this function template just above
-    return ForEachTupleType<FunctionTraitsArgTypes_t<FunctionTraitsT>>(functor);
+    /////////////////////////////////////////////////////////
+    // Defer to function template "ForEachTupleType()" just
+    // above, specializing it on the tuple type member of
+    // "FunctionTraitsT" (i.e., the "std::tuple" containing
+    // all non-variadic arg types for the function
+    // represented by "FunctionTraitsT"). All tuple types
+    // (i.e., all arg types in the "FunctionTraitsT"
+    // function) are therefore iterated, invoking "functor"
+    // for each (we pass the latter).
+    /////////////////////////////////////////////////////////
+    return ForEachTupleType<FunctionTraitsArgTypes_t<FunctionTraitsT>>(std::forward<ForEachTupleFunctorT>(functor));
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -4248,7 +4720,8 @@ inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT& functor)
 // given by template arg "F" and then invokes the latter function.
 // Therefore iterates all tuple elements corresponding to each
 // (non-variadic) arg in function "F" (or none if "F" has no
-// non-variadic args). See above function for further details.
+// non-variadic args) and invokes "functor" for each. See above
+// function for further details.
 // 
 // Note that you should normally rely on the following function
 // instead of "ForEachFunctionTraitsArg()" above since it's easier
@@ -4308,14 +4781,6 @@ inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT& functor)
 //                                     return true;
 //                                 };
 //
-//         //////////////////////////////////////////////
-//         // Return true to continue iterating (false
-//         // would stop iterating, equivalent to a
-//         // "break" statement in a regular "for" loop)
-//         //////////////////////////////////////////////
-//         return true;
-//     };
-//
 //     ///////////////////////////////////////////////////////////////
 //     // Iterate all argument types in "SomeFunc", invoking
 //     // "displayArgType" above for each. Outputs the following:
@@ -4336,7 +4801,7 @@ inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT& functor)
 //     ForEachArg<F>(displayArgType);
 ///////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F, FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
-inline constexpr bool ForEachArg(ForEachTupleFunctorT& functor)
+inline constexpr bool ForEachArg(ForEachTupleFunctorT&& functor)
 {
     #if CPP17_OR_EARLIER
         /////////////////////////////////////////////
@@ -4356,12 +4821,15 @@ inline constexpr bool ForEachArg(ForEachTupleFunctorT& functor)
         STATIC_ASSERT_IS_FOR_EACH_TUPLE_FUNCTOR(ForEachTupleFunctorT)
     #endif
 
-    //////////////////////////////////////////////
-    // Construct a "FunctionTraits" from "F" and
-    // defer to the "FunctionTraits" version of
-    // this function just above
-    //////////////////////////////////////////////
-    return ForEachFunctionTraitsArg<FunctionTraits<F>>(functor);
+    ///////////////////////////////////////////////////////////
+    // Create (specialize) a "FunctionTraits" from "F" and
+    // defer to function template "ForEachFunctionTraitsArg()"
+    // just above (the "FunctionTraits" version of this
+    // function). All non-variadic arg types for the function
+    // represented by "FunctionTraitsT" are therefore iterated,
+    // invoking "functor" for each (we pass the latter).
+    ///////////////////////////////////////////////////////////
+    return ForEachFunctionTraitsArg<FunctionTraits<F>>(std::forward<ForEachTupleFunctorT>(functor));
 }
 
 } // namespace StdExt

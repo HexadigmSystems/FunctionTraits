@@ -72,6 +72,14 @@
 
 // Microsoft
 #ifdef _MSC_VER
+    /////////////////////////////////////////////////////////////
+    // MSFT compiler? Note that Intel also #defines _MSC_VER on
+    // Windows, as well as _MSC_FULL_VER and _MSC_EXTENSIONS.
+    // See the following:
+    //
+    // https://github.com/cpredef/predef/blob/master/Compilers.md#user-content-microsoft-visual-c
+    // https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/additional-predefined-macros.html
+    /////////////////////////////////////////////////////////////
     #include <tchar.h> // To pick up TCHAR and _T macro
 
     /////////////////////////////////////////////////////////////
