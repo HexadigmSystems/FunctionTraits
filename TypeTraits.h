@@ -72,18 +72,37 @@ namespace StdExt
 {
 
 /////////////////////////////////////////////////////
-// For use in any "static_assert" where the 1st arg
-// is always false. Can't use "false" directly or
-// it will always trigger the "static_assert" (even
-// if that code is never called or instantiated).
-// Making it a (template) dependent name here
-// eliminates the problem (use the following IOW
-// instead of "false" directly). See:
-// 
-//   https://artificial-mind.net/blog/2020/10/03/always-false
+// AlwaysFalse. Used in templates only normally
+// where you need to always pass "false" for some
+// purpose but in a way that's dependent on a
+// template arg (instead of passing false directly).
+// In almost all real-world cases however it will be
+// used as the 1st arg to "static_assert", where
+// the 1st arg must always be false. Can't use
+// "false" directly or it will always trigger the
+// "static_assert" (even if that code is never
+// called or instantiated). Making it a (template)
+// dependent name instead eliminates the problem
+// (use the following IOW instead of "false"
+// directly). See:
+//
+// https://artificial-mind.net/blog/2020/10/03/always-false
 /////////////////////////////////////////////////////
 template <typename...>
 inline constexpr bool AlwaysFalse = false;
+
+/////////////////////////////////////////////////////
+// AlwaysTrue. Similar to "AlwaysFalse" just above
+// but used wherever you require "true" in a way
+// that's dependent on a template arg. Very rarely
+// used in practice however (not many uses for it),
+// unlike "AlwaysFalse" just above which is more
+// frequently used to always trigger a
+// "static_assert" where required. See "AlwaysFalse"
+// above.
+/////////////////////////////////////////////////////
+template <typename...>
+inline constexpr bool AlwaysTrue = true;
 
 /////////////////////////////////////////////////////////////////////
 // Private namespace (for internal use only) used to implement
@@ -1403,11 +1422,13 @@ namespace Private
 // "IsTraitsFunction" (primary template). Primary template
 // inherits from "std::false_type" if "T" is *not* a function
 // type suitable for passing as the template arg to struct
-// "FunctionTraits". Otherwise, if it is a suitable function
-// then the specialization just below kicks in instead
-// (inheriting from "std::true_type"). Note that for use with
-// "FunctionTraits", a suitable function refers to any of the
-// following types:
+// "FunctionTraits" or any of its helper templates. Otherwise,
+// if it is a suitable function then the specialization just
+// below kicks in instead (inheriting from "std::true_type").
+// Note that for use with "FunctionTraits" or any of its helper
+// templates, a suitable function refers to any of the following
+// types (in each case referring to the type, not an actual
+// instance of the type):
 //
 // 1) Free functions (which includes static member functions).
 //    See comments preceding "Private::IsFreeFunction" for
@@ -1422,7 +1443,15 @@ namespace Private
 //    with this you'll normally need to target the specific
 //    "operator()" overload you're interested by taking its
 //    address and casting it to the exact signature you need
-//    to target - item 4 or 5 above will then handle it)
+//    to target - item 4 or 5 above will then handle it). Note
+//    that non-generic lambdas are also supported (since
+//    lambdas are just sugar for creating functors on-the-fly).
+//    Generic lambdas however are not supported using a functor's
+//    type because they are not functors in the conventional
+//    sense. They can still be accessed via 4 and 5 above however
+//    as described in "Example 3" of the comments preceding the
+//    "FunctionTraits" specialization for functors. Search this
+//    file for "Example 3 (generic lambda)" (quotes not included).
 //
 // Note that raw function types containing cv-qualifiers and/or
 // reference-qualifiers (AKA "abominable" functions) are NOT
@@ -1625,8 +1654,8 @@ inline constexpr bool IsTraitsFunction_v = IsTraitsFunction<T>::value;
 //    the __GNUC__ compiler extensions are in effect - ok)
 /////////////////////////////////////////////////////////////////////////
 #elif defined(__GNUC__) || \
-        defined(__clang__) || \
-        defined(__INTEL_COMPILER) 
+      defined(__clang__) || \
+      defined(__INTEL_COMPILER) 
     // See Raymond Chen's articles (links) in comments further above (I modified the following however to also support __thiscall)
     // For GCC: https://gcc.gnu.org/onlinedocs/gcc/x86-Function-Attributes.html
     // For Clang: https://clang.llvm.org/docs/AttributeReference.html#calling-conventions
@@ -1922,7 +1951,7 @@ struct FunctionTraitsBase
     // passed to "FunctionTraits"), see "IsTraitsFunction" (comments just
     // before the primary template).
     ///////////////////////////////////////////////////////////////////////
-    using Type = F; 
+    using Type = F;
 
     ////////////////////////////////////////////////////////////////////////
     // Function's return type. The syntax for accessing this directly is a
@@ -1932,7 +1961,7 @@ struct FunctionTraitsBase
     // in this file). The former just defers to the latter and should
     // usually be used (it's easier). See these for details (plus examples).
     ////////////////////////////////////////////////////////////////////////
-    using ReturnType = ReturnTypeT; 
+    using ReturnType = ReturnTypeT;
 
     /////////////////////////////////////////////////////////////////////////
     // Function's calling convention (implicitly or explicitly declared in
@@ -1948,7 +1977,9 @@ struct FunctionTraitsBase
     // "cdecl" itself is always (realisitically) supported by all compilers
     // AFAIK (those we support at least but very likely all others as well) 
     /////////////////////////////////////////////////////////////////////////
-    constexpr static enum CallingConvention CallingConvention = CallingConventionT; 
+    constexpr static enum CallingConvention CallingConvention = CallingConventionT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
+                                                                                    // (since we've named the variable "CallingConvention" which is the same as
+                                                                                    // the enumerator's name)
 
     ///////////////////////////////////////////////////////////////////////
     // "true" if the function is variadic (last arg of function is "...")
@@ -1967,7 +1998,7 @@ struct FunctionTraitsBase
     // C++ doesn't provide any simple or clean way to detect them in
     // the context that "FunctionTraits" is used.
     ////////////////////////////////////////////////////////////////////
-    using Class = ClassT; 
+    using Class = ClassT;
 
     /////////////////////////////////////////////////////////////////////
     // Is non-static member function declared with the "const" keyword.
@@ -1975,7 +2006,7 @@ struct FunctionTraitsBase
     // "IsMemberFunction" member below to check this). Always false
     // otherwise (N/A in this case)
     /////////////////////////////////////////////////////////////////////
-    constexpr static bool IsConst = IsConstT; 
+    constexpr static bool IsConst = IsConstT;
 
     ////////////////////////////////////////////////////////////////////////
     // Is non-static member function declared with the "volatile" keyword.
@@ -1991,10 +2022,12 @@ struct FunctionTraitsBase
     // "IsMemberFunction" member below to check this). Always
     // "RefQualifier::None" otherwise (N/A in this case).
     //////////////////////////////////////////////////////////////////////
-    constexpr static enum RefQualifier RefQualifier = RefQualifierT;
+    constexpr static enum RefQualifier RefQualifier = RefQualifierT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
+                                                                     // (since we've named the variable "RefQualifier" which is the same as the
+                                                                     // enumerator's name)
 
     // "true" if the function is declared "noexcept" or "false" otherwise
-    constexpr static bool IsNoexcept = IsNoexceptT; 
+    constexpr static bool IsNoexcept = IsNoexceptT;
 
     ///////////////////////////////////////////////////////////////////////
     // Function's arguments (types) in left-to-right order of declaration
@@ -2005,7 +2038,7 @@ struct FunctionTraitsBase
     // later in this file). The former just defers to the latter. See
     // these for details (plus examples).
     ///////////////////////////////////////////////////////////////////////
-    using ArgTypes = std::tuple<ArgsT...>; 
+    using ArgTypes = std::tuple<ArgsT...>;
 
     ///////////////////////////////////////////////////////////////////
     // Number of arguments in the function. This is officially called
@@ -2155,30 +2188,64 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 // FunctionTraits. Primary template but all uses of this template always
 // rely on a particular partial specialization defined by the macros just
-// below (one for each permutation of function signature we may encounter).
-// If template arg "F" isn't a function type suitable for passing to this
-// template ("F" can effectively be any function type however, including
-// pointers and references to functions, references to pointers to
-// functions, and functors - see comments preceding "IsTraitsFunction" for
-// details), then the following primary template kicks in. A compiler error
-// therefore always occurs by design (the "static_assert" seen in the
-// following struct triggers since "F" must be illegal by definition - no
-// specialization kicked in to handle it).
+// below (one for each permutation of function signature we may
+// encounter). If template arg "F" isn't a function type suitable for
+// passing to this template ("F" can effectively be any function type
+// however - see comments preceding "IsTraitsFunction" primary template
+// for details), then the following primary template kicks in. A compiler
+// error therefore always occurs by design (the "static_assert" seen in
+// the following struct triggers since "F" must be illegal by definition
+// - no specialization kicked in to handle it).
+//
+// As a side-note, please be aware that when "F" is in fact a supported
+// function type its calling convention can be changed by the compiler to
+// the "cdecl" calling convention. This normally occurs when compiling
+// for 64 bits opposed to 32 bits, or possibly other scenarios depending
+// on the compiler options in effect (platform specific), in which case
+// the compiler ignores the calling convention for "F" and automatically
+// switches to the "cdecl" calling convention. Note that our
+// "FunctionTraits" specializations further below that handle calling
+// conventions are designed to detect this situation and when it occurs,
+// the specializations for all calling conventions besides "cdecl" itself
+// therefore won't kick in (such as when compiling for 64 bits as noted -
+// the compiler always switches to the "cdecl" calling convention in this
+// case). The primary template itself, which you're now reading, would
+// therefore normally kick in instead in this situation (since no
+// specializations now exist for these calling conventions - we removed
+// them) but it will never happen because these calling conventions will
+// never be encountered in "F". The "cdecl" calling convention always
+// will be, and a specialization always exists for it. For instance, if
+// function "F" is declared with the "stdcall" calling convention
+// (whatever its syntax is for a given compiler), and you compile for 64
+// bits opposed to 32 bits, the compiler will ignore the "stdcall"
+// calling convention on "F" and use "cdecl" instead (for all compilers
+// we currently support). No specialization is therefore required for
+// "stdcall" so the specialization that handles "stdcall" further below
+// won't kick in (based on our design), since the "cdecl" specialization
+// will handle it. IOW, even though there's no specialization for
+// functions with the "stdcall" calling convention, it doesn't matter
+// since the "stdcall" in function "F" hsa been replaced with "cdecl" by
+// the compiler. The primary template therefore won't kick in for
+// functions declared with "stdcall", the specialization that handles
+// "cdecl" will. The primary template only kicks in if "F" isn't a
+// supported function type (someone passes an "int" for instance which
+// isn't even a function), in which case the TRAITS_FUNCTION_C concept in
+// the following declaration will trap it in C++20 or later, or the
+// "static_assert" in C++17 or earlier (see below). Specializations whose
+// calling convention is replaced by "cdecl" therefore never wind up here
+// as described, so no error will ever be flagged for them (they're still
+// supported functions only that the "cdecl" specialization will now kick
+// in to handle them instead of the usual specialization that normally
+// targets that specific calling convention).
 ////////////////////////////////////////////////////////////////////////////
-template <typename F, int = 0, typename = void> // IMPORTANT: 2nd template arg *must* default to zero as seen (our
-                                                // design depends on it - brittle only if someone changes it so don't).
-                                                // Note that this is for internal use only anyway (design is based on
-                                                // Raymond Chen's work as discussed earlier - it's a bit unwieldy but
-                                                // given its purpose, better designs are hard to come by at this writing)
+template <typename F, typename = void>
 struct FunctionTraits
 {
-    // Always triggers! (illegal to come through here - see main comments above)
-    static_assert(AlwaysFalse<F>, "Invalid template arg \"F\". Not a function type (or in very rare cases \"F\" "
-                                  "is a non-static member function type with cv or reference qualifiers, AKA an " 
-                                  "\"abominable\" function, which aren't supported by \"FunctionTraits\" - cv "
-                                  "or ref qualified non-static member functions must be handled using "
-                                  "pointer-to-member syntax). See \"IsTraitsFunction\" and in particular, "
-                                  "\"Private::IsFreeFunction\" which it relies on for full details).");
+    // Always triggers in C++17 or earlier (illegal to come through here - see main comments above)
+    static_assert(AlwaysFalse<F>, "Invalid template arg \"F\". Not a supported function type suitable "
+                                  "for passing to \"FunctionTraits\" or any of its helper templates. "
+                                  "See comments preceding \"IsTraitsFunction\" primary template for "
+                                  "full details.");
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -2202,8 +2269,8 @@ struct FunctionTraits
 #define MAKE_FREE_FUNC_TRAITS_3(CC, CALLING_CONVENTION, ARGS, IS_NOEXCEPT) \
         template <typename R, typename... Args> \
         struct FunctionTraits<R CC ARGS noexcept(IS_NOEXCEPT), \
-                              !CallingConventionReplacedWithCdecl<true>(CALLING_CONVENTION) \
-                              ? 0 : static_cast<int>(CALLING_CONVENTION)> \
+                              std::enable_if_t<!CallingConventionReplacedWithCdecl<true>(CALLING_CONVENTION) && \
+                                               AlwaysTrue<R>>> \
             : FunctionTraitsBase<R CC ARGS noexcept(IS_NOEXCEPT), \
                                  R, \
                                  CALLING_CONVENTION, \
@@ -2335,8 +2402,8 @@ MAKE_FREE_FUNC_TRAITS_1(STDEXT_CC_CDECL, CallingConvention::Cdecl, (Args..., ...
 #define MAKE_MEMBER_FUNC_TRAITS_8(CC, CALLING_CONVENTION, CONST_PTR, VOLATILE_PTR, REF_PTR, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
     template <typename R, class C, typename... Args> \
     struct FunctionTraits<R (CC C::* CONST_PTR VOLATILE_PTR REF_PTR) ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                          !CallingConventionReplacedWithCdecl<false>(CALLING_CONVENTION) \
-                          ? 0 : static_cast<int>(CALLING_CONVENTION)> \
+                          std::enable_if_t<!CallingConventionReplacedWithCdecl<false>(CALLING_CONVENTION) && \
+                                           AlwaysTrue<R>>> \
         : FunctionTraitsBase<R (CC C::* CONST_PTR VOLATILE_PTR REF_PTR) ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
                              R, \
                              CALLING_CONVENTION, \
@@ -2439,68 +2506,148 @@ MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_CDECL, CallingConvention::Cdecl, (Args..., .
 // "FunctionTraits" partial specialization for handling function objects
 // (AKA functors). This includes lambdas which are just syntactic sugar
 // for creating function objects on the fly (the compiler creates a
-// hidden functor behind the scenes). Template arg "T" therefore isn't a
-// function type in this specialization (unlike all other specializations
-// which handle function types and pointers and references to such
-// types), but a class or struct type with a single "T::operator()"
-// member function. The traits created by this specialization are
-// therefore for that function. Note that overloads of "T::operator()"
-// aren't supported however since it would be ambiguous (which
-// "T::operator()" to use). In this case the following template will fail
-// SFINAE (due to the ambiguity) so the primary template will kick in
-// instead (which results in a "static_assert", i.e., the alias template
-// can't be specialized).    
-// 
-//       Example 1 (functor)
-//       -------------------
-//       class MyFunctor
-//       {
-//       public:
-//            int operator()(float, const std::string &);
-//       };
-// 
+// hidden functor behind the scenes - note that generic lambdas can't be
+// targeted using functor syntax but can be targeted using
+// pointer-to-member syntax as seen in example 3 below). Template arg "T"
+// therefore isn't a function type in this specialization (unlike all
+// other specializations which handle function types and pointers and
+// references to such types), but a class or struct type with a single
+// "T::operator()" member function. The traits created by this
+// specialization are therefore for that function. Note that overloads of
+// "T::operator()" aren't supported however since it would be ambiguous
+// (which "T::operator()" to use). In this case the following template
+// will fail SFINAE (due to the ambiguity) so the primary template will
+// kick in instead (which results in a "static_assert", i.e., the alias
+// template can't be specialized).
+//
+//     Example 1 (functor)
+//     -------------------
+//     class MyFunctor
+//     {
+//     public:
+//          int operator()(float, const std::string &);
+//     };
+//
 //       ////////////////////////////////////////////////////////////
-//       // Resolves to "int". Following helper template relies on
-//       // "FunctionTraits" to determine this (passing a functor
-//       // here). See it for details.
+//     // Resolves to "int". Following helper template relies on
+//     // "FunctionTraits" to determine this (passing a functor
+//     // here). See it for details.
+//     ////////////////////////////////////////////////////////////
+//     using MyClassReturnType_t = ReturnType_t<MyFunctor>
+//
 //       ////////////////////////////////////////////////////////////
-//       using MyClassReturnType_t = ReturnType_t<MyFunctor>
-// 
-//       ////////////////////////////////////////////////////////////
-//       // Resolves to "const std::string &" (passing 1 here which
-//       // is the zero-based index of the arg we want). Following
-//       // helper template relies on "FunctionTraits" to determine
-//       // this. See it for details.
-//       ////////////////////////////////////////////////////////////
-//       using Arg2Type_t = ArgType_t<MyFunctor, 1>
-// 
-//       Example 2 (lambda - note that lambdas are just functors)
-//       --------------------------------------------------------
-//       const auto myLambda = [](float val, const std::string &str)
-//                               {
-//                                   int rc;
-//                                   // ...
-//                                   return rc;
-//                               };
-// 
+//     // Resolves to "const std::string &" (passing 1 here which
+//     // is the zero-based index of the arg we want). Following
+//     // helper template relies on "FunctionTraits" to determine
+//     // this. See it for details.
+//     ////////////////////////////////////////////////////////////
+//     using Arg2Type_t = ArgType_t<MyFunctor, 1>
+//
+//     Example 2 (lambda - note that lambdas are just functors)
+//     --------------------------------------------------------
+//     const auto myLambda = [](float val, const std::string &str)
+//                             {
+//                                 int rc;
+//                                 // ...
+//                                 return rc;
+//                             };
+//
 //       ///////////////////////////////////////////////////////////////
-//       // Resolves to "int" (lambda's return type). Following helper
-//       // template relies on "FunctionTraits" to determine this. See
-//       // it for details.
-//       ///////////////////////////////////////////////////////////////
-//       using MyLambdaReturnType_t = ReturnType_t<decltype(myLambda)>;
+//     // Resolves to "int" (lambda's return type). Following helper
+//     // template relies on "FunctionTraits" to determine this. See
+//     // it for details.
+//     ///////////////////////////////////////////////////////////////
+//     using MyLambdaReturnType_t = ReturnType_t<decltype(myLambda)>;
+//
+//       ////////////////////////////////////////////////////////////
+//     // Resolves to "const std::string &" (passing 1 here which
+//     // is the zero-based index of the arg we want). Following
+//     // helper template relies on "FunctionTraits" to determine
+//     // this. See it for details.
+//     ////////////////////////////////////////////////////////////
+//     using Arg2Type_t = ArgType_t<decltype(myLambda), 1>;
+//
+//     Example 3 (generic lambda). See comments below.
+//     -----------------------------------------------
+//     const auto myLambda = [](auto val, const std::string &str)
+//                             {
+//                                 int rc;
+//                                 // ...
+//                                 return rc;
+//                             };
+//
+//       //////////////////////////////////////////////////////////////
+//       // Generic lambdas, similar to lambda templates in C++20,
+//       // can't be handled using functor syntax (i.e., by passing
+//       // the lambda's type like in "Example 2" above). That's
+//       // because behind the scenes C++ creates a hidden functor for
+//       // your lambda whose "operator()" member has the same args as
+//       // the lambda itself, but when a generic lambda is created,
+//       // such as the one above, a template version of "operator()"
+//       // is created instead (to handle type "auto"). The class is
+//       // therefore not really a functor in the conventional sense
+//       // since "operator()" is actually a template. In the above
+//       // example for instance C++ will create a class that looks
+//       // something like the following (which we're calling "Lambda"
+//       // here but whatever name the compiler actually assigns it -
+//       // it's an implementation detail we don't care about):
+//       //
+//       //     class Lambda
+//       //     {
+//       //     public:
+//       //         template<class T>
+//       //         inline auto operator()(T val, const std::string &str) const
+//       //         {
+//       //            int rc;
+//       //            // ...
+//       //            return rc;
+//       //         }
+//       //     };
+//       //
+//       // You therefore can't use functor syntax to invoke this like
+//       // in "Example 2" above because "operator()" needs to be
+//       // specialized on template arg "T" first, unlike "Example 2"
+//       // above whose own "operator()" member isn't a template (it's
+//       // a non-template function). However, for purposes of using
+//       // "FunctionTraits" or any of its helper aliases, you can
+//       // still instantiate the above "operator()" member template
+//       // and access it using pointer-to-member function syntax
+//       // instead of functor syntax (though it's much uglier unless
+//       // you create a helper alias to clean it up a bit though we
+//       // don't do that here). The following does just that to
+//       // create alias "F", specializing "operator()" on "float"
+//       // so analogous to "Example 2" above (but no template is
+//       // involved in "Example 2"), and then taking its address
+//       // as seen. "F" in the following call therefore effectively
+//       // resolves to the following:
+//       //
+//       //     int (Lambda::*)(float, const std::string &) const);
+//       //
+//       // We therefore have an ordinary member function pointer type
+//       // that we can pass to "FunctionTraits" or any of its helper
+//       // templates (and from this point on everything works the
+//       // same as "Example 2" above except "F" is the functor's
+//       // type in that example and a pointer to a member function
+//       // in this example):
+//       //////////////////////////////////////////////////////////////
+//       using F = decltype(&decltype(myLambda)::operator()<float>); // Can always wrap this in a helper
+//                                                                   // alias to make the syntax cleaner
 // 
-//       ////////////////////////////////////////////////////////////
-//       // Resolves to "const std::string &" (passing 1 here which
-//       // is the zero-based index of the arg we want). Following
-//       // helper template relies on "FunctionTraits" to determine
-//       // this. See it for details.
-//       ////////////////////////////////////////////////////////////
-//       using Arg2Type_t = ArgType_t<decltype(myLambda), 1>;
+//       ///////////////////////////////////////////////////////
+//       // Resolves to "int" (lambda's return type) just like
+//       // "Example 2".
+//       ///////////////////////////////////////////////////////
+//       using MyLambdaReturnType_t = ReturnType_t<F>;
+// 
+//       ////////////////////////////////////////////////////////
+//       // Resolves to "const std::string &", again, just like
+//       // "Example 2" (and again, passing 1 here which is the
+//       // zero-based index of the arg we want).
+//       ////////////////////////////////////////////////////////
+//       using Arg2Type_t = ArgType_t<F, 1>;
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct FunctionTraits<T,
-                      0, // Always zero (don't change it or this specialization won't kick in)
                       std::enable_if_t<Private::IsFunctor_v<T>>> : FunctionTraits<decltype(&std::remove_reference_t<T>::operator())>
 {
     //////////////////////////////////////////////////////////
@@ -2558,8 +2705,8 @@ struct IsFunctionTraits : public std::false_type
 // above. This specialization does all the work. See primary
 // template above for details.
 //////////////////////////////////////////////////////////////////
-template <typename T, int ZeroIfCallingConventionNotReplaced, typename EnableIf>
-struct IsFunctionTraits<FunctionTraits<T, ZeroIfCallingConventionNotReplaced, EnableIf>> : public std::true_type
+template <typename T, typename EnableIf>
+struct IsFunctionTraits<FunctionTraits<T, EnableIf>> : public std::true_type
 {
 };
 

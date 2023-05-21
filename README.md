@@ -1,7 +1,7 @@
 # FunctionTraits
 ## C++ traits struct to retrieve info about any function (a "complete" implementation)
 
-See [here](https://godbolt.org/z/3f1KnazWv) for a complete working example (demo for those who want to get right to the code - the same code in this repository).
+See [here](https://godbolt.org/z/oTPEhe1Tq) for a complete working example (demo for those who want to get right to the code - the same code in this repository).
 
 "FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike many other implementations you'll often find that fail to address numerous issues. Many of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on "stackoverflow.com" for instance. Some are more complete (only one I've seen comes very close), and some have even written articles on the subject but still miss a number of issues. Some of these issues are obvious (or should be), such as failing to detect functions declared as "noexcept" (part of a function's type since C++17), or variadic functions, or volatile non-static member functions, or function pointers with cv-qualifiers, among other things (often resulting in a lot of cryptic compiler errors). Some are less obvious, like failing to detect functions with calling conventions other than the default (usually cdecl), which isn't addressed in the C++ standard itself (and a bit more tricky to implement than it first appears as far as creating a functions traits class is concerned). I have yet to see any other implementation address calling conventions at all in fact, even in the few "full-blown" solutions for handling function traits that are out there (that I've ever come across). Without calling convention support however, all functions in the entire Microsoft Windows API would fail to be detected for instance (since it's almost entirely based on the "stdcall" calling convention). "FunctionTraits" does address all these issues however. It provides traits info about every (mainstream) aspect of any function within the limitations of what C++ currently supports (or easily supports). You can currently obtain the following information:
 
@@ -32,6 +32,9 @@ Note that the code also incorporates concepts when targeting C++20 or later or "
 Given the following example for instance, you can quickly determine the traits for "MyClass::SomeFunc" seen below using the easier helper templates for "FunctionTraits" in this example (opposed to using "FunctionTraits" directly - more on this later, including the complete list of all helper templates since only the ones most are typically interested in are shown below):
 
 ``` C++
+// Only file you need to explicitly #include (see "Usage" section below)
+#include "TypeTraits.h"
+
 // Everything declared in this namespace
 using namespace StdExt;
 
@@ -74,6 +77,12 @@ Once you've #included "TypeTraits.h", there are two ways to use the "FunctionTra
 ### Technique 1 of 2 - Using "FunctionTraits" directly (not usually recommended)
 
 ``` C++
+// Only file you need to explicitly #include (see "Usage" section above)
+#include "TypeTraits.h"
+
+// Everything declared in this namespace
+using namespace StdExt;
+
 ////////////////////////////////////////////////////////////////////////////
 // Free function whose traits you wish to retrieve (note that static class
 // functions are also considered "free" functions). Pointers and references
@@ -153,6 +162,12 @@ Alternatively, instead of using "FunctionTraits" directly (technique 1 of 2 abov
 Note that two sets of helper templates exist, one taking a "FunctionTraits" template arg, and a corresponding template taking a function template arg (just pass your function's type). The latter templates simply create a "FunctionTraits" for you from the function type you pass and then defer to the corresponding "FunctionTraits" helper template. The "FunctionTraits" helper templates are rarely used directly in practice however so they're not documented here. Only the helper templates taking a function template arg are therefore documented below. Most users will rely on these almost exclusively, though you can always quickly inspect the code itself if you ever want to use the "FunctionTraits" helper templates directly (they're just thin wrappers around the members of "FunctionTraitsBase" which all "FunctionTraits" specializations inherit from). Here's the same example seen in "Technique 1" above but using these helper templates instead (though without repeating most of the comments seen in "Technique 1"):
 
 ``` C++
+// Only file you need to explicitly #include (see "Usage" section earlier)
+#include "TypeTraits.h"
+
+// Everything declared in this namespace
+using namespace StdExt;
+
 /////////////////////////////////////////////////////////
 // Free function whose traits you wish to retrieve (see
 // comments in corresponding example in "Technique 1"
@@ -192,6 +207,9 @@ constexpr auto arg3TypeName = ArgTypeName_v<F, 2>;
 ### Looping through all function arguments
 You can even loop through all arguments using the helper function template "ForEachArg()". The following example assumes C++20 or later for the lambda template seen below (lambda templates aren't available until C++20 or later), though if targeting C++17 you can easily replace it with your own functor instead (the "operator()" member in your functor needs to be a template however, with the same template args seen in the lambda below and the same code). For further details on "ForEachArg()", see its entry in the "Helper templates" section just below.
 ``` C++
+// Only file you need to #include
+#include "TypeTraits.h"
+
 // Everything declared in this namespace
 using namespace StdExt;
 
@@ -244,7 +262,6 @@ const auto displayArgType = []<std::size_t I, typename ArgTypeT>()
                                 ////////////////////////////////////////////////////////// 
                                 tcout << TypeName_v<ArgTypeT> << _T("\n");
 
-
                                 //////////////////////////////////////////////
                                 // Return true to continue iterating (false
                                 // would stop iterating, equivalent to a
@@ -261,7 +278,7 @@ ForEachArg<F>(displayArgType);
 ```
 
 ### Helper templates (complete, alphabetical list)
-The following provides a complete (alphabetical) list of all helper templates. Note that each is a template taking a template arg called "F" as the 1st (and normally only) template arg, representing the function's type you're targeting (again, supports the actual C++ function type, pointers and references to functions, references to pointers to functions, and functors including lambdas). Only the "ArgType_t" and "ArgTypeName_v" templates take an extra template arg (of type "std::size_t"), indicating the zero-based index of the function argument you're targeting in "F" (and "MemberFunctionRefQualifierName_v" also takes an extra template arg as described below). Note that for brevity, template arg "F" isn't shown below, just the template's name. 
+The following provides a complete (alphabetical) list of all helper templates. Note that each is a template taking a template arg called "F" as the 1st (and normally only) template arg, representing the function's type you're targeting (again, supports the actual C++ function type, pointers and references to functions, references to pointers to functions, and functors including lambdas - in all cases referring to their types, not actual instances). Only the "ArgType_t" and "ArgTypeName_v" templates take an extra template arg (of type "std::size_t"), indicating the zero-based index of the function argument you're targeting in "F" (and "MemberFunctionRefQualifierName_v" also takes an extra template arg as described below). Note that for brevity, template arg "F" isn't shown below, just the template's name. 
 
 Lastly, please note that each template below simply wraps the corresponding member of the "FunctionTraits" struct itself
 (or indirectly targets it). As previously described, you can access "FunctionTraits" directly (see its "FunctionTraitsBase" base class - all members are stored there), or using any of its own helper templates (all taking a "FunctionTraitsT" template arg not documented here), but the following helper templates taking a function template arg "F" are normally easier (see these in "Technique 2 of 2" earlier). The syntax for accessing "FunctionTraits" directly (or using any of its own helper templates) is therefore not shown in detail in this document (just the earlier examples only). You can simply review its "FunctionTraitsBase" base class in "TypeTraits.h" if required (or its own helper templates). Every member of the latter struct is public and the corresponding helper template taking a function template arg "F" is described below, including some additional helper templates not available when accessing "FunctionTraits" directly. These helper templates should normally be relied on since they're cleaner.
@@ -274,7 +291,7 @@ Name                              | Description                                 
 `ArgTypes_t`                      | Returns a "std::tuple" representing all non-variadic argument types in "F". Rarely required in practice however since you'll usually rely on "ArgType_t" or "ArgTypeName_v" to retrieve the type of a specific argument (see these above). If you require the "std::tuple" that stores all (non-variadic) argument types, then it's typically (usually) because you want to iterate all of them (say, to process the type of every argument in a loop). If you require this, then you can use the "ForEachArg()" helper function (template) further below. See this for details.|
 `CallingConvention_v`             | Calling convention of "F" returned as a "CallingConvention" enumerator (declared in "TypeTraits.h"). Calling conventions include "Cdecl", "Stdcall", etc. (note that functions with calling conventions not seen in this enumerator are not supported, but all mainstream calling conventions are). Also please note that compilers will sometimes change the calling convention declared on your functions to the "Cdecl" calling convention depending on the compiler options in effect at the time (in particular when compiling for 64 bits opposed to 32 bits). In this case the calling convention on your function is ignored and "CallingConvention_v" will correctly return the "Cdecl" calling convention (since that's what the compiler actually used).|
 `CallingConventionName_v`         | Same as "CallingConvention_v" just above but returns this as a (WYSIWYG) string (of type "std::basic_string_view" - see "TypeName_v" for further details on this type).|
-`ForEachArg`                      | Not a traits template (unlike all others in this table), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on "ArgType_t" or "ArgTypeName_v" to retrieve the type of a specific argument - see these above). See "Looping through all function arguments" earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/3f1KnazWv) program, also available in the repository itself).
+`ForEachArg`                      | Not a traits template (unlike all others in this table), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on "ArgType_t" or "ArgTypeName_v" to retrieve the type of a specific argument - see these above). See "Looping through all function arguments" earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/oTPEhe1Tq) program, also available in the repository itself).
 `FunctionType_t`                  | Type of the function (its complete type which is normally identical to template arg "F" itself, or for functors the signature of its "operator()" member).|
 `FunctionTypeName_v`              | Same as "FunctionType_t" just above but returns this as a (WYSIWYG) string (of type "std::basic_string_view"). See "TypeName_v" for further details.|
 `IsEmptyArgList_v`                | "bool" variable set to "true" if the function represented by "F" has an empty arg list (it has no args whatsoever including variadic args), or "false" otherwise. If true then note that "ArgCount_v" is guaranteed to return zero (0), and "IsVariadic_v" is guaranteed to return false.<br /><br /><ins>IMPORTANT</ins>:<br />Note that you should rely on this helper to determine if a function's argument list is completely empty opposed to checking the "ArgCount_v" helper for zero (0), since the latter returns zero only if "F" has no non-variadic args. If it has variadic args but no others, i.e., its argument list is "(...)", then the argument list isn't empty even though "ArgCount_v" returns zero (since it still has variadic args). Caution advised.
