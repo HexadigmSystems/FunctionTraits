@@ -18,6 +18,9 @@
 // seen in namespace "TestFuncs" further below (traits displayed to the stdout).
 // You can update these three functions with any signature whose traits you
 // want to display, and re-run the app. No other changes are required.
+// 
+// For complete details on "FunctionTraits" (fully documented), see
+// https://github.com/HexadigmSystems/FunctionTraits
 /////////////////////////////////////////////////////////////////////////////
 
 // #included first so we can check CPP17_OR_LATER just below
@@ -468,8 +471,9 @@ void DisplayFunctorTraits()
 // main()
 /////////////////////////////////////////////////////////////////////////////
 int main()
-{
-    tcout << _T("FunctionTraits demo (detected compiler: ") << GetCompilerName() << _T(")\n\n");
+{ 
+    tcout << _T("FunctionTraits demo (detected compiler: ") << GetCompilerName() << _T("). See top of \"Demo.cpp\" for details.\n");
+    tcout << _T("For complete details on \"FunctionTraits\" see https://github.com/HexadigmSystems/FunctionTraits\n\n");
 
     DisplayFreeFunctionTraits();
     DisplayMemberFunctionTraits();
