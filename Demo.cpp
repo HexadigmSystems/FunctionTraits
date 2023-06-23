@@ -13,11 +13,13 @@
 // -----------
 // Demo program showing how to use template "FunctionTraits" declared in
 // "TypeTraits.h" (used to retrieve information about any function including
-// its return type, argument types, and other information). Just run the
-// program to display all available information about the 3 sample functions
-// seen in namespace "TestFuncs" further below (traits displayed to the stdout).
-// You can update these three functions with any signature whose traits you
-// want to display, and re-run the app. No other changes are required.
+// its return type, argument types, and other information - write traits
+// also fully supported but not demo'd in this program - see link below for
+// examples). Just run the program to display all available information
+// about the 3 sample functions seen in namespace "TestFuncs" further below
+// (traits displayed to the stdout). You can update these three functions
+// with any signature whose traits you want to display, and re-run the app.
+// No other changes are required.
 // 
 // For complete details on "FunctionTraits" (fully documented), see
 // https://github.com/HexadigmSystems/FunctionTraits
