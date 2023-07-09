@@ -375,6 +375,7 @@
     #define CPP17 0
     #define CPP14 1
     #define CPP11 0
+    // #define CPPXX_OR_LATER 0 // TBD (update "XX" to handle the next version after C++23)
     #define CPP23_OR_LATER 0
     #define CPP20_OR_LATER 0
     #define CPP17_OR_LATER 0
@@ -422,6 +423,77 @@
 // <string_view> not available until C++17
 #if CPP17_OR_LATER
     #include <string_view>
+#endif
+
+//////////////////////////////////////////////////////////////////
+// CONCEPTS_SUPPORTED. #defined constant to control whether
+// concepts should be used or not wherever required in all
+// remaining code. Concepts only became available in C++20 so by
+// default we turn it on in C++20 or later (set the constant to 1
+// below), and off in C++17 and earlier (set it to 0 below). In
+// C++17 and earlier we therefore rely on "static_assert" instead
+// of concepts but if you prefer to always rely on
+// "static_assert" even in C++20 and later you can just
+// permanently set the constant to 0 below. This may even be
+// preferable since I often find "static_assert" messages more
+// visible and clear than concept messages (in some situations
+// anyway). In any case it's your responsibility to explicitly
+// test for CONCEPTS_SUPPORTED as required and apply concepts if
+// true or "static_assert" otherwise. One way to do this we
+// consistently rely on is as per the following example (though
+// you need not follow this model but it works well IMHO). Let's
+// say you want a concept to ensure some type is "const" using
+// "std::is_const". You could therefore declare a concept like so
+// (note that I've applied the suffix "_c" to the concept name as
+// a convention to indicate it's a concept but it's up to you if
+// you want to follow this convention):
+//
+//     #if CONCEPTS_SUPPORTED
+//         template <typename T>
+//         concept IsConst_c = std::is_const_v<T>;
+//
+//         #define IS_CONST_C StdExt::IsConst_c // Assuming the "StdExt" namespace for this example
+//     #else
+//         #define STATIC_ASSERT_IS_CONST(T) static_assert(std::is_const_v<T>, \
+//                                                         "\"" #T "\" must be const")
+//         #define IS_CONST_C typename
+//     #endif
+//
+// Then in any code that requires this concept you can simply do
+// this:
+//
+//     template<IS_CONST_C T>
+//     struct Whatever
+//     {
+//         #if !CONCEPTS_SUPPORTED
+//             ///////////////////////////////////////////////
+//             // Kicks in if concepts are NOT supported,
+//             // otherwise IS_CONST_C concept kicks in just
+//             // above instead (latter simply resolves to
+//             // the "typename" keyword when concepts aren't
+//             // supported)
+//             ///////////////////////////////////////////////
+//             STATIC_ASSERT_IS_CONST(T);
+//         #endif
+//
+//         // ...
+//     }
+//
+// Template arg "T" in the above struct therefore utilizes the
+// IS_CONST_C concept if concepts are supported but if not, then
+// IS_CONST_C simply resolves to the "typename" keyword instead
+// and the STATIC_ASSERT_IS_CONST macro then kicks in to do a
+// "static_assert". You can therefore apply the above technique
+// to all your concepts and we do throughout all remaining code
+// where applicable (though in some cases we don't #define a
+// macro like STATIC_ASSERT_IS_CONST if the concept is for
+// internal use only and we don't require such a macro depending
+// on the situation).
+//////////////////////////////////////////////////////////////////
+#if CPP20_OR_LATER
+    #define CONCEPTS_SUPPORTED 1
+#else
+    #define CONCEPTS_SUPPORTED 0
 #endif
 
 namespace StdExt
