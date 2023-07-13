@@ -150,7 +150,6 @@ namespace Private
     class TypeNameImpl
     {
     public:
-            
         ////////////////////////////////////////////////////////////////////
         // Implementation function called by variable template "TypeName_v"
         // (just after the "Private" namespace this class is declared in).
@@ -649,29 +648,29 @@ namespace Private
     // correct the situation.
     //////////////////////////////////////////////////////////////////////
     static_assert(
-                    ////////////////////////////////////////////////////
+                   ////////////////////////////////////////////////////
                     // True for all compilers we support except Visual
                     // Studio 2017. See #else comments below
                     ////////////////////////////////////////////////////
-                    #if !defined(_MSC_VER) || _MSC_VER >= MSC_VER_2019 
-                        TypeNameImpl::Get<float>() == _T("float"), // Make sure "TypeName_v()" returns "float" (literally, though
+                   #if !defined(_MSC_VER) || _MSC_VER >= MSC_VER_2019 
+                       TypeNameImpl::Get<float>() == _T("float"), // Make sure "TypeName_v()" returns "float" (literally, though
                                                                    // it's returned as a "tstring_view"). See long comments above.
     
-                    //////////////////////////////////////////////////////
+                   //////////////////////////////////////////////////////
                     // Visual Studio 2017 only. Call just above should
                     // also work but fails due to a MSFT bug (in VS2017).
                     // The following is a work-around ...
                     //////////////////////////////////////////////////////
-                    #else
-                        IsEqualTo(TypeName_v<float>, _T("float")),
-                    #endif
-                    "A breaking change was detected in template \"TypeNameImpl::Get()\". The format of the "
-                    "predefined string __PRETTY_FUNCTION__ or (for MSFT) __FUNCSIG__ was likely changed by "
-                    "the compiler vendor (though would be very rare). \"TypeNameImpl::Get()\" was (arbitrarily) "
-                    "tested with type float but the returned string isn't \"float\" and normally should be. "
-                    "The format of __PRETTY_FUNCTION__ (or __FUNCSIG__) was therefore (likely) changed since "
-                    "\"TypeNameImpl::Get()\"was written, so its implementation should be reviewed and corrected.");
-}
+                   #else
+                       IsEqualTo(TypeName_v<float>, _T("float")),
+                   #endif
+                   "A breaking change was detected in template \"TypeNameImpl::Get()\". The format of the "
+                   "predefined string __PRETTY_FUNCTION__ or (for MSFT) __FUNCSIG__ was likely changed by "
+                   "the compiler vendor (though would be very rare). \"TypeNameImpl::Get()\" was (arbitrarily) "
+                   "tested with type float but the returned string isn't \"float\" and normally should be. "
+                   "The format of __PRETTY_FUNCTION__ (or __FUNCSIG__) was therefore (likely) changed since "
+                   "\"TypeNameImpl::Get()\"was written, so its implementation should be reviewed and corrected.");
+} // namespace Private
 
 ////////////////////////////////////////////////////////////////////////
 // TypeName_v. Variable template that returns the literal name of the
@@ -2603,13 +2602,13 @@ namespace Private
         FunctionTraitsBase<F, \
                            R, \
                            CALLING_CONVENTION, \
-                           #ARGS[9] != '\0', \
+                           #ARGS[10] != '\0', \
                            void, \
                            false, \
                            false, \
                            RefQualifier::None, \
                            IS_NOEXCEPT, \
-                           Args...>
+                           ArgsT...>
 
     //////////////////////////////////////////////////////////////////////////////////////
     // REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS (combines with macro just below to
@@ -2673,7 +2672,7 @@ namespace Private
     #define MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ARGS, IS_NOEXCEPT) \
         template <TRAITS_FREE_FUNCTION_C F, \
                   typename R, \
-                  typename... Args> \
+                  typename... ArgsT> \
         struct FreeFunctionTraits<F, \
                                   R CC ARGS noexcept(IS_NOEXCEPT), \
                                   std::enable_if_t<!CallingConventionReplacedWithCdecl<CALLING_CONVENTION, true>() && \
@@ -2686,8 +2685,8 @@ namespace Private
             template <typename NewF> \
             using MigratePointerAndRef_t = typename BaseClass::template MigratePointerAndRef<F, NewF>; \
         public: \
-            using AddVariadicArgs = MigratePointerAndRef_t<R STDEXT_CC_VARIADIC (Args..., ...) noexcept(IS_NOEXCEPT)>; \
-            using RemoveVariadicArgs = MigratePointerAndRef_t<R CC (Args...) noexcept(IS_NOEXCEPT)>; \
+            using AddVariadicArgs = MigratePointerAndRef_t<R STDEXT_CC_VARIADIC (ArgsT..., ...) noexcept(IS_NOEXCEPT)>; \
+            using RemoveVariadicArgs = MigratePointerAndRef_t<R CC (ArgsT...) noexcept(IS_NOEXCEPT)>; \
             using AddConst = F; \
             using RemoveConst = F; \
             using AddVolatile = F; \
@@ -2712,7 +2711,7 @@ namespace Private
             template <TUPLE_C NewArgsTupleT> \
             using ReplaceArgsTuple = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs, NewArgsTupleT>; \
             template <std::size_t N, typename NewArgT> \
-            using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, Args...>>; \
+            using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, ArgsT...>>; \
         };
 
     // noexcept (macro for internal use only - invokes macro just above)
@@ -2728,7 +2727,7 @@ namespace Private
     // handled just after).
     /////////////////////////////////////////////////////////////////////////
     #define MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(CC, CALLING_CONVENTION) \
-        MAKE_FREE_FUNC_TRAITS_1(CC, CALLING_CONVENTION, (Args...))
+        MAKE_FREE_FUNC_TRAITS_1(CC, CALLING_CONVENTION, (ArgsT...))
 
     /////////////////////////////////////////////////////////////
     // Call above macro once for each calling convention (for
@@ -2770,7 +2769,7 @@ namespace Private
     // functions but it would be rare and we don't currently support them
     // anyway).
     ////////////////////////////////////////////////////////////////////////
-    MAKE_FREE_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, (Args..., ...))
+    MAKE_FREE_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, (ArgsT..., ...))
 
     // Done with these
     #undef REPLACE_CALLING_CONVENTION
@@ -2832,7 +2831,7 @@ namespace Private
         FunctionTraitsBase<F, \
                            R, \
                            CALLING_CONVENTION, \
-                           #ARGS[9] != '\0', \
+                           #ARGS[10] != '\0', \
                            C, \
                            #CONST[0] != '\0', \
                            #VOLATILE[0] != '\0', \
@@ -2840,7 +2839,7 @@ namespace Private
                                            : (#REF[1] == '\0' ? RefQualifier::LValue \
                                                               : RefQualifier::RValue), \
                            IS_NOEXCEPT, \
-                           Args...>
+                           ArgsT...>
 
     /////////////////////////////////////////////////////////////////////////////
     // REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS (combines with macro just
@@ -2920,7 +2919,7 @@ namespace Private
         template <TRAITS_MEMBER_FUNCTION_C F, \
                   typename R, \
                   class C, \
-                  typename... Args> \
+                  typename... ArgsT> \
         struct MemberFunctionTraits<F, \
                                     R (CC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
                                     std::enable_if_t<!CallingConventionReplacedWithCdecl<CALLING_CONVENTION, false>() && \
@@ -2933,8 +2932,8 @@ namespace Private
             template <typename NewF> \
             using MigrateCvAndRef_t = typename BaseClass::template MigrateCvAndRef<F, NewF>; \
         public: \
-            using AddVariadicArgs = MigrateCvAndRef_t<R (STDEXT_CC_VARIADIC C::*)(Args..., ...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            using RemoveVariadicArgs = MigrateCvAndRef_t<R (CC C::*)(Args...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+            using AddVariadicArgs = MigrateCvAndRef_t<R (STDEXT_CC_VARIADIC C::*)(ArgsT..., ...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+            using RemoveVariadicArgs = MigrateCvAndRef_t<R (CC C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
             using AddConst = MigrateCvAndRef_t<R (CC C::*)ARGS const VOLATILE REF noexcept(IS_NOEXCEPT)>; \
             using RemoveConst = MigrateCvAndRef_t<R (CC C::*)ARGS VOLATILE REF noexcept(IS_NOEXCEPT)>; \
             using AddVolatile = MigrateCvAndRef_t<R (CC C::*)ARGS CONST volatile REF noexcept(IS_NOEXCEPT)>; \
@@ -2959,7 +2958,7 @@ namespace Private
             template <TUPLE_C NewArgsTupleT> \
             using ReplaceArgsTuple = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs, NewArgsTupleT>; \
             template <std::size_t N, typename NewArgT> \
-            using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, Args...>>; \
+            using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, ArgsT...>>; \
         };
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -2969,10 +2968,10 @@ namespace Private
     // order that they're mostly likely to be encountered when applied by end-users. The
     // first 4 specializations in particular are as follows:
     //
-    //    R (STDEXT_CC_CDECL C::*)(Args...) const noexcept
-    //    R (STDEXT_CC_CDECL C::*)(Args...) const
-    //    R (STDEXT_CC_CDECL C::*)(Args...) noexcept
-    //    R (STDEXT_CC_CDECL C::*)(Args...) 
+    //    R (STDEXT_CC_CDECL C::*)(ArgsT...) const noexcept
+    //    R (STDEXT_CC_CDECL C::*)(ArgsT...) const
+    //    R (STDEXT_CC_CDECL C::*)(ArgsT...) noexcept
+    //    R (STDEXT_CC_CDECL C::*)(ArgsT...) 
     //
     // In practice these are by far the most likely functions users will be passing. There
     // are just 4 of them as seen so their own order won't make much of a difference but I've
@@ -3024,7 +3023,7 @@ namespace Private
     // handled just after).
     /////////////////////////////////////////////////////////////////////////
     #define MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(CC, CALLING_CONVENTION) \
-        MAKE_MEMBER_FUNC_TRAITS_1(CC, CALLING_CONVENTION, (Args...))
+        MAKE_MEMBER_FUNC_TRAITS_1(CC, CALLING_CONVENTION, (ArgsT...))
 
     ////////////////////////////////////////////////////////////
     // Call above macro once for each calling convention (for
@@ -3072,7 +3071,7 @@ namespace Private
     // that support variadic functions but it would be rare and we don't
     // currently support them anyway).
     ////////////////////////////////////////////////////////////////////////
-    MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, (Args..., ...))
+    MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, (ArgsT..., ...))
 
     // Done with these
     #undef REPLACE_CALLING_CONVENTION
