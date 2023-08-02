@@ -351,7 +351,7 @@ template <TRAITS_FUNCTION_C F,
           std::size_t I>
 using ArgType_t;
 ```
-Type alias for the type of the "Ith" arg in function "F", where "I" is in the range 0 to the number of (non-variadic) arguments in "F" minus 1 (see "ArgCount_v" variable just above). Pass "I" as the (zero-based) 2nd template arg (see earlier examples). Note that if "I" is greater than or equal to the number of args in "F" (again, see "ArgCount_v" just above), then a compiler error will occur (so if "F" has no non-variadic args whatsoever, a compiler error will always occur, even if passing zero).</details>
+Type alias for the type of the "Ith" arg in function "F", where "I" is in the range 0 to the number of (non-variadic) arguments in "F" minus 1 (see [ArgCount_v](#argcount_v) just above). Pass "I" as the (zero-based) 2nd template arg (see earlier examples). Note that if "I" is greater than or equal to the number of args in "F" (again, see [ArgCount_v](#argcount_v) just above), then a compiler error will occur (so if "F" has no non-variadic args whatsoever, a compiler error will always occur, even if passing zero).</details>
 
 <a name="ArgTypeName_v"></a><details><summary>ArgTypeName_v</summary>
 ```C++
@@ -366,7 +366,7 @@ Same as "ArgType_t" just above but returns this as a (WYSIWYG) string (of type "
 template <TRAITS_FUNCTION_C F>
 using ArgTypes_t;
 ```
-Type alias for a "std::tuple" representing all non-variadic argument types in "F". Rarely required in practice however since you'll usually rely on "ArgType_t" or "ArgTypeName_v" to retrieve the type of a specific argument (see these above). If you require the "std::tuple" that stores all (non-variadic) argument types, then it's typically (usually) because you want to iterate all of them (say, to process the type of every argument in a loop). If you require this, then you can use the "ForEachArg()" helper function (template) further below. See this for details.</details>
+Type alias for a "std::tuple" representing all non-variadic argument types in "F". Rarely required in practice however since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument (see these above). If you require the "std::tuple" that stores all (non-variadic) argument types, then it's typically (usually) because you want to iterate all of them (say, to process the type of every argument in a loop). If you require this, then you can use the [ForEachArg](#foreacharg) helper function (template) further below. See this for details.</details>
 
 <a name="CallingConvention_v"></a><details><summary>CallingConvention_v</summary>
 ```C++
@@ -388,7 +388,7 @@ template <TRAITS_FUNCTION_C F,>
           FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
 inline constexpr bool ForEachArg(ForEachTupleFunctorT &&);
 ```
-Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on "ArgType_t" or "ArgTypeName_v" to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/fx8MWGv99) program, also available in the repository itself).</details>
+Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/fx8MWGv99) program, also available in the repository itself).</details>
 
 <a name="FunctionType_t"></a><details><summary>FunctionType_t</summary>
 ```C++
@@ -409,7 +409,7 @@ Same as "FunctionType_t" just above but returns this as a (WYSIWYG) string (of t
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsEmptyArgList_v;
 ```
-"bool" variable set to "true" if the function represented by "F" has an empty arg list (it has no args whatsoever including variadic args), or "false" otherwise. If true then note that "ArgCount_v" is guaranteed to return zero (0), and "IsVariadic_v" is guaranteed to return false.<br /><br /><ins>IMPORTANT</ins>:<br />Note that you should rely on this helper to determine if a function's argument list is completely empty opposed to checking the "ArgCount_v" helper for zero (0), since the latter returns zero only if "F" has no non-variadic args. If it has variadic args but no others, i.e., its argument list is "(...)", then the argument list isn't empty even though "ArgCount_v" returns zero (since it still has variadic args). Caution advised.</details>
+"bool" variable set to "true" if the function represented by "F" has an empty arg list (it has no args whatsoever including variadic args), or "false" otherwise. If true then note that [ArgCount_v](#argcount_v) is guaranteed to return zero (0), and "IsVariadic_v" is guaranteed to return false.<br /><br /><ins>IMPORTANT</ins>:<br />Note that you should rely on this helper to determine if a function's argument list is completely empty opposed to checking the [ArgCount_v](#argcount_v) helper for zero (0), since the latter returns zero only if "F" has no non-variadic args. If it has variadic args but no others, i.e., its argument list is "(...)", then the argument list isn't empty even though [ArgCount_v](#argcount_v) returns zero (since it still has variadic args). Caution advised.</details>
 
 <a name="IsFreeFunction_v"></a><details><summary>IsFreeFunction_v</summary>
 ```C++
@@ -430,7 +430,7 @@ inline constexpr bool IsFunctor_v;
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsMemberFunction_v;
 ```
-"bool" variable set to "true" if "F" is a non-static member function (including when "F" is a functor), or "false" otherwise (if you need to specifically check for functors only then see "IsFunctor_v" just above). Note that you may need to invoke this before accessing the following helper templates. Since the following are applicable to non-static member functions only, if you don't know whether "F" is a non-static member function ahead of time (or a functor), then you should normally call "IsMemberFunction_v" to determine this first. If it's "false" then "F" is a free function (which includes static member functions), so a call to any of the following will result in default values being returned that aren't applicable to free functions (so you shouldn't normally invoke them unless you're ok with the default values they return for free functions):<br /><br />- IsMemberFunctionConst_v<br />- IsMemberFunctionVolatile_v<br />- MemberFunctionClass_t<br />- MemberFunctionClassName_v<br />- MemberFunctionRefQualifier_v<br />- MemberFunctionRefQualifierName_v</details>
+"bool" variable set to "true" if "F" is a non-static member function (including when "F" is a functor), or "false" otherwise (if you need to specifically check for functors only then see "IsFunctor_v" just above). Note that you may need to invoke this before accessing the following helper templates. Since the following are applicable to non-static member functions only, if you don't know whether "F" is a non-static member function ahead of time (or a functor), then you should normally call "IsMemberFunction_v" to determine this first. If it's "false" then "F" is a free function (which includes static member functions), so a call to any of the following will result in default values being returned that aren't applicable to free functions (so you shouldn't normally invoke them unless you're ok with the default values they return for free functions):<br /><br />- [IsMemberFunctionConst_v](#ismemberfunctionconst_v)<br />- [IsMemberFunctionVolatile_v](#ismemberfunctionvolatile_v)<br />- [MemberFunctionClass_t](#memberfunctionclass_t)<br />- [MemberFunctionClassName_v](#memberfunctionclassname_v)<br />- [MemberFunctionRefQualifier_v](#memberfunctionrefqualifier_v)<br />- [MemberFunctionRefQualifierName_v](#memberfunctionrefqualifiername_v)</details>
 
 <a name="IsMemberFunctionConst_v"></a><details><summary>IsMemberFunctionConst_v</summary>
 ```C++
