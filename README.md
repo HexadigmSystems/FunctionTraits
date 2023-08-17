@@ -1,9 +1,15 @@
 # FunctionTraits
 ## C++ function traits library (single header-only) for retrieving info about any function (arg types, arg count, return type, etc.). Clean and easy-to-use, the most "complete" implementation on the web.
 
-See [here](https://godbolt.org/z/fx8MWGv99) for a complete working example (demo for those who want to get right to the code - the same code in this repository).
+See [here](https://godbolt.org/z/f7jGo8h8j) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
 
-"FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike almost any other implementation you'll often find, most of which fail to address one or more issues (including the Boost implementation - read on). Many (actually most) of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on "stackoverflow.com" for instance. Only a small handful I'm aware of are more complete and far fewer are reasonably complete (though still missing at least one or two features, in particular calling convention support - again, read on). Some have even written articles on the subject but still don't address various issues. Some of these issues are obvious (or should be), such as failing to detect functions declared as "noexcept" (part of a function's type since C++17), or variadic functions, or volatile non-static member functions, or function pointers with cv-qualifiers, among other things (often resulting in a lot of cryptic compiler errors). Some are less obvious, like failing to detect functions with calling conventions other than the default (usually "cdecl"), which isn't addressed in the C++ standard itself (and a bit more tricky to implement than it first appears as far as creating a functions traits class is concerned). With the exception of the one from Boost ("boost::callable_traits"), whose own support for calling conventions is limited and even discouraged by the author's internal comments (and not on by default or even officially documented - more on this later), I have yet to see any other implementation address calling conventions at all, even in the (very) few other (mostly) "complete" solutions for handling function traits that are out there (that I've ever come across). Without (mainstream) calling convention support however, all functions in the entire Microsoft Windows API would fail to be detected for instance, since it's almost entirely based on the "stdcall" calling convention. "FunctionTraits" does address all these issues however. It provides traits info about every (mainstream) aspect of any function within the limitations of what C++ currently supports (or easily supports), and allows you to change every trait as well, where applicable (including function parameter types, which will be rarely used by most but no other implementation I've seen at this writing supports it, including the one from Boost). You can currently obtain and/or change (where applicable) the following information:
+"FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a natural extension to the C++ standard whose [<type_traits>](https://en.cppreference.com/w/cpp/header/type_traits) header offers almost no support for handling function traits, save for [std::is_function](https://en.cppreference.com/w/cpp/types/is_function) and [std::is_member_function_pointer](https://en.cppreference.com/w/cpp/types/is_member_function_pointer) (and one or two other borderline cases). It's also a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike any other implementation you'll normally find at this writing, which usually fail to address one or more issues (including the Boost implementation - read on). Many (actually most) of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on "stackoverflow.com" for instance. Only a small handful are more complete and far fewer are reasonably complete, though still missing at least one or two features, in particular calling convention support (again, read on).
+ 
+Some have even written articles on the subject but still don't address various issues. Some of these issues are obvious (or should be), such as failing to detect functions declared as "noexcept" (part of a function's type since C++17), or const and/or volatile non-static member functions (usually "const" in practice), or variadic functions (those whose arguments end with "..."), or function pointers with cv-qualifiers (the pointers themselves are "const" and/or "volatile"), among other things (often resulting in a lot of cryptic compiler errors).
+
+Some are less obvious, like failing to detect non-static [Member functions with ref-qualifiers](https://en.cppreference.com/w/cpp/language/member_functions#Member_functions_with_ref-qualifier) (rarely used but still required for completeness), or much more prominently (and important usually), functions with calling conventions other than the default (usually "cdecl"), which isn't addressed in the C++ standard itself (and a bit more tricky to implement than it first appears as far as creating a functions traits class is concerned). With the exception of the one from Boost ("boost::callable_traits"), whose own support for calling conventions is limited and even discouraged by the author's internal comments (and not on by default or even officially documented - more on this later), I have yet to see any other implementation address calling conventions at all, even in the (very) few other (mostly) "complete" solutions for handling function traits that are out there (that I've ever come across). Without (mainstream) calling convention support however, all functions in the entire Microsoft Windows API would fail to be detected for instance, since it's almost entirely based on the "stdcall" calling convention. Again, the result is usually a lot of cryptic compiler errors.
+ 
+"FunctionTraits" does address all these issues however. It provides traits info about every (mainstream) aspect of any function within the limitations of what C++ currently supports (or easily supports), and allows you to change every trait as well, where applicable (including function parameter types, which will be rarely used by most but no other implementation I've seen at this writing supports it, including the one from Boost). You can currently obtain and/or change (where applicable) the following information:
 
 1. `Return type` - Function's return type and/or its name as a WYSIWYG string (std::basic_string_view)
 2. `Argument count` - Number of (non-variadic) arguments in the function (formally called "arity")
@@ -21,7 +27,9 @@ The above covers almost all traits most programmers will ever be interested in. 
 ## Usage (GCC or compatible, Clang, Microsoft and Intel compilers only - C++17 and later)
 To use "FunctionTraits", simply add both "TypeTraits.h" and "CompilerVersions.h" to your code and then #include "TypeTraits.h" wherever you require it (all code is declared in namespace "StdExt"). Note that you need not explicitly #include "CompilerVersions.h" unless you wish to use it independently of "TypeTraits.h", since "TypeTraits.h" itself #includes it as a dependency ("CompilerVersions.h" simply declares various #defined constants used to identify the version of C++ you're using, and a few other compiler-related declarations - you're free to use these in your own code as well if you wish). The struct (template) "FunctionTraits" is then immediately available for use (see [Technique 1 of 2](#technique1of2) below), though you'll normally rely on its [Helper templates](#helpertemplates) instead (see [Technique 2 of 2](#technique2of2) below). Note that both files above have no platform-specific dependencies, except when targeting Microsoft, where the native Microsoft header <tchar.h> is expected to be in the usual #include search path (and it normally will be on Microsoft platforms). Otherwise they rely on the C++ standard headers only which are therefore (also) expected to be in the usual search path on your platform.
 
-<a name="SupportedTypesForF"></a>Note that template arg "F" is the first (and usually only) template arg of "FunctionTraits" and all its [Helper templates](#helpertemplates), and refers to the function's type which can be any of the following:
+<a name="TemplateArgF"></a>
+#### Template arg "F"
+Note that template arg "F" is the first (and usually only) template arg of "FunctionTraits" and all its [Helper templates](#helpertemplates), and refers to the function's type which can be any of the following:
 
 1. Free functions which also includes static member functions, in either case referring to the function's actual C++ type (which are always considered to be free functions - non-static member functions are always handled by 4 or 5 below).
 2. Pointers and references to free functions
@@ -125,13 +133,13 @@ constexpr auto SomeFuncArg3TypeName = TypeName_v<SomeFuncArg3Type_t>;
 /////////////////////////////////////////////////////////////////
 using SomeFuncWithNoexceptAdded_t = typename SomeFuncTraits::AddNoexcept;
 
-/////////////////////////////////////////////////////////////////////////
-// Above type as a string so displays the following (same as "SomeFunc"
+////////////////////////////////////////////////////////////////////////
+// Above type as a string so returns the following (same as "SomeFunc"
 // but with "noexcept" added - note the format of the following may
 // change slightly depending on the target compiler):
 //
-//     float(const std::basic_string<char>&, double, int) noexcept
-/////////////////////////////////////////////////////////////////////////
+//     float (const std::basic_string<char>&, double, int) noexcept
+////////////////////////////////////////////////////////////////////////
 constexpr auto SomeFuncWithNoexceptAdded_v = TypeName_v<SomeFuncWithNoexceptAdded_t>;
 
 /////////////////////////////////////////////////////////
@@ -143,13 +151,13 @@ constexpr auto SomeFuncWithNoexceptAdded_v = TypeName_v<SomeFuncWithNoexceptAdde
 using SomeFuncReplace3rdArgWithChar_t = typename SomeFuncTraits::template ReplaceNthArg<2, char>;
 
 ////////////////////////////////////////////////////////////
-// Above type as a string so displays the following (same
+// Above type as a string so returns the following (same
 // as function "SomeFunc" but the 3rd arg has now been
 // changed to a "char" - note the format of the following
 // may change slightly depending on the target compiler):
 //
 //    float (const std::basic_string<char>&, double, char)
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 constexpr auto SomeFuncReplace3rdArgWithChar_v = TypeName_v<SomeFuncReplace3rdArgWithChar_t>;
 
 // Etc. (see "Helper templates" further below for the complete list)
@@ -161,7 +169,7 @@ constexpr auto SomeFuncReplace3rdArgWithChar_v = TypeName_v<SomeFuncReplace3rdAr
 
 Alternatively, instead of using "FunctionTraits" directly ([Technique 1 of 2](#technique1of2) above), you can rely on the second technique just below instead, which is normally much cleaner (and you should normally use it). As seen in the first technique above, relying on "FunctionTraits" directly can result in verbose syntax. For instance, due to the syntax of C++ itself, accessing the type of a given arg is ugly because you have to apply both the "typename" and "template" keywords (see "SomeFuncArg3Type_t" alias in the [Technique 1 of 2](#technique1of2) example). A helper template therefore exists not only for this, but for every member of "FunctionTraits". Therefore, instead of relying on "FunctionTraits" directly as seen in the above examples, you can rely on the [Helper templates](#helpertemplates) instead. They're easier and cleaner, making the job of extracting or modifying a function's traits a breeze.
 
-Note that two sets of helper templates exist, one taking a "FunctionTraits" template arg, and a corresponding template taking a function template arg (just pass your function's type as described [here](#supportedtypesforf)). The latter templates simply create a "FunctionTraits" for you from the function type you pass and then defer to the corresponding "FunctionTraits" helper template. The "FunctionTraits" helper templates are rarely used directly in practice however so they're not documented here. Only the [Helper templates](#helpertemplates) taking a function template arg are therefore documented further below. Most users will rely on these exclusively, though you can always quickly inspect the code itself if you ever want to use the "FunctionTraits" helper templates directly (they're just thin wrappers around the members of "FunctionTraits" which inherits all its members from its base classes). Here's the same example seen in "Technique 1" above but using these [Helper templates](#helpertemplates) instead (though without repeating most of the comments seen in "Technique 1"):
+Note that two sets of helper templates exist, one taking a "FunctionTraits" template arg, and a corresponding template taking a function template arg (just pass your function's type as described [here](#templateargf)). The latter templates simply create a "FunctionTraits" for you from the function type you pass and then defer to the corresponding "FunctionTraits" helper template. The "FunctionTraits" helper templates are rarely used directly in practice however so they're not documented here. Only the [Helper templates](#helpertemplates) taking a function template arg are therefore documented further below. Most users will rely on these exclusively, though you can always quickly inspect the code itself if you ever want to use the "FunctionTraits" helper templates directly (they're just thin wrappers around the members of "FunctionTraits" which inherits all its members from its base classes). Here's the same example seen in "Technique 1" above but using these [Helper templates](#helpertemplates) instead (though without repeating most of the comments seen in "Technique 1"):
 
 ```C++
 // Only file you need to explicitly #include (see "Usage" section earlier)
@@ -218,13 +226,13 @@ constexpr auto SomeFuncArg3TypeName = ArgTypeName_v<F, 2>;
 /////////////////////////////////////////////////////////////////
 using SomeFuncWithNoexceptAdded_t = AddNoexcept_t<F>;
 
-/////////////////////////////////////////////////////////////////////////
-// Above type as a string so displays the following (same as "SomeFunc"
+////////////////////////////////////////////////////////////////////////
+// Above type as a string so returns the following (same as "SomeFunc"
 // but with "noexcept" added - note the format of the following may
 // change slightly depending on the target compiler):
 //
-//     float(const std::basic_string<char>&, double, int) noexcept
-/////////////////////////////////////////////////////////////////////////
+//     float (const std::basic_string<char>&, double, int) noexcept
+////////////////////////////////////////////////////////////////////////
 constexpr auto SomeFuncWithNoexceptAdded_v = TypeName_v<SomeFuncWithNoexceptAdded_t>;
 
 /////////////////////////////////////////////////////////
@@ -238,13 +246,13 @@ constexpr auto SomeFuncWithNoexceptAdded_v = TypeName_v<SomeFuncWithNoexceptAdde
 using SomeFuncReplace3rdArgWithChar_t = ReplaceNthArg_t<F, 2, char>;
 
 ////////////////////////////////////////////////////////////
-// Above type as a string so displays the following (same
+// Above type as a string so returns the following (same
 // as function "SomeFunc" but the 3rd arg has now been
 // changed to a "char" - note the format of the following
 // may change slightly depending on the target compiler):
 //
 //    float (const std::basic_string<char>&, double, char)
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 constexpr auto SomeFuncReplace3rdArgWithChar_v = TypeName_v<SomeFuncReplace3rdArgWithChar_t>;
 
 // Etc. (see "Helper templates" further below for the complete list)
@@ -328,7 +336,7 @@ ForEachArg<F>(displayArgType);
 <a name="HelperTemplates"></a>
 ## Helper templates (complete, alphabetical list)
 
-The following provides a complete (alphabetical) list of all helper templates. Two separate sections exist, the first for [Read traits](#readtraits), allowing you to read any part up a function's type, and the second for [Write traits](#writetraits), allowing you to update any part of a function's type. Note that the first template arg of every template is the function you're targeting, whose name is always "F" (see [here](#supportedtypesforf) for details). IMPORTANT: When "F" is a functor, note that all traits implicitly refer (apply) to the non-static member function "F::operator()" unless noted otherwise (so if "F" is the type of a lambda for instance then the traits target "operator()" of the compiler-generated class for that lambda). It should therefore be understood that whenever "F" is a functor and it's cited in the description of each template, the description is normally referring to member function "F::operator()", not class "F" itself.
+The following provides a complete (alphabetical) list of all helper templates. Two separate sections exist, the first for [Read traits](#readtraits), allowing you to read any part up a function's type, and the second for [Write traits](#writetraits), allowing you to update any part of a function's type. Note that the first template arg of every template is the function you're targeting, whose name is always "F" (see [here](#templateargf) for details). IMPORTANT: When "F" is a functor, note that all traits implicitly refer (apply) to the non-static member function "F::operator()" unless noted otherwise (so if "F" is the type of a lambda for instance then the traits target "operator()" of the compiler-generated class for that lambda). It should therefore be understood that whenever "F" is a functor and it's cited in the description of each template, the description is normally referring to member function "F::operator()", not class "F" itself.
 
 Please note that for all traits, a TRAITS_FUNCTION_C concept (declared in "TypeTraits.h") will kick in for illegal values of "F" in C++20 or later ("F" is declared a TRAITS_FUNCTION_C in all templates below), or a "static_assert" in C++17 otherwise (again, earlier versions aren't supported). For most of the traits, "F" is the only template arg. Only a small handful of templates take additional (template) args which are described on a case-by-case basis below. Lastly, note that the "=" sign is omitted after the template name in each template declaration below. The "=" sign is removed since the implementation isn't normally relevant for most users. You can inspect the actual declaration in "TypeTraits.h" if you wish to see it.
 
@@ -373,7 +381,7 @@ Type alias for a "std::tuple" representing all non-variadic argument types in "F
 template <TRAITS_FUNCTION_C F>
 inline constexpr CallingConvention CallingConvention_v;
 ```
-Calling convention of "F" returned as a "CallingConvention" enumerator (declared in "TypeTraits.h"). Calling conventions include "Cdecl", "Stdcall", etc. (note that functions with calling conventions not seen in this enumerator are not supported, but all mainstream calling conventions are). Also please note that compilers will sometimes change the calling convention declared on your functions to the "Cdecl" calling convention depending on the compiler options in effect at the time (in particular when compiling for 64 bits opposed to 32 bits, though the "Vectorcall" calling convention *is* supported on 64 bits but not on GCC since it doesn't support this particular calling convention at all). In this case the calling convention on your function is ignored and "CallingConvention_v" will correctly return the "Cdecl" calling convention (if that's what the compiler actually used).</details>
+Calling convention of "F" returned as a "CallingConvention" enumerator (declared in "TypeTraits.h"). Calling conventions include "Cdecl", "Stdcall", etc. (note that functions with calling conventions not seen in this enumerator are not supported, but all mainstream calling conventions are). Also please note that compilers will sometimes change the calling convention declared on your functions to the "Cdecl" calling convention depending on the compiler options in effect at the time (in particular when compiling for 64 bits opposed to 32 bits, though the "Vectorcall" calling convention *is* supported on 64 bits but not on GCC since it doesn't support this particular calling convention). In this case the calling convention on your function is ignored and "CallingConvention_v" will correctly return the "Cdecl" calling convention (if that's what the compiler actually uses).</details>
 
 <a name="CallingConventionName_v"></a><details><summary>CallingConventionName_v</summary>
 ```C++
@@ -388,7 +396,7 @@ template <TRAITS_FUNCTION_C F,>
           FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
 inline constexpr bool ForEachArg(ForEachTupleFunctorT &&);
 ```
-Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/fx8MWGv99) program, also available in the repository itself).</details>
+Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/f7jGo8h8j) program, also available in the repository itself).</details>
 
 <a name="FunctionType_t"></a><details><summary>FunctionType_t</summary>
 ```C++
@@ -409,7 +417,7 @@ Same as "FunctionType_t" just above but returns this as a (WYSIWYG) string (of t
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsEmptyArgList_v;
 ```
-"bool" variable set to "true" if the function represented by "F" has an empty arg list (it has no args whatsoever including variadic args), or "false" otherwise. If true then note that [ArgCount_v](#argcount_v) is guaranteed to return zero (0), and "IsVariadic_v" is guaranteed to return false.<br /><br /><ins>IMPORTANT</ins>:<br />Note that you should rely on this helper to determine if a function's argument list is completely empty opposed to checking the [ArgCount_v](#argcount_v) helper for zero (0), since the latter returns zero only if "F" has no non-variadic args. If it has variadic args but no others, i.e., its argument list is "(...)", then the argument list isn't empty even though [ArgCount_v](#argcount_v) returns zero (since it still has variadic args). Caution advised.</details>
+"bool" variable set to "true" if the function represented by "F" has an empty arg list (it has no args whatsoever including variadic args), or "false" otherwise. If true then note that [ArgCount_v](#argcount_v) is guaranteed to return zero (0), and [IsVariadic_v](#isvariadic_v) is guaranteed to return false.<br /><br /><ins>IMPORTANT</ins>:<br />Note that you should rely on this helper to determine if a function's argument list is completely empty opposed to checking the [ArgCount_v](#argcount_v) helper for zero (0), since the latter returns zero only if "F" has no non-variadic args. If it has variadic args but no others, i.e., its argument list is "(...)", then the argument list isn't empty even though [ArgCount_v](#argcount_v) returns zero (since it still has variadic args). Caution advised.</details>
 
 <a name="IsFreeFunction_v"></a><details><summary>IsFreeFunction_v</summary>
 ```C++
@@ -451,7 +459,7 @@ inline constexpr bool IsMemberFunctionVolatile_v;
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsNoexcept_v;
 ```
-"bool" variable set to "true" if the function is declared as "noexcept" or "false" otherwise (always false if the "noexcept" specifier is absent in the function, otherwise, if present then it evaluates to "true" if no bool expression is present in the "noexcept" specifier (the expression has been omitted), or the result of the bool expression otherwise - WYSIWYG).</details>
+"bool" variable set to "true" if "F" is declared as "noexcept" or "false" otherwise (always false if the "noexcept" specifier is absent in the function, otherwise, if present then it evaluates to "true" if no bool expression is present in the "noexcept" specifier (the expression has been omitted), or the result of the bool expression otherwise - WYSIWYG).</details>
 
 <a name="IsVariadic_v"></a><details><summary>IsVariadic_v</summary>
 ```C++
@@ -459,6 +467,13 @@ template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsVariadic_v;
 ```
 "bool" variable set to true if "F" is a variadic function (last arg of "F" is "...") or false otherwise.</details>
+
+<a name="IsVoidReturnType_v"></a><details><summary>IsVoidReturnType_v</summary>
+```C++
+template <TRAITS_FUNCTION_C F>
+inline constexpr bool IsVoidReturnType_v;
+```
+"bool" variable set to "true" if the return type of "F" is "void" (ignoring cv-qualifiers if any), or "false" otherwise. Note that this variable is identical to passing [ReturnType_t](#returntype_t) to [std::is_void](https://en.cppreference.com/w/cpp/types/is_void). The variable simply provides a convenient wrapper.</details>
 
 <a name="MemberFunctionClass_t"></a><details><summary>MemberFunctionClass_t</summary>
 ```C++
@@ -619,7 +634,7 @@ template <TRAITS_FUNCTION_C F,
           typename... NewArgsT>
 using ReplaceArgs_t;
 ```
-Type alias for "F" after replacing all its existing non-variadic arguments with the args given by "NewArgsT" (a parameter pack of the types that become the new argument list). If none are passed then an empty argument list results instead, though if variadic args are present in "F" then they still remain intact (the "..." remains - read on). The resulting alias is identical to "F" itself except that the non-variadic arguments in "F" are completely replaced with "NewArgsT". Note that if "F" is a variadic function (its last parameter is "..."), then it remains a variadiac function after the call (the "..." remains in place). If you wish to explicitly add or remove the "..." as well then pass the resulting type to "AddVariadicArgs_t" or "RemoveVariadicArgs_t" respectively (either before or after the call to "ReplaceArgs_t"). Note that if you wish to replace specific arguments instead of all of them, then call "ReplaceNthArg_t" instead. Lastly, you can alternatively use "ReplaceArgsTuple_t" instead of "ReplaceArgs_t" if you have a "std::tuple" of types you wish to use for the argument list instead of a parameter pack. "ReplaceArgsTuple_t" is identical to "ReplaceArgs_t" otherwise (it ultimately defers to it).</details>
+Type alias for "F" after replacing all its existing non-variadic arguments with the args given by "NewArgsT" (a parameter pack of the types that become the new argument list). If none are passed then an empty argument list results instead, though if variadic args are present in "F" then they still remain intact (the "..." remains - read on). The resulting alias is identical to "F" itself except that the non-variadic arguments in "F" are completely replaced with "NewArgsT". Note that if "F" is a variadic function (its last parameter is "..."), then it remains a variadiac function after the call (the "..." remains in place). If you wish to explicitly add or remove the "..." as well then pass the resulting type to [AddVariadicArgs_t](#addvariadicargs_t) or [RemoveVariadicArgs_t](#removevariadicargs_t) respectively (either before or after the call to "ReplaceArgs_t"). Note that if you wish to replace specific arguments instead of all of them, then call [ReplaceNthArg_t](#replacentharg_t) instead. Lastly, you can alternatively use [ReplaceArgsTuple_t](#replaceargstuple_t) instead of "ReplaceArgs_t" if you have a "std::tuple" of types you wish to use for the argument list instead of a parameter pack. [ReplaceArgsTuple_t](#replaceargstuple_t) is identical to "ReplaceArgs_t" otherwise (it ultimately defers to it).</details>
 
 <a name="ReplaceArgsTuple_t"></a><details><summary>ReplaceArgsTuple_t</summary>
 ```C++
@@ -627,7 +642,7 @@ template <TRAITS_FUNCTION_C F,
           TUPLE_C NewArgsTupleT>
 using ReplaceArgsTuple_t;
 ```
-Identical to "ReplaceArgs_t" just above except the argument list is passed as a "std::tuple" instead of a parameter pack (via the 2nd template arg). The types in the "std::tuple" are therefore used for the resulting argument list. "ReplaceArgsTuple_t" is otherwise identical to "ReplaceArgs_t" (it ultimately defers to it).</details>
+Identical to [ReplaceArgs_t](#replaceargs_t) just above except the argument list is passed as a "std::tuple" instead of a parameter pack (via the 2nd template arg). The types in the "std::tuple" are therefore used for the resulting argument list. "ReplaceArgsTuple_t" is otherwise identical to [ReplaceArgs_t](#replaceargs_t) (it ultimately defers to it).</details>
 
 <a name="ReplaceCallingConvention_t"></a><details><summary>ReplaceCallingConvention_t</summary>
 ```C++
@@ -635,7 +650,7 @@ template <TRAITS_FUNCTION_C F,
           CallingConvention NewCallingConventionT>
 using ReplaceCallingConvention_t;
 ```
-Type alias for "F" after replacing its calling convention with the platform-specific calling convention corresponding to "NewCallingConventionT" (a "CallingConvention" enumerator declared in "TypeTraits.h"). For instance, if you pass  "CallingConvention::FastCall" then the calling convention on "F" is replaced with "\_\_attribute\_\_((cdecl))" on GCC and Clang, but "\_\_cdecl" on Microsoft platforms. Note however that the calling convention for variadic functions (those whose last arg is "...") can't be changed in this release. Variadic functions require that the calling function pop the stack to clean up passed arguments and only the "Cdecl" calling convention supports that in this release (on all supported compilers at this writing). Attempts to change it are therefore ignored. Note that you also can't change the calling convention of free functions to "CallingConvention::Thiscall" (including for static member functions since they're considered "free" functions). Attempts to do so are ignored since the latter calling convention applies to non-static member functions only. Lastly, please note that compilers will sometimes change the calling convention declared on your functions to the "Cdecl" calling convention depending on the compiler options in effect at the time (in particular when compiling for 64 bits opposed to 32 bits, though the "Vectorcall" calling convention *is* supported on 64 bits on compilers that support this calling convention). Therefore, if you specify a calling convention that the compiler changes to "Cdecl" based on the compiler options currently in effect, then "ReplaceCallingConvention_t" will also ignore your calling convention and apply "Cdecl" instead (since that's what the compiler actually uses).</details>
+Type alias for "F" after replacing its calling convention with the platform-specific calling convention corresponding to "NewCallingConventionT" (a "CallingConvention" enumerator declared in "TypeTraits.h"). For instance, if you pass  "CallingConvention::FastCall" then the calling convention for "F" is replaced with "_\_\_attribute\_\_((fastcall))_" on GCC and Clang, but "_\_\_fastcall_" on Microsoft platforms. Note however that the calling convention for variadic functions (those whose last arg is "...") can't be changed in this release. Variadic functions require that the calling function pop the stack to clean up passed arguments and only the "Cdecl" calling convention supports that in this release (on all supported compilers at this writing). Attempts to change it are therefore ignored. Note that you also can't change the calling convention of free functions to "CallingConvention::Thiscall" (including for static member functions since they're considered "free" functions). Attempts to do so are ignored since the latter calling convention applies to non-static member functions only. Lastly, please note that compilers will sometimes change the calling convention declared on your functions to the "Cdecl" calling convention depending on the compiler options in effect at the time (in particular when compiling for 64 bits opposed to 32 bits, though the "Vectorcall" calling convention *is* supported on 64 bits on compilers that support this calling convention). Therefore, if you specify a calling convention that the compiler changes to "Cdecl" based on the compiler options currently in effect, then "ReplaceCallingConvention_t" will also ignore your calling convention and apply "Cdecl" instead (since that's what the compiler actually uses).</details>
 
 <a name="ReplaceNthArg_t"></a><details><summary>ReplaceNthArg_t</summary>
 ```C++
@@ -644,7 +659,7 @@ template <TRAITS_FUNCTION_C F,
           typename NewArgT>
 using ReplaceNthArg_t;
 ```
-Type alias for "F" after replacing its (zero-based) "Nth" argument with "NewArgT". Pass "N" via the 2nd template arg (i.e., the zero-based index of the arg you're targeting), and the type you wish to replace it with via the 3rd template arg ("NewArgT"). The resulting alias is therefore identical to "F" except its "Nth" argument is replaced by "NewArgT" (so passing, say, zero-based "2" for "N" and "int" for "NewArgT" would replace the 3rd function argument with an "int"). Note that "N" must be less than the number of arguments in the function or a "static_assert" will occur (new argument types can't be added using this trait, only existing argument types replaced). If you need to replace multiple arguments then recursively call "ReplaceNthArg_t" again, passing the result as the "F" template arg of "ReplaceNthArg_t" as many times as you need to (each time specifying a new "N" and "NewArgT"). If you wish to replace all arguments at once then call "ReplaceArgs_t" or "ReplaceArgsTuple_t" instead. Lastly, note that if "F" has variadic arguments (it ends with "..."), then these remain intact. If you need to remove them then call "RemoveVariadicArgs_t" before or after the call to "ReplaceNthArg_t".</details>
+Type alias for "F" after replacing its (zero-based) "Nth" argument with "NewArgT". Pass "N" via the 2nd template arg (i.e., the zero-based index of the arg you're targeting), and the type you wish to replace it with via the 3rd template arg ("NewArgT"). The resulting alias is therefore identical to "F" except its "Nth" argument is replaced by "NewArgT" (so passing, say, zero-based "2" for "N" and "int" for "NewArgT" would replace the 3rd function argument with an "int"). Note that "N" must be less than the number of arguments in the function or a "static_assert" will occur (new argument types can't be added using this trait, only existing argument types replaced). If you need to replace multiple arguments then recursively call "ReplaceNthArg_t" again, passing the result as the "F" template arg of "ReplaceNthArg_t" as many times as you need to (each time specifying a new "N" and "NewArgT"). If you wish to replace all arguments at once then call [ReplaceArgs_t](#replaceargs_t) or [ReplaceArgsTuple_t](#replaceargstuple_t) instead. Lastly, note that if "F" has variadic arguments (it ends with "..."), then these remain intact. If you need to remove them then call [RemoveVariadicArgs_t](#removevariadicargs_t) before or after the call to "ReplaceNthArg_t".</details>
 
 <a name="ReplaceReturnType_t"></a><details><summary>ReplaceReturnType_t</summary>
 ```C++

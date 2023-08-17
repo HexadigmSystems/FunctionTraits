@@ -15,7 +15,7 @@
 // DESCRIPTION
 // -----------
 // Contains miscellaneous type traits similar to those in the native C++
-// header <type_traits>. Supported in Microsoft, GCC, Clang and Intel
+// header <type_traits>. Supported in GCC, Clang, Microsoft and Intel
 // compilers only at this writing (C++17 and later - the check for
 // CPP17_OR_LATER just below causes all code to be preprocessed out
 // otherwise). Note that this file depends on (#includes)
@@ -788,7 +788,7 @@ namespace Private
 // given compiler vendor ever changes the format of __PRETTY_FUNCTION__
 // itself however (or __FUNCSIG__ for MSFT only), then that could
 // potentially break the function as noted but again, the "static_asserts"
-// in the implementation will normall trigger if this occurs, and you'll
+// in the implementation will normally trigger if this occurs, and you'll
 // then have to fix the implementation function for this template to deal
 // with it ("Private::TypeNameImpl::Get()" as it's currently called at
 // this writing). It seems very unlikely a compiler vendor will ever
@@ -812,7 +812,7 @@ inline constexpr tstring_view TypeName_v = Private::TypeNameImpl::Get<T>();
     #define IS_CLASS_C StdExt::IsClass_c
 #else
     #define STATIC_ASSERT_IS_CLASS(T) static_assert(std::is_class_v<T>, \
-                                                    "\"" #T "\" must be class or struct");
+                                                    "\"" #T "\" must be a class or struct");
     #define IS_CLASS_C typename
 #endif
 
@@ -910,7 +910,7 @@ using RemovePtrRef = std::remove_pointer_t<std::remove_reference_t<T>>;
 //     // Use the helper alias "ReplaceNthType_t" to replace the "char" in
 //     // the following parameter pack with an "int".
 //     //
-//     //    float,
+//     //    float
 //     //    double
 //     //    char
 //     //    std::string
@@ -1469,7 +1469,8 @@ namespace Private
     // to), or false otherwise
     //////////////////////////////////////////////////
     template<typename T>
-    inline constexpr bool IsMemberFunctionNonCvPointer_v = std::is_member_function_pointer_v<T> &&
+    inline constexpr bool IsMemberFunctionNonCvPointer_v = std::is_member_function_pointer_v<T> && // Note that "std::is_member_function_pointer_v"
+                                                                                                   // returns true for cv-qualified pointers as well
                                                            !IsConstOrVolatile<T>;
 
     //////////////////////////////////////////////
@@ -1529,9 +1530,10 @@ namespace Private
     //   1) A free function including static member functions (but
     //      abominable function types always return false by design -
     //      see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
-    //   2) A pointer to a free function
+    //   2) A (possibly cv-qualified) pointer to a free function
     //   3) A reference to a free function
-    //   4) A reference to a pointer to a free function
+    //   4) A reference to a (possibly cv-qualified) pointer to a
+    //      free function
     /////////////////////////////////////////////////////////////////
     template <typename T>
     inline constexpr bool IsTraitsFreeFunction_v = IsFreeFunction_v<RemovePtrRef<T>>;
@@ -1553,11 +1555,14 @@ namespace Private
     // IsTraitsMemberFunction_v. Variable template set to true if "T"
     // is either of the following or false otherwise:
     // 
-    //   1) A pointer to a non-static member function
-    //   2) A reference to a pointer to a non-static member function
+    //   1) A (possibly cv-qualified) pointer to a non-static member
+    //      function
+    //   2) A reference to a (possibly cv-qualified) pointer to a
+    //      non-static member function
     ///////////////////////////////////////////////////////////////////
     template <typename T>
-    inline constexpr bool IsTraitsMemberFunction_v = std::is_member_function_pointer_v<std::remove_reference_t<T>>;
+    inline constexpr bool IsTraitsMemberFunction_v = std::is_member_function_pointer_v<std::remove_reference_t<T>>; // Note that "std::is_member_function_pointer_v"
+                                                                                                                    // returns true for cv-qualified pointers as well
 
     //////////////////////////////////////////////
     // Concept for above template (see following
@@ -1579,14 +1584,14 @@ namespace Private
     //   1) A free function including static member functions (but
     //      abominable function types always return false by design -
     //      see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
-    //   2) A pointer to a free function
+    //   2) A (possibly cv-qualified) pointer to a free function
     //   3) A reference to a free function
-    //   4) A reference to a pointer to a free function
-    //   5) A pointer to a non-static member function
-    //   6) A reference to a pointer to a non-static member function
-    // 
-    // Note that abominable function types always return false. See
-    // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
+    //   4) A reference to a (possibly cv-qualified) pointer to a free
+    //      function
+    //   5) A (possibly cv-qualified) pointer to a non-static member
+    //      function
+    //   6) A reference to a (possibly cv-qualified) pointer to a
+    //      non-static member function
     ///////////////////////////////////////////////////////////////////
     template <typename T>
     inline constexpr bool IsTraitsFreeOrMemberFunction_v = IsTraitsFreeFunction_v<T> ||
@@ -1605,7 +1610,22 @@ namespace Private
         #define TRAITS_FREE_OR_MEMBER_FUNCTION_C typename
     #endif
 
-    // Usual "_v" helper variable for above template
+    ///////////////////////////////////////////////////////////////////
+    // IsTraitsFunctor_v. Variable template set to "true" if "T" is
+    // either of the following or false otherwise:
+    //
+    //   1) A functor
+    //   2) A reference to a functor
+    //
+    // See "struct IsFunctor" primary template earlier for details on
+    // what constitutes a functor (the usual and expected C++
+    // definition of a "functor" meaning "T" must be a class or struct
+    // with a member function called "operator()" but for our purposes
+    // "T::operator()" can't be overloaded or the following is
+    // guaranteed to return false - we don't support overloaded functors
+    // by design but again, see "struct IsFunctor" primary template
+    // for details).
+    ///////////////////////////////////////////////////////////////////
     template <typename T>
     inline constexpr bool IsTraitsFunctor_v = IsFunctor_v<std::remove_reference_t<T>>;
 
@@ -1635,21 +1655,22 @@ namespace Private
 // 1) Free functions (which includes static member functions) but not
 //    including abominable functions (more on this shortly). See comments
 //    preceding "Private::IsFreeFunction" for complete details.
-// 2) Pointers and references to free functions
-// 3) References to pointers to free functions
-// 4) Pointers to non-static member functions
-// 5) References to pointers to non-static member functions
-// 6) Functors or references to functors. In either case refers to a class
+// 2) Pointers to free functions
+// 3) References to free functions
+// 4) References to pointers to free functions
+// 5) Pointers to non-static member functions
+// 6) References to pointers to non-static member functions
+// 7) Functors or references to functors. In either case refers to a class
 //    with a single non-static "operator()" member so long as it's not
 //    overloaded. Doing so would create an ambiguous situation so if you
 //    need to deal with this you'll normally need to target the specific
 //    "operator()" overload you're interested in by taking its address and
-//    casting it to the exact signature you need to target. Item 4 or 5
+//    casting it to the exact signature you need to target. Item 5 or 6
 //    above will then handle it. Note that non-generic lambdas are also
 //    supported since lambdas are just syntactic sugar for creating functors
 //    on-the-fly. Generic lambdas however are not supported using a
 //    functor's type because they are not functors in the conventional
-//    sense. They can still be accessed via 4 and 5 above however as
+//    sense. They can still be accessed via 5 and 6 above however as
 //    described in "Example 3" of the comments preceding the
 //    "FunctionTraits" specialization for functors. Search this file for
 //    "Example 3 (generic lambda)" (quotes not included).
@@ -1662,7 +1683,7 @@ namespace Private
 // since the presence of these qualifiers in free functions isn't legal in
 // C++. However, non-static member functions are only supported using
 // pointers to these functions (or references to such pointers), as seen in
-// items 4 and 5 above, not the actual non-static member function type
+// items 5 and 6 above, not the actual non-static member function type
 // itself. Again, for complete details see the comments preceding
 // "Private::IsFreeFunction". The upshot is that if "T" is a function type
 // (item 1 above), and it has cv-qualifiers and/or reference-qualifiers as
@@ -1696,18 +1717,18 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
                                                                                  //    type which is never a pointer or a reference. The actual C++
                                                                                  //    type for functions isn't used that often in practice however
                                                                                  //    (typically), since free function names decay to a pointer to
-                                                                                 //    the function in most expressions so item 3 below is usually
+                                                                                 //    the function in most expressions so item 2 below is usually
                                                                                  //    encountered more frequently (though item 1 does occur sometimes
                                                                                  //    so it's correctly handled). In any case, if "T" is *not* an
                                                                                  //    actual function type then ...
-                                                                                 // 2) Is "T" a reference to a free function (rare in practice) or ...
-                                                                                 // 3) Is "T" a (possibly cv-qualified) pointer to a free function
+                                                                                 // 2) Is "T" a (possibly cv-qualified) pointer to a free function
                                                                                  //    (the most common case in practice since free function names
                                                                                  //    decay to a pointer to the function in most expressions) or ...
+                                                                                 // 3) Is "T" a reference to a free function (rare in practice) or ...
                                                                                  // 4) Is "T" a reference to a (possibly cv-qualified) pointer to
                                                                                  //    a free function (rare in practice)
                                                                                  // X) None of the above hold so "T" isn't a free function (or
-                                                                                 //    a reference to one or a pointer to one or a reference to a
+                                                                                 //    a pointer to one or a reference to one or a reference to a
                                                                                  //    pointer to one) so we go on to check if it's a pointer to a
                                                                                  //    non-static member function ...
                                            Private::IsTraitsMemberFunction_v<T> || // 1) Is T a (possibly cv-qualified) pointer to a non-static
@@ -1717,9 +1738,9 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
                                                                                    //    to a non-static member function (rare in practice)
                                                                                    // X) Neither of the above hold noting that "T" *cannot*
                                                                                    //    be a reference to a member function (not supported
-                                                                                   //    in C++ itself so we don't check for it) though 2)
-                                                                                   //    just above does support references to pointers to
-                                                                                   //    non-static member functions
+                                                                                   //    in C++ itself so we don't check for it) though 2 just
+                                                                                   //    above does support references to pointers to non-static
+                                                                                   //    member functions
                                            Private::IsTraitsFunctor_v<T>; // Is "T" a functor or a reference to one (in either case the
                                                                           // functor has a non-static member function named "operator()"
                                                                           // by definition and it's not overloaded since overloads would
@@ -2153,15 +2174,39 @@ namespace Private
                                                                  std::add_rvalue_reference_t<F2>,
                                                                  F2>>;
 
-        /////////////////////////////////////////////////////////////
-        // ReplaceArgsTupleImpl (primary template). Implements the
-        // "ReplaceArgsTuple" alias seen in all "FunctionTraits"
-        // derivatives (specializations). Primary template is never
-        // used however, only the partial specialization just below
-        // is when the 2nd template arg is a "std::tuple". It always
-        // will be by design or the "static_assert" just below kicks
-        // in.
-        /////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////
+        // ReplaceArgsTupleImpl (primary template). Implements the "ReplaceArgsTuple"
+        // alias seen in all "FunctionTraits" derivatives (specializations). That is,
+        // "ReplaceArgsTuple" which is publicly declared in both
+        // "StdExt::Private::FreeFunctionTraits" and
+        // "StdExt::Private::FreeFunctionTraits" ("FunctionTraits" always derives
+        // from either), ultimately defers to the struct you're now reading to carry
+        // out its work. The following primary template never kicks in however, only
+        // the partial specialization just below whenever template arg "T" is a
+        // "std::tuple" and it always is by design (or the "static_assert" seen below
+        // kicks in).        
+        //
+        // Given the following (contrived) example for instance (end-user code):
+        //
+        //     using F = int (Whatever::* const volatile &&)(float, double)>;
+        //     using NewArgsTupleT = std::tuple<char>;
+        //     using FuncWithNewArgs = ReplaceArgsTuple_t<F, NewArgsTupleT>;
+        //
+        // The call to "ReplaceArgsTuple_t" just above (the helper template most
+        // users will rely on), ultimately defers to the following struct with the
+        // following template args (and because template arg "T" is always a
+        // "std::tuple", the partial specialization just below will always kick in to
+        // handle it):        
+        //
+        //     ReplaceArgsT = StdExt::Private::MemberFunctionTraits<int (Whatever::* const volatile &&)(float, double),
+        //                                                          int (Whatever::*)(float, double),
+        //                                                          void
+        //                                                         >::ReplaceArgs,
+        //     T = std::tuple<char>
+        // 
+        // The partial specialization below simply invokes "ReplaceArgsT" seen just
+        // above, passing it the types that tuple "T" is specialized on.
+        //////////////////////////////////////////////////////////////////////////////
         template <template<typename... NewArgsT> class ReplaceArgsT,
                   typename T>
         struct ReplaceArgsTupleImpl
@@ -2171,8 +2216,8 @@ namespace Private
 
         ///////////////////////////////////////////////////////////////////
         // ReplaceArgsTupleImpl (partial specialization when 2nd arg is a
-        // "std::tuple" - it always is by design - see primary template)
-        // just above)
+        // "std::tuple" - it always is by design - see primary template
+        // just above for details)
         ///////////////////////////////////////////////////////////////////
         template <template<typename...> class ReplaceArgsT,
                   typename... NewArgsT>
@@ -2183,21 +2228,23 @@ namespace Private
 
     protected:
         // Called for free functions only in this release (including static member functions)
-        template <typename F1, typename F2>
-        using MigratePointerAndRef = MigrateRef<F1,
-                                                std::conditional_t<std::is_pointer_v<std::remove_reference_t<F1>>,
-                                                                   MigrateCv<F1, std::add_pointer_t<F2>>,
-                                                                   F2>>;
+        template <typename F, typename NewF>
+        using MigratePointerAndRef = MigrateRef<F,
+                                                std::conditional_t<std::is_pointer_v<std::remove_reference_t<F>>,
+                                                                   MigrateCv<F, std::add_pointer_t<NewF>>,
+                                                                   NewF>>;
 
         // Called for non-static member functions only in this release
-        template <typename F1, typename F2>
-        using MigrateCvAndRef = MigrateRef<F1, MigrateCv<F1, F2>>;
+        template <typename F, typename NewF>
+        using MigrateCvAndRef = MigrateRef<F, MigrateCv<F, NewF>>;
 
         ///////////////////////////////////////////////////////////
         // Helper alias for "ReplaceArgsTupleImpl" template above.
         // Implements the public "ReplaceArgsTuple" alias seen in
         // all "FunctionTraits" derivatives (specializations).
-        // Latter alias just defers to this one.
+        // Latter alias just defers to this one which defers to
+        // "ReplaceArgsTupleImpl" as seen. See latter template
+        // above for details.
         ///////////////////////////////////////////////////////////
         template <template<typename... NewArgsT> class ReplaceArgsT,
                   TUPLE_C NewArgsTupleT>
@@ -2339,7 +2386,7 @@ namespace Private
         // "cdecl" itself is always (realisitically) supported by all compilers
         // AFAIK (those we support at least but very likely all others as well) 
         /////////////////////////////////////////////////////////////////////////
-        constexpr static enum CallingConvention CallingConvention = CallingConventionT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
+        static constexpr enum CallingConvention CallingConvention = CallingConventionT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
                                                                                         // (since we've named the variable "CallingConvention" which is the same as
                                                                                         // the enumerator's name)
 
@@ -2349,7 +2396,7 @@ namespace Private
         // definition in C, so nothing to do with variadic template arguments
         // in C++.
         ///////////////////////////////////////////////////////////////////////
-        constexpr static bool IsVariadic = IsVariadicT;
+        static constexpr bool IsVariadic = IsVariadicT;
 
         ////////////////////////////////////////////////////////////////////
         // Applicable to non-static member functions only. Stores the class
@@ -2368,7 +2415,7 @@ namespace Private
         // "IsMemberFunction" member below to check this). Always false
         // otherwise (N/A in this case)
         /////////////////////////////////////////////////////////////////////
-        constexpr static bool IsConst = IsConstT;
+        static constexpr bool IsConst = IsConstT;
 
         ////////////////////////////////////////////////////////////////////////
         // Is non-static member function declared with the "volatile" keyword.
@@ -2376,7 +2423,7 @@ namespace Private
         // "IsMemberFunction" member below to check this). Always false
         // otherwise (N/A in this case)
         ////////////////////////////////////////////////////////////////////////
-        constexpr static bool IsVolatile = IsVolatileT;
+        static constexpr bool IsVolatile = IsVolatileT;
 
         //////////////////////////////////////////////////////////////////////
         // Is non-static member function declared with a reference-qualifier
@@ -2384,12 +2431,12 @@ namespace Private
         // "IsMemberFunction" member below to check this). Always
         // "RefQualifier::None" otherwise (N/A in this case).
         //////////////////////////////////////////////////////////////////////
-        constexpr static enum RefQualifier RefQualifier = RefQualifierT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
+        static constexpr enum RefQualifier RefQualifier = RefQualifierT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
                                                                          // (since we've named the variable "RefQualifier" which is the same as the
                                                                          // enumerator's name)
 
         // "true" if the function is declared "noexcept" or "false" otherwise
-        constexpr static bool IsNoexcept = IsNoexceptT;
+        static constexpr bool IsNoexcept = IsNoexceptT;
 
         ///////////////////////////////////////////////////////////////////////
         // Function's arguments (types) in left-to-right order of declaration
@@ -2496,7 +2543,7 @@ namespace Private
         // following always returns false for it (hopefully a future
         // C++ release will allow us to revisit the situation)
         //////////////////////////////////////////////////////////////
-        constexpr static bool IsMemberFunction = !std::is_void_v<Class>;
+        static constexpr bool IsMemberFunction = !std::is_void_v<Class>;
 
         //////////////////////////////////////////////////////////////
         // Returns true if the function represented by this traits
@@ -2504,7 +2551,7 @@ namespace Private
         // functions) or false otherwise (in the latter case it must
         // be a member function including functors).
         //////////////////////////////////////////////////////////////
-        constexpr static bool IsFreeFunction = !IsMemberFunction;
+        static constexpr bool IsFreeFunction = !IsMemberFunction;
 
         //////////////////////////////////////////////////////////////////////////
         // Was this class instantiated from a functor? Always "false" here as
@@ -2536,7 +2583,7 @@ namespace Private
         // with is "operator()" or some other member that happens to have the
         // exact same type).
         //////////////////////////////////////////////////////////////////////////
-        constexpr static bool IsFunctor = false;
+        static constexpr bool IsFunctor = false;
 
     protected:
         /////////////////////////////////////////////////////////
@@ -2779,7 +2826,7 @@ namespace Private
     #undef TRAITS_FREE_FUNCTION_C
 
     template <TRAITS_MEMBER_FUNCTION_C F,
-              MEMBER_FUNCTION_NON_CV_POINTER_C MemberFunctionNonCvPtrT = RemoveCvRef<F>, // For "std::enable_if_t" purposes in our specializations. Just 
+              MEMBER_FUNCTION_NON_CV_POINTER_C MemberFunctionNonCvPtrT = RemoveCvRef<F>, // For "std::enable_if_t" purposes in our specializations. Just
                                                                                          // "F" above after removing any reference from "F" if present,
                                                                                          // and then any cv-qualifiers from the resulting member function
                                                                                          // pointer. "F" itself may be a cv-qualified pointer to a function
@@ -3095,14 +3142,14 @@ namespace Private
             // instead (latter simply resolves to the "typename"
             // keyword when concepts aren't supported)
             /////////////////////////////////////////////////////
-            static_assert(StdExt::Private::IsTraitsFunctor_v<F>);
+            static_assert(IsTraitsFunctor_v<F>);
         #endif
 
         //////////////////////////////////////////////////////////
         // Overrides the same member in the "FunctionTraitsBase"
         // class (which is always false). See this for details.
         //////////////////////////////////////////////////////////
-        constexpr static bool IsFunctor = true;
+        static constexpr bool IsFunctor = true;
     };
 } // namespace Private
 
@@ -3116,17 +3163,17 @@ namespace Private
 // particular partial specialization declared just below, one for each
 // permutation of function type we may encounter (but read on). If
 // template arg "F" isn't a function type suitable for passing to this
-// template however (see comments preceding "IsTraitsFunction_v" primary
-// template for details), then the following primary template kicks in. A
-// compiler error therefore always occurs by design (either the
-// TRAITS_FUNCTION_C concept kicks in for C++20 or later, or the
-// "static_assert" seen in the following for C++17 or earlier - in either
-// case "F" must be illegal by definition since no specialization kicked
-// in to handle it). Normally "F" will be valid though (why would anyone
-// pass something invalid unless it's for SFINAE purposes) so "F" can be
-// any of the following types (again, see comments preceding
-// "IsTraitFunction" primary template for details). Note that all
-// pointers in this list may contain optional cv-qualifiers:
+// template however (see comments preceding "IsTraitsFunction_v" for
+// details), then the following primary template kicks in. A compiler
+// error therefore always occurs by design (either the TRAITS_FUNCTION_C
+// concept kicks in for C++20 or later, or the "static_assert" seen in
+// the following for C++17 or earlier - in either case "F" must be
+// illegal by definition since no specialization kicked in to handle it).
+// Normally "F" will be valid though (why would anyone pass something
+// invalid unless it's for SFINAE purposes) so "F" can be any of the
+// following types (again, see comments preceding "IsTraitsFunction_v"
+// for details). Note that all pointer types in this list may contain
+// optional cv-qualifiers:
 //
 //    1) Free function (i.e., raw C++ function type excluding abominable
 //       functions - see "IsFreeFunction()" for details)
@@ -3135,7 +3182,8 @@ namespace Private
 //    4) Reference to pointer to free function
 //    5) Pointer to non-static member function
 //    6) Reference to pointer to non-static member function (references
-//       to non-static member functions not supported by C++ itself). 
+//       to non-static member functions not supported by C++ itself,
+//       only references to pointer are). 
 //    7) Functor (or reference to functor) including lambdas
 //
 // IMPORTANT:
@@ -3153,9 +3201,9 @@ namespace Private
 // adjusted these macros to handle a much smaller number of
 // specializations (154). We still target all 1878 permutations of
 // function types however by specializing "F" *after* removing the
-// optional reference and/or pointer on "F" if it targets a free function
+// optional reference and/or pointer to "F" if it targets a free function
 // (resulting in the actual free function type itself) , or the optional
-// reference and cv-qualifers if "F" targets a non-static member function
+// reference and cv-qualifiers if "F" targets a non-static member function
 // (resulting in a non-cv-qualified, non-static member function pointer -
 // functors are routed through here as well). We rely on these removals
 // to (effectively) specialize "FunctionTraits" on "F" *after* these
@@ -3185,7 +3233,7 @@ namespace Private
 // compiler ignores the calling convention on "F" and automatically
 // switches to the "cdecl" calling convention. Note that our
 // "FreeFunctionTraits" and "MemberFunctionTraits" specializations
-// further above that handle calling conventions are designed to detect
+// further above which handle calling conventions are designed to detect
 // this situation and when it occurs, the specializations for all calling
 // conventions besides "cdecl" itself therefore won't kick in (such as
 // when compiling for 64 bits as noted - the compiler always switches to
@@ -3197,7 +3245,7 @@ namespace Private
 // specializations now exist for these calling conventions - we removed
 // them), but it will never happen because these calling conventions will
 // never be encountered in "F". The "cdecl" calling convention always
-// will be, and a specialization always exists for it. For instance, if
+// will be and a specialization always exists for it. For instance, if
 // function "F" is declared with the "stdcall" calling convention
 // (whatever its syntax is for a given compiler), and you compile for 64
 // bits opposed to 32 bits, the compiler will ignore the "stdcall"
@@ -3217,8 +3265,8 @@ namespace Private
 // trigger (see below). Specializations whose calling convention is
 // replaced by "cdecl" therefore never wind up here as described, so no
 // error will ever be flagged for them (they're still supported functions
-// only that the "cdecl" specialization will now kick in to handle them
-// instead of the usual specialization that normally targets that
+// that is, only that the "cdecl" specialization will now kick in to handle
+// them instead of the usual specialization that normally targets that
 // specific calling convention).
 ////////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F,
@@ -3248,9 +3296,10 @@ struct FunctionTraits
 // including static member functions. "F" can be any of the following:
 //
 //   1) A free function including static member functions
-//   2) A pointer to a free function
+//   2) A (possibly cv-qualified) pointer to a free function
 //   3) A reference to a free function
-//   4) A reference to a pointer to a free function
+//   4) A reference to a (possibly cv-qualified) pointer to a free
+//      function
 ////////////////////////////////////////////////////////////////////////
 template <typename F>
 struct FunctionTraits<F,
@@ -3265,8 +3314,9 @@ struct FunctionTraits<F,
 // "FunctionTraits" partial specialization for handling non-static member
 // functions. "F" can be either of the following:
 // 
-//   1) A pointer to a non-static member function
-//   2) A reference to a pointer to a non-static member function
+//   1) A (possibly cv-qualified) pointer to a non-static member function
+//   2) A reference to a (possibly cv-qualified) pointer to a non-static
+//      member function
 //////////////////////////////////////////////////////////////////////////
 template <typename F>
 struct FunctionTraits<F,
@@ -3917,16 +3967,16 @@ inline constexpr bool IsFunctionTraitsNoexcept_v = FunctionTraitsT::IsNoexcept;
 
 //////////////////////////////////////////////////////////////////////
 // IsFunctionTraitsVariadic_v. Helper template yielding
-// "FunctionTraitsT::IsVariadic" (the type of the function repesented
-// by "FunctionTraitsT"), where "FunctionTraitsT" is a
-// "FunctionTraits" specialization. Note that there's usually no
-// benefit to this particular helper template however compared to
-// calling "FunctionTraitsT::IsVariadic" directly (there's no
-// reduction in verbosity), but it's provided for consistency anyway
-// (to ensure a helper template is available for all members of
-// "FunctionTraits"). In most cases you should rely on the
-// "IsVariadic_v" helper template instead however, which just defers
-// to "IsFunctionTraitsVariadic_v" and is easier to use.
+// "FunctionTraitsT::IsVariadic" (storing true or false to indicate
+// if the function repesented by "FunctionTraitsT" is variadic),
+// where "FunctionTraitsT" is a "FunctionTraits" specialization. Note
+// that there's usually no benefit to this particular helper template
+// however compared to calling "FunctionTraitsT::IsVariadic" directly
+// (there's no reduction in verbosity), but it's provided for
+// consistency anyway (to ensure a helper template is available for
+// all members of "FunctionTraits"). In most cases you should rely on
+// the "IsVariadic_v" helper template instead however, which just
+// defers to "IsFunctionTraitsVariadic_v" and is easier to use.
 //
 // Note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -3939,6 +3989,24 @@ inline constexpr bool IsFunctionTraitsNoexcept_v = FunctionTraitsT::IsNoexcept;
 //////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr bool IsFunctionTraitsVariadic_v = FunctionTraitsT::IsVariadic;
+
+//////////////////////////////////////////////////////////////////////
+// IsFunctionTraitsVoidReturnType_v. Helper template returning "true"
+// if "FunctionTraitsT::ReturnType" is "void" (after ignoring any
+// cv-qualifiers), or "false" otherwise (where "FunctionTraitsT" is a
+// "FunctionTraits" specialization).
+//
+// Note that the "FunctionTraitsT" template arg must be a
+// "FunctionTraits" specialization or compilation will normally fail
+// (concept kicks in in C++20 or later so failure is guaranteed - in
+// C++17 or earlier however there is no guarantee compilation will
+// fail but usually will for other reasons - longer story but since
+// C++20 or later is fast becoming the norm we won't worry about it -
+// pass the expected "FunctionTraits" template arg and everything
+// will be fine).
+//////////////////////////////////////////////////////////////////////
+template <FUNCTION_TRAITS_C FunctionTraitsT>
+inline constexpr bool IsFunctionTraitsVoidReturnType_v = std::is_void_v<typename FunctionTraitsT::ReturnType>;
 
 /////////////////////////////////////////////////////////////////////////
 // FunctionTraitsMemberFunctionClass_t. Helper alias template yielding
@@ -4675,6 +4743,17 @@ inline constexpr bool IsNoexcept_v = IsFunctionTraitsNoexcept_v<FunctionTraits<F
 /////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsVariadic_v = IsFunctionTraitsVariadic_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+///////////////////////////////////////////////////////////////////////////
+// IsVoidReturnType_v. Helper template that returns "true" if the return
+// type of "F" is void or false otherwise (ignoring cv-qualifiers on a
+// "void" return type if any). This helper template is less verbose than
+// creating a "FunctionTraits" directly from "F" and applying
+// "std::is_void" to its "ReturnType" member. The following provides a
+// convenient wrappper.
+///////////////////////////////////////////////////////////////////////////
+template <TRAITS_FUNCTION_C F>
+inline constexpr bool IsVoidReturnType_v = IsFunctionTraitsVoidReturnType_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 ///////////////////////////////////////////////////////////////////////////
 // MemberFunctionClass_t. Helper alias for "FunctionTraits::Class" which
@@ -5523,17 +5602,17 @@ struct IsForEachTupleFunctor : std::false_type
 // according to the usual perfect forwarding rules in C++. That
 // is, if "T" is an lvalue reference then "declval()" returns an
 // lvalue reference (due to the C++ reference collapsing rules),
-// otherwise "T" must be an a non-reference or an rvalue
-// reference so "declval" returns an rvalue reference (in either
-// case). In all cases "declval()" therefore returns the same
-// function argument type used in a perfect forwarding function.
-// Such arguments are always of the type "T &&" which resolves
-// to an lvalue reference only if "T" is an lvalue reference
-// (again, due to the C++ reference collapsing rules), or an
-// rvalue reference if "T" is a non-reference or rvalue
-// reference. "declval()" therefore returns the exact same type
-// as a perfectly forwarded argument after plugging in "T" which
-// is what we require here (we're invoking "operator()" on that
+// otherwise "T" must be a non-reference or an rvalue reference
+// so "declval" returns an rvalue reference (in either case). In
+// all cases "declval()" therefore returns the same function
+// argument type used in a perfect forwarding function. Such
+// arguments are always of the type "T &&" which resolves to an
+// lvalue reference only if "T" is an lvalue reference (again,
+// due to the C++ reference collapsing rules), or an rvalue
+// reference if "T" is a non-reference or rvalue reference.
+// "declval()" therefore returns the exact same type as a
+// perfectly forwarded argument after plugging in "T" which is
+// what we require here (we're invoking "operator()" on that
 // argument in the following call in an unevaluated context
 // simply to make sure it can be invoked - the primary template
 // kicks in via SFINAE otherwise).
