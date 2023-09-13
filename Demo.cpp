@@ -485,5 +485,5 @@ int main()
 }
 
 #else
-    #error "This program is only supported in C++17 or later (an earlier version was detected). Please set the appropriate compiler option to target C++17 or later and try again ("-std=c++17" in GCC, Clang and Intel, or "/std:c++17" in MSFT - later versions also supported of course)"
+    #error "This program is only supported in C++17 or later (an earlier version was detected). Please set the appropriate compiler option to target C++17 or later and try again (minimum of "-std=c++17" in GCC, Clang and Intel, or "/std:c++17" in Microsoft)"
 #endif // CPP17_OR_LATER

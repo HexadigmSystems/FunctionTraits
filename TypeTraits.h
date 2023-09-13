@@ -15,18 +15,22 @@
 // DESCRIPTION
 // -----------
 // Contains miscellaneous type traits similar to those in the native C++
-// header <type_traits>. Supported in GCC, Clang, Microsoft and Intel
+// header <type_traits>. Supported in GCC, Microsoft, Clang and Intel
 // compilers only at this writing (C++17 and later - the check for
 // CPP17_OR_LATER just below causes all code to be preprocessed out
-// otherwise). Note that this file depends on (#includes)
+// otherwise - a separate check below also ensures the minimum supported
+// versions of these compilers are running or a #error terminates
+// compilation). Note that this file depends on (#includes)
 // "CompilerVersions.h" as well. All other dependencies are native C++
 // headers with the exception of the native Windows header "tchar.h" on MSFT
-// platforms, which must also be in the #include search path (and normally
-// will be). Note that all declarations in this file are in namespace
-// "StdExt". Everything is available for public use except items declared in
-// (nested) namespace "StdExt::Private" (reserved for internal use), and in
-// some (limited) cases, certain macros outside of namespace "Private" (but
-// labeled as private in their comments).
+// platforms (or other compilers running in Microsoft VC++ compatibility
+// mode), which must also be in the #include search path (and normally will
+// be). Note that all declarations in this file are in namespace "StdExt".
+// Everything is available for public use except items declared in (nested)
+// namespace "StdExt::Private" (reserved for internal use), and in some
+// (limited) cases, certain macros outside of namespace "Private" (but
+// labeled as internal or private or in their comments - preprocessor macros
+// don't know anything about C++ regardless so they don't respect namespaces).
 /////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
@@ -42,9 +46,116 @@
 
 //////////////////////////////////////////////////////////////
 // This header supports C++17 and later only. All code below
-// ignored (preprocessed out) otherwise.
+// ignored otherwise (preprocessed out). 
 //////////////////////////////////////////////////////////////
 #if CPP17_OR_LATER
+
+//////////////////////////////////////////////////////////////
+// GCC compiler running? (the real one or any one compatible
+// with it but *not* any compiler we explicitly support which
+// includes Clang and Intel only at this writing - we
+// independently test for them below but other GCC compatible
+// compilers that we don't explicitly support will be handled
+// by the following call instead since they claim to be GCC
+// compatible) ...
+//////////////////////////////////////////////////////////////
+#if defined(GCC_COMPILER)
+    ///////////////////////////////////////////////////
+    // We only support GCC >= 10.2. Abort compilation
+    // otherwise.
+    ///////////////////////////////////////////////////
+    #if __GNUC__ <= 10 && \
+        (__GNUC__ != 10 || __GNUC_MINOR__ < 2)
+        #error "Unsupported version of GCC detected. Must be >= V10.2 (this header doesn't support earlier versions)"
+
+        /////////////////////////////////////////////////////////////
+        // #including this non-existent file forces compilation to
+        // immediately stop. Otherwise more errors will occur before
+        // compilation finally stops. Just a hack and not really
+        // guaranteed to work but testing shows it normally does
+        // (for the GCC compiler and all others we support at this
+        // writing). Other alternative techniques such as #pragmas
+        // to stop compilation on the first error aren't guaranteed
+        // to be reliable either. They (generally) don't affect the
+        // preprocessor for instance so compilation doesn't stop
+        // when the #error statement above is encountered. The
+        // #error message is displayed but compilation resumes,
+        // resulting in additional (extraneous) error messages
+        // before compilation finaly stops. The upshot is that we'll
+        // just rely on the following for now to prevent these
+        // additional errors from being displayed after the #error
+        // message above (since the extra error messages are just
+        // a distraction from the actual #error message above).
+        /////////////////////////////////////////////////////////////
+        #include <StopCompilingNow> // Hack to force compilation to immediately stop.
+                                    // See comments above for details.
+    #endif
+///////////////////////////////////////////////////////////////////
+// Microsoft compiler (VC++) running? (the real VC++, not another
+// compiler running in Microsoft VC++ compatibility mode)
+///////////////////////////////////////////////////////////////////
+#elif defined(MICROSOFT_COMPILER)
+    ///////////////////////////////////////////////////////////
+    // Are we now running VC++ from a VS2017 release (opposed
+    // to VS2019 or later). Can't be from VS2015 or earlier at
+    // this point since CPP17_OR_LATER is currently #defined
+    // (we checked for this earlier) so we must be targeting
+    // VS2017 or later (since C++17 only became available in
+    // VS2017). If the following is true then the version of
+    // VC++ now running must therefore be from VS2017 (no
+    // earlier version of VS possible at this point).
+    ///////////////////////////////////////////////////////////
+    #if _MSC_VER < MSC_VER_2019
+        ////////////////////////////////////////////////////////////
+        // We only support VC++ >= 19.16 which was was released
+        // with Visual Studio 2017 version 15.9. Abort compilation
+        // otherwise.
+        ////////////////////////////////////////////////////////////
+        #if _MSC_VER >= MSC_VER_2017_V15_9 // VC++ 19.16
+            /////////////////////////////////////////////////////
+            // Compiler is a VS2017 release of VC++. Constant
+            // is for internal use by this file only (we #undef
+            // it later)
+            /////////////////////////////////////////////////////
+            #define MICROSOFT_VISUAL_STUDIO_2017
+        #else
+            ////////////////////////////////////////////////////
+            // Note that VC++ normally stops compiling as soon
+            // as this is encountered, so we don't rely on the
+            // #include <StopCompilingNow> hack used for the
+            // other compilers (above and below). See:
+            //
+            //     #error directive (C/C++) 
+            //     https://learn.microsoft.com/en-us/cpp/preprocessor/hash-error-directive-c-cpp?view=msvc-170
+            ////////////////////////////////////////////////////
+            #error "Unsupported version of Microsoft Visual C++ detected. Must be >= V19.16 (normally released with VS2017 V15.9). This header doesn't support earlier versions."
+        #endif
+    #endif
+// Clang compiler running? (possibly in Microsoft VC++ compatibility mode - ok)
+#elif defined(CLANG_COMPILER)
+    /////////////////////////////////////////////////////
+    // We only support Clang >= 11.0. Abort compilation
+    // otherwise.
+    /////////////////////////////////////////////////////
+    #if __clang_major__ < 11
+        #error "Unsupported version of Clang detected. Must be >= V11.0 (this header doesn't support earlier versions)"
+        #include <StopCompilingNow> // Hack to force compilation to immediately stop.
+                                    // See comments for GCC compiler above for details.
+    #endif
+// Intel compiler (DPC++/C++) running? (possibly in Microsoft VC++ compatibility mode - ok)
+#elif defined(INTEL_COMPILER)
+    ////////////////////////////////////////////////////////
+    // We only support Intel >= 2021.4.0. Abort compilation
+    // otherwise.
+    ////////////////////////////////////////////////////////
+    #if __INTEL_LLVM_COMPILER < 20210400
+        #error "Unsupported version of Intel oneAPI DPC++/C++ detected. Must be >= V2021.4.0 (this header doesn't support earlier versions)"
+        #include <StopCompilingNow> // Hack to force compilation to immediately stop.
+                                    // See comments for GCC compiler above for details.
+    #endif
+#else
+    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
+#endif
 
 // Standard C/C++ headers
 #include <algorithm>
@@ -54,14 +165,10 @@
 #include <type_traits>
 #include <utility>
 
-/////////////////////////////////////////////////////////////
-// MSFT compiler? Note that Intel also #defines _MSC_VER on
-// Windows, as well as _MSC_FULL_VER and _MSC_EXTENSIONS.
-// See the following:
-//
-// https://github.com/cpredef/predef/blob/master/Compilers.md#user-content-microsoft-visual-c
-// https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/additional-predefined-macros.html
-/////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+// MSFT? (or any other compiler we support running in
+// Microsoft VC++ compatibility mode)
+///////////////////////////////////////////////////////
 #if defined(_MSC_VER)
     #include <tchar.h>
 #endif
@@ -113,46 +220,94 @@ inline constexpr bool AlwaysTrue = true;
 /////////////////////////////////////////////////////////////////////
 namespace Private
 {
+    /////////////////////////////////////////////////////
+    // The following function is only required due to a
+    // MSFT bug in the VS2017 release of VC++ (details
+    // don't matter since VS2017 is getting old now
+    // anyway). The bug was fixed in the VS2019 release
+    // of VC++. If (when) the VS2017 release of VC++ is
+    // eventually dropped, the function can be removed
+    // and calls to it can simply be replaced with a
+    // call to "str1 == str2" (i.e., the first return
+    // statement in the function below)
+    /////////////////////////////////////////////////////
+    static inline constexpr bool IsEqualTo(tstring_view str1,
+                                           tstring_view str2) noexcept
+    {
+        ////////////////////////////////////////////////
+        // Any compiler other than VC++ from Microsoft
+        // Visual Studio 2017 ...
+        ////////////////////////////////////////////////
+        #if !defined(MICROSOFT_VISUAL_STUDIO_2017)
+            return (str1 == str2);
+        //////////////////////////////////////////////////
+        // VC++ from Visual Studio 2017. Code just above
+        // should work there as well but it's buggy
+        // (can return false even when true). The
+        // following is a manual work-around (equivalent
+        // to code above).
+        //////////////////////////////////////////////////
+        #else
+            if (str1.size() == str2.size())
+            {
+                for (tstring_view::size_type i = 0; i < str1.size(); ++i)
+                {
+                    if (str1[i] != str2[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        #endif
+    };
+
     //////////////////////////////////////////////////////////////////////
-    // Implementation class for variable template "TypeName_v" (declared
-    // just after this class but outside of this "Private" namespace so
+    // Implementation class for variable template "TypeName_v" declared
+    // just after this class but outside of this "Private" namespace (so
     // for public use). The latter variable just invokes static member
     // "Get()" below which carries out all the work. See "TypeName_v" for
-    // complete details        
+    // complete details.        
     //
     // IMPORTANT:
-    //  ---------
+    // ---------
     // Note that the implementation below relies on the predefined string
-    // __PRETTY_FUNCTION_ or (for MSFT only) __FUNCSIG__ (Google these
-    // for details). All implementations you can find on the web normally
-    // rely on these as does our own "Get()" member below, but unlike
-    // most other implementations I've seen, ours doesn't require any
-    // changes should you modify any part of the latter function's
-    // fully-qualified name or signature (affecting the value of the
-    // above predefined strings). Most other implementations I've seen
-    // would require changes, even though they should normally be very
-    // simple changes (trivial usually but changes nevertheless). Our
-    // implementation doesn't require any so users can move the following
-    // code to another namespace if they wish, change the function's
-    // class name or any part its signature without breaking anything
-    // (well, except for its "noexcept" specifier on MSFT platforms only,
-    // but nobody will ever need to change this regardless of platform).
-    // Note that the code is fairly small and clean notwithstanding first
-    // impressions, lengthy only because of the many comments (the code
-    // itself is fairly short and digestible however). It will only break
-    // normally if a compiler vendor makes a breaking change to
-    // __PRETTY_FUNCTION__ or (for MSFT only) __FUNCSIG__, but this will
-    // normally be caught by judicious use of "static_asserts" in the
-    // implementation and just after the following class itself (where we
-    // arbitrarily test it with a float to make sure it returns "float",
-    // a quick and dirty test but normally reliable)
+    // __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__
+    // (Google these for details). All implementations you can find on
+    // the web normally rely on these as does our own "Get()" member
+    // below, but unlike most other implementations I've seen, ours
+    // doesn't require any changes should you modify any part of the
+    // latter function's fully-qualified name or signature (affecting the
+    // value of the above predefined strings). Most other implementations
+    // I've seen would require changes, even though they should normally
+    // be very simple changes (trivial usually but changes nevertheless).
+    // Our implementation doesn't require any so users can move the
+    // following code to another namespace if they wish, change the
+    // function's class name and/or any of its member functions without
+    // breaking anything (well, except for its "noexcept" specifier on
+    // MSFT platforms only, but nobody will ever need to change this
+    // anyway, regardless of platform). Note that the code is fairly
+    // small and clean notwithstanding first impressions, lengthy only
+    // because of the many comments (the code itself is fairly short and
+    // digestible however). It will only break normally if a compiler
+    // vendor makes a breaking change to __PRETTY_FUNCTION__ or (when
+    // _MSC_VER is #defined) __FUNCSIG__, but this will normally be
+    // caught by judicious use of "static_asserts" in the implementation
+    // and just after the following class itself (where we arbitrarily
+    // test it with a float to make sure it returns "float", a quick and
+    // dirty test but normally reliable).
     //////////////////////////////////////////////////////////////////////
     class TypeNameImpl
     {
     public:
         ////////////////////////////////////////////////////////////////////
         // Implementation function called by variable template "TypeName_v"
-        // (just after the "Private" namespace this class is declared in).
+        // just after the "Private" namespace this class is declared in.
         // The following function does all the work. See "TypeName_v" for
         // details.
         ////////////////////////////////////////////////////////////////////
@@ -164,34 +319,47 @@ namespace Private
             // to) from __PRETTY_FUNCTION__ or (for MSFT only)
             // __FUNCSIG__. Returns it as a "tstring_view" which
             // remains alive for the life of the app (since it's just
-            // a view into the latter string).
+            // a view into the latter string which is always
+            // statically defined).
             //////////////////////////////////////////////////////////
-            return GetPrettyFunction<T>().substr(GetTypeNameOffset(), // Offset of the type in __PRETTY_FUNCTION__
-                                                                      // or (for MSFT only) __FUNCSIG__
-                                                 GetTypeNameLen<T>()); // Length of the type in __PRETTY_FUNCTION__
-                                                                       // or (for MSFT only) __FUNCSIG__
+            return GetPrettyFunction<T>().substr(GetTypeNameOffset<T>(), // Offset of type "T" in __PRETTY_FUNCTION__
+                                                                         // or (when _MSC_VER is #defined) __FUNCSIG__
+                                                 GetTypeNameLen<T>()); // Length of type "T" in __PRETTY_FUNCTION__
+                                                                       // or (when _MSC_VER is #defined) __FUNCSIG__
         }
 
     private:
-        /////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////
         // GetPrettyFunction(). Returns the predefined string constant __PRETTY_FUNCTION__
-        // or (for MSFT only) __FUNCSIG__. Returns these as a "tstring_view" which lives
-        // for the life of the app (since it's just a view into the latter strings which
-        // are always static). Assuming template arg "T" is a float for instance, each
-        // resolves to the following (where the first three rows show the offsets for
-        // your guidance only, and the rows just after show the actual value of the
-        // above strings for the compilers we currently support):
-        //                                                                                                                                 1         1         1         1         1
-        //                                       1         2         3         4         5         6         7         8         9         0         1         2         3         4
-        //                             0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
-        //   Clang:                    static auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [T = float]
-        //   GCC (1 of 2 - see below): static constexpr auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [with T = float]
-        //   GCC (2 of 2 - see below): static constexpr tstring_view StdExt::Private::TypeNameImpl::GetPrettyFunction() [with T = float; tstring_view = std::basic_string_view<char>]
-        //   Intel:                    static constexpr auto StdExt::Private::TypeNameImpl::GetPrettyFunction() noexcept [with T = float]
-        //   Microsoft:                auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction<float>(void) noexcept
+        // or (for MSFT) __FUNCSIG__ (the latter if _MSC_VER is #defined so it applies
+        // to non-Microsoft compilers as well when running in Microsoft VC++ compatibility
+        // mode - see "Non-Microsoft compilers targeting Windows" further below).
+        // Returns these as a "tstring_view" which lives for the life of the app (since
+        // it's just a view into the latter strings which are always statically
+        // defined). Assuming template arg "T" is a float for instance, each resolves to
+        // the following (where the first three rows show the offsets in the strings for
+        // your guidance only, and the rows just after show the actual value of the above
+        // strings for the compilers we currently support). Note that each string
+        // originates from __PRETTY_FUNCTION__ if _MSC_VER is not #defined or __FUNCSIG__
+        // otherwise (note that when non-Microsoft compilers are running in Microsoft
+        // compatibility VC++ mode then _MSC_VER will always be #defined so we rely on
+        // __FUNCSIG__ as noted, but __PRETTY_FUNCTION__ is still #defined by those
+        // compilers as well, even though the format differs from __FUNCSIG__ a bit - we
+        // just ignore __PRETTY_FUNCTION__ altogether however)
+        //
+        //                                                                                                                                       1         1         1         1         1
+        //                                             1         2         3         4         5         6         7         8         9         0         1         2         3         4
+        //                                   0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+        //   GCC (1 of 2 - described below): static constexpr auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [with T = float]
+        //   GCC (2 of 2 - described below): static constexpr tstring_view StdExt::Private::TypeNameImpl::GetPrettyFunction() [with T = float; tstring_view = std::basic_string_view<char>]
+        //   Clang:                          static auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [T = float]
+        //   Clang (if _MSC_VER #defined):   static auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction(void) [T = float]
+        //   Intel:                          static auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [T = float]
+        //   Intel (if _MSC_VER #defined):   static auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction(void) [T = float]
+        //   Microsoft VC++:                 auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction<float>(void) noexcept
         //
         // GCC
-        // ---
+        // ---        
         // Note that unlike the other compilers, two possible formats exist for GCC as
         // seen above (the others have one), where the one used depends on the return
         // type of "GetPrettyFunction()" itself. GCC format "1 of 2" above is the one
@@ -204,92 +372,99 @@ namespace Private
         // "GetPrettyFunction()" is ever changed however so that it returns an alias
         // instead, such as "tstring_view" seen in "2 of 2" above (which is an alias for
         // "std::basic_string_view<TCHAR>" - note that TCHAR always resolves to "char"
-        // on GCC), then GCC uses format "2 of 2" above instead. In this case it displays
-        // (resolves) this alias at the end of __PRETTY_FUNCTION__ as seen. This refers
-        // to the "tstring_view = std::basic_string_view<char>" portion of the "2 of 2"
-        // string above. It removes this portion of the string in "1 of 2" however since
-        // the return value of "GetPrettyFunction()" is no longer returning an alias but
-        // "auto" (or you can change "auto" directly to "std::basic_string_view<TCHAR>"
-        // if you wish since it's still not an alias). The "tstring_view =
-        // std::basic_string_view<char>" portion of the "2 of 2" string is no longer
-        // required IOW since there's no "tstring_view" alias anymore, so GCC removes
-        // it. The upshot is that the offset to the type we're trying to extract from
-        // __PRETTY_FUNCTION__, a "float" in the above example but whatever the type is,
-        // can change depending on the return type of "GetPrettyFunction()" itself.
-        // Therefore, unlike the case for all other compilers we currently support,
-        // whose offset to the type is always at the same consistent location from the
-        // start of __PRETTY_FUNCTION__ or (for MSFT only) __FUNCSIG__, we need to check
-        // which format is in effect for GCC since we need (want) to protect against
-        // possible changes to the return type of "GetPrettyFunction()" itself.
-        // "GetTypeNameOffset()", which calculates the offset, therefore takes this
-        // situation into account for GCC only (checking which of these two formats is
-        // in effect).
+        // on GCC), then GCC uses format "2 of 2" above instead. In this case it
+        // includes (resolves) this alias at the end of __PRETTY_FUNCTION__ itself, as
+        // seen. This refers to the "tstring_view = std::basic_string_view<char>"
+        // portion of the "2 of 2" string above. It removes this portion of the string
+        // in "1 of 2" however since the return value of "GetPrettyFunction()" is not
+        // returning an alias in this case but "auto" (or you can change "auto" directly
+        // to "std::basic_string_view<TCHAR>" if you wish since it's still not an
+        // alias). The "tstring_view = std::basic_string_view<char>" portion of the "2
+        // of 2" string is no longer required IOW since there's no "tstring_view" alias
+        // anymore so GCC removes it. The upshot is that the offset to the type we're
+        // trying to extract from __PRETTY_FUNCTION__, a "float" in the above example
+        // but whatever the type happens to be, can change depending on the return type
+        // of "GetPrettyFunction()" itself. Therefore, unlike the case for all other
+        // compilers we currently support, whose offset to the type is always at the
+        // same consistent location from the start of __PRETTY_FUNCTION__ or (when
+        // _MSC_VER is #defined) __FUNCSIG__, we need to check which format is in effect
+        // for GCC in order to protect against possible changes to the return type of
+        // "GetPrettyFunction()" itself. "GetTypeNameOffset()", which calculates the
+        // offset of "T" into the string (offset of "float" in the above examples),
+        // therefore takes this situation into account for GCC only (checking which of
+        // these two formats is in effect).
         //
         // Reliance on "float"
-        // -------------------
+        // -------------------        
         // Note that float isn't just used for the examples above, it's also used by
         // members "GetTypeNameOffset()" and "GetTypeNameLen()" below to determine the
-        // offset into each string of the type to extract, and the type's length, both
-        // of which are called by member "Get()" above to extract the type name from the
-        // string (for its template arg "T"). Since type float always returns "float"
-        // for all supported compilers (though any type whose string is the same for
-        // each compiler would do - read on), we can leverage this knowledge to easily
-        // determine the offset of type "T" and its length, regardless of what "T" is,
-        // without any complicated parsing of the above strings (in order to locate "T"
-        // within the string and determine its length). Note that parsing would be more
-        // complicated because type "T" itself can potentially contain any character
-        // including angled brackets, square brackets, equal signs, etc., each of which
-        // makes it harder to distinguish between those particular characters in "T"
-        // itself from their use as delimiters in the above strings (where they aren't
-        // part of "T"). It would usually be rare in practice but can happen. For
-        // instance, "T" might be a template type (class) called, say, "Bracket", with a
-        // non-template "char" arg so it can be instantiated (and therefore appear in
-        // __PRETTY_FUNCTION__ and __FUNCSIG__) like so (ignoring the class' namespace to
-        // keep things simple):
+        // offset into each string of the type to extract (i.e., template arg "T",
+        // whatever it resolves to), and the type's length, both of which are called by
+        // member "Get()" above to extract the type name from the string (for template
+        // arg "T"). Since type float always returns "float" for all compilers we
+        // support (which would likely be the case for any other compiler as well
+        // normally, though any type whose string is the same for all supported
+        // compilers would do - read on), we can leverage this knowledge to easily
+        // determine the offset of type "T" in the string and its length, regardless of
+        // what "T" is, without any complicated parsing of the above strings (in order
+        // to locate "T" within the string and determine its length). Note that parsing
+        // would be a much more complicated approach because type "T" itself can
+        // potentially contain any character including angled brackets, square brackets,
+        // equal signs, etc., each of which makes it harder to distinguish between those
+        // particular characters in "T" itself from their use as delimiters in the above
+        // strings (where they aren't part of "T"). It would usually be rare in practice
+        // but can happen. For instance, "T" might be a template type (class) called,
+        // say, "Bracket", with a non-type template arg of type "char" so "Bracket" can
+        // be instantiated (and therefore appear in __PRETTY_FUNCTION__ or __FUNCSIG__)
+        // like so (ignoring the class' namespace if any to keep things simple):
         //
-        //      Bracket<'>'>
         //      Bracket<']'>
+        //      Bracket<'>'>
         //      Bracket<'='>
         //      Bracket<';'>
         //
         // This makes it more difficult to parse __PRETTY_FUNCTION__ and __FUNCSIG__
         // looking for the above type and determining its length because the above
         // strings contain the same characters used as delimiters elsewhere in
-        // __PRETTY_FUNCTION__ and __FUNCSIG__ (where applicable), so any parsing code
-        // will have to deal with this where required.
+        // __PRETTY_FUNCTION__ and __FUNCSIG__ (when applicable), so any parsing code
+        // would have to deal with this where required, which is non-trivial. For
+        // example, determining if ']' is part of the type itself or an actual delimiter
+        // in __PRETTY_FUNCTION__ is less simple than it first seems (not rocket science
+        // but a pain).
         //
-        // To circumvent having to do this (parse the string and deal with this issue),
+        // To circumvent having to do this (parse the string to deal with this issue),
         // there's a much easier alternative. For the offset of "T" itself, note that
-        // for each supported compiler it's always the same regardless of "T" (within
-        // that particular compiler). We can therefore simply rely on a known type like
-        // "float" to determine it, not "T" itself (since it will be the same for any
-        // "T" so we can arbitrarily use "float" - more on why "float" was chosen
-        // later). For the length of "T" however, we know that for any two different
-        // values of "T", say "int" and "float" (any two types will do), the "pretty"
-        // string containing "int" will be identical to the "pretty" string containing
-        // "float" except for the difference between "int" and "float" themselves.
-        // That's the only difference between these pretty strings, i.e., one contains
-        // "int" and one contains "float", but the remainder of the pretty strings are
-        // identical. Therefore, since the string "int" is 3 characters long and the
-        // string "float" is 5 characters long (2 characters longer than "int"), then
-        // the length of the pretty string above containing "int" must be shorter than
-        // the pretty string containing "float" by 2 characters, since the pretty
-        // strings themselves are identical except for the presence of "int" and "float"
-        // (within their respective pretty strings). So by simply subtracting the length
-        // of the pretty string for a "float" from the length of the pretty string for
-        // any type "T" (i.e., by simply computing this delta), we know how much longer
-        // (positive delta) or shorter (negative delta) the length of "T" must be
-        // compared to a "float", since the latter is always 5 characters long. We
-        // therefore just add this (positive or negative) delta to 5 to arrive at the
-        // length of "T" itself. For an "int" for instance, the delta is -2 (the length
-        // of its pretty string minus the length of the pretty string for "float" is
-        // always -2) so 5 - 2 = 3 is the length of an "int". For a type longer than "T"
-        // it works the same way only the delta is positive in this case. If an
-        // "unsigned int" for instance then the delta is 7 (length of its pretty string
-        // minus the length of the pretty string for "float" is always 7) so 5 + 7 = 12
-        // is the length of "unsigned int". We can do this for any arbitrary "T" of
-        // course to get its own length, by simply computing the delta for its pretty
-        // string in relation to the pretty string for a "float" as described.
+        // for each supported compiler it's always the same regardless of "T" (for that
+        // particular compiler). We can therefore simply rely on a known type like
+        // "float" to determine it, not "T" itself (since the offset to "T" will be the
+        // same as the offset to "float" or any other type for that matter, so we can
+        // arbitrarily just rely on "float" - more on why "float" was chosen later). For
+        // the length of "T" however, we know that for any two different types of "T",
+        // say "int" and "float" (any two types will do), the "pretty" string containing
+        // "int" will be identical to the "pretty" containing "float" except for the
+        // difference between "int" and "float" themselves. That's the only difference
+        // between these "pretty" strings, i.e., one contains "int" and one contains
+        // "float", but the remainder of the "pretty" strings are identical. Therefore,
+        // since the string "int" is 3 characters long and the string "float" is 5
+        // characters long (2 characters longer than "int"), then the length of the
+        // "pretty" string above containing "int" must be shorter than the "pretty"
+        // string containing "float" by 2 characters, since the strings themselves are
+        // identical except for the presence of "int" and "float" (within their
+        // respective strings). So by simply subtracting the length of the "pretty"
+        // string for a "float" from the length of the "pretty" string for any type "T"
+        // (i.e., by simply computing this delta), we know how much longer (positive
+        // delta) or shorter (negative delta) the length of "T" must be compared to a
+        // "float", since the latter is always 5 characters long. We therefore just add
+        // this (positive or negative) delta to 5 to arrive at the length of "T" itself.
+        // For an "int" for instance, the delta is -2 (the length of its "pretty" string
+        // minus the length of the "pretty" string for "float" is always -2), so 5 - 2 =
+        // 3 is the length of an "int". For a type longer than "T" it works the same way
+        // only the delta is positive in this case. If "T" is an "unsigned int" for
+        // instance then the delta is 7 (length of its "pretty" string minus the length
+        // of the "pretty" string for "float" is always 7) so 5 + 7 = 12 is the length
+        // of "unsigned int". We can do this for any arbitrary "T" of course to get its
+        // own length, by simply computing the delta for its "pretty" string in relation
+        // to the "pretty" string for a "float" as described.
         //
         // Note that float was chosen over other types we could have used instead since
         // the name it generates in its own pretty string is always "float" for all our
@@ -301,86 +476,273 @@ namespace Private
         // seemed (potentially) less vulnerable to issues like signedness among integral
         // types, or other potential issues. If an integral type like "int" was chosen
         // instead for instance (or "char", or "long", etc.), some future compiler (or
-        // compiler option) might display it as "int" within its pretty string, or maybe
-        // "signed int" or "unsigned int" depending on the default signedness in effect
-        // (so not always consistent among all compilers or possibly even within a given
-        // compiler depending on which compiler options are in effect at the time). Or
-        // perhaps a "double" might be displayed as "double" or "long double" based on
-        // some obscure compiler option so potentially not consistent either. Or perhaps
-        // a "bool" might appear as an "unsigned char" if some backwards compatibility
-        // option is turned on for some future compiler (since bools may have been
-        // internally declared that way once-upon-a-time and someone may turn the option
-        // on for backwards compatibility reasons if required). In reality it doesn't
-        // seem likely this is actually going to happen for any of the fundamental types
-        // however, and even "float" itself could potentially become a "double" under
-        // some unknown circumstance but for now it seems to be potentially more stable
-        // than the other fundamental types so I chose it for that reason only (even if
-        // these reasons are a bit flimsy).
-        /////////////////////////////////////////////////////////////////////////////////
+        // compiler option) might display it as "int" within its pretty string as we
+        // would normally expect, but "signed int" or "unsigned int" might also be
+        // possible depending on the default signedness in effect (so not always
+        // consistent among all compilers or possibly even within a given compiler
+        // depending on which compiler options are in effect at the time). Or perhaps a
+        // "double" might be displayed as "double" as normally expected, but "long
+        // double" might also be possible based on some compiler option so potentially
+        // not consistent either. Or perhaps a "bool" might appear as an "unsigned char"
+        // if some backwards compatibility option is turned on for some future compiler
+        // (since bools may have been internally declared that way once-upon-a-time and
+        // someone may turn the option on for backwards compatibility reasons if
+        // required). In reality it doesn't seem likely this is actually going to happen
+        // for any of the fundamental types however, and even "float" itself could
+        // potentially become a "double" (or whatever) under some unknown circumstance
+        // but for now it seems to be potentially more stable than the other fundamental
+        // types so I chose it for that reason only (even if these reasons are a bit
+        // flimsy). It normally works.
+        //
+        // Non-Microsoft compilers targeting Windows
+        // -----------------------------------------
+        // Note that non-Microsoft compilers targeting Windows will #define _MSC_VER just
+        // like the Microsoft compiler does (VC++), indicating they're running in
+        // Microsoft VC++ compatibility mode (i.e., will compile VC++ Windows
+        // applications). For most intents and purposes we can therefore (usually) just
+        // test if _MSC_VER is #defined througout our code and if true it means that
+        // either VC++ is running or some other non-Microsoft compiler is but it's running
+        // as if it were VC++. We can therefore usually just ignore the fact that it's not
+        // the real VC++ itself since it's running as if it were (so we can just carry on
+        // as if the real VC++ is running). However, instead of checking _MSC_VER we can
+        // also explicitly check the actual (real) compiler that's running by using our
+        // own #defined constants MICROSOFT_COMPILER, CLANG_COMPILER and INTEL_COMPILER
+        // instead (the only compilers we currently support that might #define _MSC_VER -
+        // MICROSOFT_COMPILER itself refers to the real VC++ compiler so it always
+        // #defines it but the other two only #define it when running in Microsoft
+        // comptatibility mode). For many (actually most) purposes however we can just
+        // check _MSC_VER as described above when we don't care whether it's the real VC++
+        // compiler (MICROSOFT_COMPILER #defined) vs the Clang compiler (CLANG_COMPILER
+        // #defined) or the Intel compiler (INTEL_COMPILER #defined), where the latter two
+        // cases simply mean these non-Microsoft compilers are running in Microsoft VC++
+        // compatibility mode (since _MSC_VER is also #defined).
+        //
+        // Unfortunately the behavior of these non-Microsoft compilers isn't always 100%
+        // compatible with the actual (real) Microsoft compiler itself however. In
+        // particular, for the purposes of the function you're now reading, note that the
+        // code relies on the predefined Microsoft macro __FUNCSIG__ instead of
+        // __PRETTY_FUNCTION__ whenever _MSC_VER is #defined, so the actual (real)
+        // compiler doesn't matter to us (since __FUNCSIG__ is also #defined for
+        // non-Microsoft compilers running in Microsoft VC++ compatibility mode). However,
+        // __FUNCSIG__ isn't a string literal or even a macro when using non-Microsoft
+        // compilers, unlike when using the actual Microsoft VC++ compiler itself. It
+        // normally should be a string literal even on non-Microsoft compilers (if they
+        // were 100% compatible with VC++) but unfortunately it's not. It's just an array
+        // of "const" char when using non-Microsoft compilers but not an actual string
+        // literal. We therefore normally shouldn't be able to apply the native Microsoft
+        // macro _T to it since _T is just the C++ string literal prefix "L" when
+        // compiling for UTF-16 in Windows (usually the case), and the "L" prefix can only
+        // be applied to string literals. See the following for details (also consult _T
+        // in the MSFT docs if you're not already familiar with it):
+        //
+        //     Wide string literals
+        //     https://learn.microsoft.com/en-us/cpp/cpp/string-and-character-literals-cpp?view=msvc-170#wide-string-literals
+        //
+        // Since the "L" prefix can only be applied to string literals then it shouldn't
+        // work with __FUNCSIG__ when using non-Microsoft compilers, since the latter
+        // constant isn't a string literal in non-Microsoft compilers as described. It's
+        // only a string literal when using VC++ itself (as officially documented by
+        // MSFT), so "L" should only work when compiling with VC++. However, it turns
+        // out that "L" does work with __FUNCSIG__ in non-Microsoft compilers, at least
+        // the ones we support, even though it's not a string literal in those
+        // compilers. While I'm not sure why without further digging (read on), some
+        // type of special work-around was apparently introduced by these particular
+        // compiler vendors to handle __FUNCSIG__ as a string literal even though it's
+        // apparently not defined that way (and presumably applicable to other Microsoft
+        // predefined constants in these non-Microsoft compilers as well I assume,
+        // though it doesn't impact out situation here). See here for details about the
+        // situation but it requires reading through the details to better understand
+        // the fix (I haven't myself):
+        //
+        //    Clang + -fms-extensions: __FUNCSIG__ is not a literal
+        //    https://github.com/llvm/llvm-project/issues/114
+        //
+        //    /////////////////////////////////////////////////////////
+        //    // The issue is then cited as closed by "aeubanks" in
+        //    // the above link (git commit 856f384), but he later
+        //    // indicates that "patch was reverted, reopening", only
+        //    // to close it again later on (git commit 878e590, which
+        //    // the following links to). Apparently that was the
+        //    // final fix.
+        //    /////////////////////////////////////////////////////////
+        //    https://github.com/llvm/llvm-project/commit/878e590503dff0d9097e91c2bec4409f14503b82
+        //
+        // Also see the following link which shows changes in a file called
+        // "clang/docs/ReleaseNotes.rst"
+        //
+        //     [clang] Make predefined expressions string literals under -fms-extensions
+        //     https://reviews.llvm.org/rG856f384bf94513c89e754906b7d80fbe5377ab53
+        //
+        // There's a comment in the "clang/docs/ReleaseNotes.rst" file itself that
+        // indicates:
+        //
+        //     "Some predefined expressions are now treated as string literals in MSVC
+        //      compatibility mode."
+        //
+        // I haven't looked into the situation in detail but the upshot is that in the
+        // code just below we rely on __FUNCSIG__ whenever _MSC_VER is #defined
+        // regardless of the compiler, and then apply the _T macro to __FUNCSIG__ as
+        // seen, which works even when using non-Microsoft compilers whose __FUNCSIG__
+        // isn't a string literal (in the compilers we currently support). It's still
+        // unclear though if any compiler-specific options might impact the situation
+        // but we'll have to live with the uncertainty for now (though the above links
+        // would seem to suggest the issue is fixed - __FUNCSIG__ is apparently treated
+        // as a string literal again in all non-Microsoft compilers we support).
+        //
+        // Note that relying on __PRETTY_FUNCTION__ instead when targeting non-Microsoft
+        // compilers can't be used as a (viable/practical) alternative to __FUNCSIG__,
+        // even though __PRETTY_FUNCTION__ is also defined on non-Microsoft compilers
+        // (in additon to __FUNCSIG__, though they each resolve to different formats
+        // however). That's because the _T macro can't be applied to __PRETTY_FUNCTION__
+        // since it won't compile because __PRETTY_FUNCTION__ isn't treated as a string
+        // literal like __FUNCSIG__ is. _T only works on __FUNCSIG__ itself, again,
+        // because a fix was specifically introduced to handle it as described above (to
+        // make it compatible with VC++). Without the _T macro we therefore can't
+        // (easily) convert __PRETTY_FUNCTION__ to UTF-16 when using non-Microsoft
+        // compilers, in particular since the following function (and all others in the
+        // class) is "constexpr" so the conversion to UTF-16 needs to be done at
+        // compile-time (which is harder to do than at runtime so more trouble than it's
+        // worth). __PRETTY_FUNCTION__ therefore can't be used unless we work around the
+        // _T situation. For more information on _T in general see here at this writing
+        // (for starters):
+        //
+        //     Unicode Programming Summary
+        //     https://learn.microsoft.com/en-us/cpp/text/unicode-programming-summary?view=msvc-170 
+        //
+        // The bottom line is that when _MSC_VER is #defined, the following function
+        // assumes the build environment is compatible with VC++ even if a non-Microsoft
+        // compiler is actually being used (such as when the GCC, Clang or Intel
+        // compiler is explicitly installed as an optional component in Microsoft Visual
+        // Studio on Windows, and then selected as the compiler to use by going into
+        // your C++ project's properties, selecting "Configuation properties -> General"
+        // and choosing the applicable compiler from the "Platform toolset" dropdown).
+        // If "LLVM (clang-cl)" is selected for instance (the documented name of the
+        // Clang compiler at this writing - see
+        // https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170
+        // though the name is subject to change by MSFT of course), then the Clang
+        // compiler will be used instead of the native VC++ compiler. Although our own
+        // #defined constant CLANG_COMPILER will then be defined in this case (instead
+        // of the MICROSOFT_COMPILER since VC++ itself is no longer the chosen
+        // compiler), the native Microsoft constant _MSC_VER will still be #defined
+        // which we check for just below (instead of CLANG_COMPILER). __FUNCSIG__ will
+        // then be used as seen below (and _T applied to it as seen), since _T will
+        // still correctly work on it as described above, even though __FUNCSIG__ isn't
+        // a string literal (unlike when the actual Microsoft VC++ compiler is used).
+        // Again, we can't rely on __PRETTY_FUNCTION__ in this case even though it will
+        // also be #defined since _T can't be applied to it (since it's not a string
+        // literal and no work-around was made by the compiler vendors to treat it like
+        // a string literal, unlike in the __FUNCSIG__ case).
+        //
+        // Lastly, note that __FUNCSIG__ isn't formatted the same way for non-Microsoft
+        // compilers as it is for VC++ itself. In non-Microsoft compilers, __FUNCSIG__
+        // is formatted with the trailing "[T = float]" syntax (using the examples seen
+        // at the top of this comment block), so it follows the same basic format as
+        // __PRETTY_FUNCTION__ does in this regard (though the overall format of
+        // __FUNCSIG__ does differ slightly from __PRETTY_FUNCTION__ but the differences
+        // are cosmetic only so it doesn't affect our code in anyway - __FUNCSIG__
+        // includes the calling convention for instance and __PRETTY_FUNCTION__ doesn't
+        // but this has no impact on any of the code in this or any other function in
+        // this class).
+        ///////////////////////////////////////////////////////////////////////////////////
         template <typename T>
         static constexpr auto GetPrettyFunction() noexcept
         {
+            ///////////////////////////////////////////////////////////////
+            // MSFT? Note the following (_MSC_VER) is also #defined in
+            // non-Microsoft compilers when they're targeting Windows
+            // (i.e., when they'e running in Microsoft VC++ compatibility
+            // mode). We therefore use __FUNCSIG__ in those cases as well.
+            // See the section "Non-Microsoft compilers targeting Windows"
+            // in long comments above.
+            ///////////////////////////////////////////////////////////////
             #if defined(_MSC_VER)
                 return tstring_view(_T(__FUNCSIG__));
-            #elif defined(GCC) || defined(__clang__) || defined(__INTEL_COMPILER)
-                return tstring_view(__PRETTY_FUNCTION__);
+            ////////////////////////////////////////////////////////////////
+            // Just some useful info on the subject of __PRETTY_FUNCTION__
+            // (mainly to do with GCC but provides additional insight):
+            // 
+            //    https://gcc.gnu.org/onlinedocs/gcc/Function-Names.html
+            //    https://gcc.gnu.org/onlinedocs/gcc-3.2.3/gcc/Function-Names.html // Earlier version of above but with a bit more info
+            //    https://stackoverflow.com/questions/55850013/pretty-function-in-constant-expression
+            //    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66639
+            //    https://github.com/gcc-mirror/gcc/blob/41d6b10e96a1de98e90a7c0378437c3255814b16/gcc/cp/NEWS#L337
+            // 
+            // Note that no official documentation seems to exist for Clang
+            // or Intel but the latter effectively relies on the Clang
+            // front-end anyway now (according to the Intel DPC++/C++ docs
+            // so presumably we should rely on the Clang docs but again,
+            // nothing about __PRETTY_FUNCTION is mentioned in those docs
+            // at this writing).
+            ////////////////////////////////////////////////////////////////
+            #elif defined(GCC_COMPILER) || \
+                  defined(CLANG_COMPILER) || \
+                  defined(INTEL_COMPILER)
+                return tstring_view(__PRETTY_FUNCTION__); // Can't use _T on __PRETTY_FUNCTION__ here
+                                                          // as described in (long) function comments
+                                                          // above. __PRETTY_FUNCTION__ and "tstring_view"
+                                                          // are both char-based" based strings at this
+                                                          // point however so we're ok (still potentially
+                                                          // brittle though but we'll live with it for
+                                                          // now - should be safe unless this ever changes)
             #else
-                static_assert(false, "Unknown compiler in use. Only Clang, GCC, Intel and Microsoft are currently supported");
-                return tstring_view(); // Empty but need to return something to shut compiler up
-                                       // (but we always "static_assert" just above anyway)
+                /////////////////////////////////////////////////////
+                // Note: Shouldn't be possible to come through here
+                // at this writing since the same #error message
+                // would have already been displayed earlier (when
+                // the compiler constants just above were #defined
+                // in "CompilerVersions.h")
+                /////////////////////////////////////////////////////
+                #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
             #endif
         }
 
         //////////////////////////////////////////////////////////////////////
         // GetTypeNameOffset(). Returns the offset within __PRETTY_FUNCTION__
-        // or (for MSFT only) __FUNCSIG__ to the start of the type we need to
-        // extract from the latter strings (i.e., the offset to template arg
-        // "T" in the string returned by "GetPrettyFunction()" above). Note
-        // that as explained in the comments preceding "GetPrettyFunction()",
-        // (see this for details), the offset to the type's name within the
-        // latter strings is always identical regardless of the type so we
-        // can easily calculate it using any type. No need to do it for
-        // template arg "T" that is but we create the following function as a
-        // template anyway (with template arg "T"). We always pass "float"
-        // however (the default arg) but "T" is still required so we can
-        // "static_assert" in the code below without any "static_asserts"
-        // triggering when we don't want them to (where applicable). Because
-        // of how "static_assert" works in C++, if it's used outside a
+        // or (when _MSC_VER is #defined) __FUNCSIG__, to the start of the
+        // type "T" within the latter string. Note that as explained in the
+        // comments preceding "GetPrettyFunction()" (see this for details),
+        // the offset to the type's name within the latter strings is always
+        // identical regardless of the type so we can easily calculate it
+        // using any type. No need to do it for template arg "T" that is but
+        // we create the following function as a template anyway (with
+        // template arg "T"). We simply ignore "T" however and always rely on
+        // "float" instead, as described in the "GetPrettyFunction" comments
+        // (again, since the type doesn't matter - the result is always the
+        // same). We create the following function as a template anyway so we
+        // can make any "static_asserts" in the code below depend on template
+        // arg "T" when required (read on). That is, because of how
+        // "static_assert" works in C++, if it's used outside a
         // template-based context it will always trigger if its first arg is
-        // false. For instance, see the "if constexpr" clause in the GCC code
-        // below. When that condition is true, the "static_assert" in the
-        // "else" clause would trigger if this function wasn't a template
-        // because the arg being passed to "static_assert"" is false whenever
-        // the "if constexpr" condition itself is true. If not for the
-        // dependence on template arg "T" itself in the "static_assert" (its
-        // condition indirectly but ultimately depends on "T"), the
+        // false. For instance, see the "if constexpr" clause in the
+        // GCC_COMPILER code below. When that "if constexpr" condition is
+        // true, the "static_assert" seen in the corresponding "else" clause
+        // would trigger if this function wasn't a template because the arg
+        // being passed to that "static_assert" is false whenever the "if
+        // constexpr" condition itself is true. If not for the function's
+        // dependence on template arg "T" itself in the "static_assert" (the
+        // 1st arg of "static_assert" depends on "T" via a call to
+        // "AlwaysTrue<T>" - see this below for further details), the
         // "static_assert" would always trigger even when the "else" clause
-        // isn't in effect. Because of the function's dependence on a
-        // template arg however (that the "static_assert" itself depends on),
-        // it won't trigger, which is what we require. It's similar in nature
-        // to the reason behind the "AlwaysFalse" alias earlier in this
-        // header (see its comments). Ideally the following function
-        // shouldn't be a template since "T" will always be a "float" but in
-        // order to prevent the "static_assert" from always triggering as
-        // described we make it a template anyway. Note that we arbitrarily
-        // choose "float" as explained in the "GetPrettyFunction()" comments.
+        // isn't in effect (because the corresponding "if constexpr" is
+        // true). Because of the "static_assert" dependence on a template arg
+        // however (again, via the call seen to "AlwaysTrue<T>" in that
+        // "static_assert"), the "static_assert" in the "else" clause
+        // therefore won't trigger, which is what we require. The bottom line
+        // is that while it shouldn't be necessary to make the following
+        // function a template since we never use the "T" template arg (we
+        // always rely on "float" a described), in order to prevent the
+        // "static_assert" from always triggering we make it depend on
+        // template arg "T" (so the function itself needs to be a template to
+        // accommodate this - yet another C++ joy).
         //////////////////////////////////////////////////////////////////////
-        template <typename T = float>
+        template <typename T>
         static constexpr tstring_view::size_type GetTypeNameOffset() noexcept
         {
-            // See comments above
-            static_assert(std::is_same_v<T, float>);
-
-            //////////////////////////////////////////////////////////////
-            // "T" is always float here (see "static_assert" just above
-            // and function comments above). Must pass "T" here instead
-            // of "float" directly however so that "prettyFunctionFloat"
-            // becomes dependent on a template arg (so any applicable
-            // "static_asserts" that depend on it below, either directly
-            // or indirectly, won't erroneously kick in when we don't
-            // want them to - see function comments above)
-            //////////////////////////////////////////////////////////////
-            constexpr tstring_view prettyFunctionFloat = GetPrettyFunction<T>();
+            /////////////////////////////////////////////////
+            // Always passing a "float" here since any type
+            // will do. See comments above.
+            /////////////////////////////////////////////////
+            constexpr tstring_view prettyFunctionFloat = GetPrettyFunction<float>();
 
             // "basic_string_view::ends_with()" not available until C++20
             #if CPP20_OR_LATER
@@ -389,41 +751,18 @@ namespace Private
                 ///////////////////////////////////////////////////////////////
                 // Quick and dirty equivalent of the C++20 code above but for
                 // our specific needs below only (so certain assumptions in
-                // effect, like the length of END_STR always being less than
+                // effect, like the length of END_STR is always less than
                 // the length of "prettyFunctionFloat" so we don't safeguard
                 // against it being longer - it will always be shorter for our
                 // uses below unless something is seriously wrong, but this
                 // will result in a compiler error anyway - will never
                 // realistically happen though)
                 ///////////////////////////////////////////////////////////////
-                #define PRETTY_FUNCTION_FLOAT_ENDS_WITH(END_STR) prettyFunctionFloat.substr(prettyFunctionFloat.size() - tstring_view(END_STR).size()) == END_STR
+                #define PRETTY_FUNCTION_FLOAT_ENDS_WITH(END_STR) IsEqualTo(prettyFunctionFloat.substr(prettyFunctionFloat.size() - tstring_view(END_STR).size()), \
+                                                                           END_STR)
             #endif
 
-            #if defined(_MSC_VER)
-                ///////////////////////////////////////////////////////////////////
-                // See format of __FUNCSIG__ string for "MSFT" near the top of the
-                // comments in "GetPrettyFunction()". Offset to the type in this
-                // string is the same regardless of the type so we arbitrarily
-                // use "float" here (see comments preceding latter function for
-                // details). The __FUNCSIG__ string with type "float" always ends
-                // with "<float>(void) noexcept" so the offset to the "f" in this
-                // string (i.e., the offset to the type we're after) is always 21
-                // characters from the end (unless MSFT makes a breaking change
-                // to the string). The offset will be the same no matter what the
-                // type so we're good (i.e., we can just rely on the one for float
-                // and immediately return this).
-                ///////////////////////////////////////////////////////////////////
-                static_assert(PRETTY_FUNCTION_FLOAT_ENDS_WITH(_T("<float>(void) noexcept")));
-
-                //////////////////////////////////////////////////
-                // Offset to the "f" in "<float>(void) noexcept"
-                // (i.e., the 1st character of the type we're
-                // after). Always the same regardless of the type
-                // so our use of "float" to calculate it will
-                // work no matter what the type.
-                //////////////////////////////////////////////////
-                return prettyFunctionFloat.size() - 21;
-            #elif defined(GCC)
+            #if defined(GCC_COMPILER)
                 //////////////////////////////////////////////////////////////////
                 // See format of __PRETTY_FUNCTION__ string for "GCC" near the
                 // top of the comments in "GetPrettyFunction()". There are 2
@@ -431,26 +770,29 @@ namespace Private
                 // (with an explanation of when each kicks in - see comments for
                 // details). The offset to the type in this string is the same
                 // regardless of these two formats however (for whatever format
-                // is in use), or the type itself, so we arbitrarily use float in
-                // the code below (again, see comments in "GetPrettyFunction()"
-                // for details). For format "1 of 2" the string always ends with
-                // "= float]" so the offset to the "f" in this string (i.e., the
-                // offset to the type we're after) is always 6 characters from
-                // the end (unless the compiler vendor makes a breaking change to
-                // the string but the "static_assert" below will trap this). This
+                // is in use), regardless of the type itself, so we arbitrarily
+                // use float in the code below (again, see comments in
+                // "GetPrettyFunction()" for details). For format "1 of 2" the
+                // string always ends with "= float]" so the offset to the "f" in
+                // this string (i.e., the offset to the type we're after) is
+                // always 6 characters from the end of the string (unless the
+                // compiler vendor makes a breaking change to the string but the
+                // "static_assert" seen just after this class will trap it). This
                 // is identical to the "Clang" and "Intel" case further below so
-                // we do the same check here for GCC. If true then the offset
-                // will be the same no matter what the type so we're good (i.e.,
-                // we can just rely on the one for float and immediately return
-                // this). Unlike "Clang" and "Intel" however, where this check
-                // must always be true (or we "static_assert" for those compilers
-                // if not), if it's not true for GCC then we must be dealing with
-                // format "2 of 2" instead. In this case we need to locate "=
-                // float;" within the string and the offset to the type itself is
-                // therefore 2 characters after the '=' sign. Again, the offset
-                // to the type will be the same no matter what the type so we're
-                // good (we can just rely on the one for float and immediately
-                // return this).
+                // we do the same check here for GCC. If the following check for
+                // format "1 of 2" is true then the offset will be the same no
+                // matter what the type so we're good (i.e., we can just rely on
+                // the one for float and immediately return this). Unlike "Clang"
+                // and "Intel" however, where the following check must always be
+                // true so we don't need to check for it in those cases (we simply
+                // "static_assert" on it instead), if it's not true for GCC then
+                // we must be dealing with format "2 of 2" instead. In this case
+                // we need to locate "= float;" within the string and the offset
+                // to the type itself is therefore 2 characters after the '='
+                // sign. Again, just like the "1 of 2" case, the offset to the
+                // type will be the same in the "2 of 2" case no matter what the
+                // type so we can just rely on the one for float and immediately
+                // return this.
                 //////////////////////////////////////////////////////////////////
 
                 // GCC format 1 of 2 (see "GetPrettyFunction()" for details)
@@ -469,7 +811,18 @@ namespace Private
                 else // GCC format 2 of 2 (see "GetPrettyFunction()" for details)
                 {
                     constexpr tstring_view::size_type offsetOfEqualSign = prettyFunctionFloat.rfind(_T("= float;"));
-                    static_assert(offsetOfEqualSign != tstring_view::npos);
+                    static_assert(offsetOfEqualSign != tstring_view::npos &&
+                                  AlwaysTrue<T>); // "AlwaysTrue" required to make the "static_assert" depend
+                                                  // on template arg "T" so that the "static_assert" won't
+                                                  // trigger when the "if constexpr" call above is true (and
+                                                  // it always will trigger in older versions of C++ in
+                                                  // particular - in newer versions however the call to
+                                                  // "AlwaysTrue" is no longer necessary since the language
+                                                  // or possibly GCC itself (not certain, it's a fuzzy area)
+                                                  // was changed so that the call to "static_assert" now
+                                                  // implicitly relies on "T" without having to call
+                                                  // "AlwaysTrue" - we continue to rely on it anyway for
+                                                  // now)
 
                     ///////////////////////////////////////////
                     // Offset to the "f" in "= float;" (i.e.,
@@ -481,51 +834,96 @@ namespace Private
                     ///////////////////////////////////////////
                     return offsetOfEqualSign + 2;
                 }
-            #elif defined(__clang__) || defined(__INTEL_COMPILER)
+            ////////////////////////////////////////////////////////
+            // Note: Not checking for _MSC_VER here by design, only
+            // for the native Microsoft VC+++ compiler itself. Code
+            // just below therefore applies to VC++ only, not to
+            // other compilers we support that also #define
+            // _MSC_VER (when they're running in Microsoft VC++
+            // compatibility mode). They don't format __FUNCSIG__
+            // the same way VC++ does so we can't rely on the VC++
+            // code just below for them. Note that they *should*
+            // format it the same way since they're supposed to be
+            // compatible with VC++ when _MSC_VER is #defined but
+            // they're not.
+            ////////////////////////////////////////////////////////
+            #elif defined(MICROSOFT_COMPILER)
                 ///////////////////////////////////////////////////////////////////
-                // See format of __PRETTY_FUNCTION__ string for Clang and Intel
-                // near the top of the comments in "GetPrettyFunction()". Offset
-                // to the type in this string is the same regardless of type so we
-                // arbitrarily use "float" here (see latter comments for details).
-                // The __PRETTY_FUNCTION__ string with type "float" always ends
-                // with "= float]" so the offset to the "f" in this string (i.e.,
-                // the offset to the type we're after) is always 6 characters from
-                // the end (unless the compiler vendors makes a breaking change to
-                // the string). The offset will be the same no matter what the
-                // type so we're good (i.e., we can just rely on the one for float
-                // and immediately return this).
+                // See format of __FUNCSIG__ string for "Microsoft (VC++)" near
+                // the top of the comments in "GetPrettyFunction()". Offset to the
+                // type in this string is the same regardless of the type so we
+                // arbitrarily use "float" here (see comments preceding latter
+                // function for details). The __FUNCSIG__ string with type "float"
+                // always ends with "<float>(void) noexcept" so the offset to the
+                // "f" in this string (i.e., the offset to the type we're after)
+                // is always 21 characters from the end (unless MSFT makes a
+                // breaking change to the string). The offset will be the same no
+                // matter what the type so we're good (i.e., we can just rely on
+                // the one for float and immediately return this).
+                ///////////////////////////////////////////////////////////////////
+                static_assert(PRETTY_FUNCTION_FLOAT_ENDS_WITH(_T("<float>(void) noexcept")));
+
+                //////////////////////////////////////////////////
+                // Offset to the "f" in "<float>(void) noexcept"
+                // (i.e., the 1st character of the type we're
+                // after). Always the same regardless of the type
+                // so our use of "float" to calculate it will
+                // work no matter what the type.
+                //////////////////////////////////////////////////
+                return prettyFunctionFloat.size() - 21;
+            #elif defined(CLANG_COMPILER) || defined(INTEL_COMPILER)
+                ///////////////////////////////////////////////////////////////////
+                // See format of the strings for Clang and Intel near the top of
+                // the comments in "GetPrettyFunction()" (using __PRETTY_FUNCTION
+                // when _MSC_VER isn't #defined or __FUNCSIG__ otherwise). Offset
+                // to the type in this string is the same regardless of the type
+                // so we arbitrarily use "float" here (see "GetPrettyFunction()"
+                // comments for details). Both __PRETTY_FUNCTION__ and __FUNCSIG__
+                // (based on type "float" we've applied here) always ends with
+                // "= float]" so the offset to the "f" in this string (i.e., the
+                // offset to the type we're after) is always 6 characters from the
+                // end (unless the compiler vendors makes a breaking change to the
+                // string, triggering this "static_assert"). The offset will be the
+                // same no matter what the type so we can just rely on the one for
+                // float and immediately return this.
                 ///////////////////////////////////////////////////////////////////
                 static_assert(PRETTY_FUNCTION_FLOAT_ENDS_WITH(_T("= float]")));
 
-                ///////////////////////////////////////////
-                // Offset to the "f" in "= float]" (i.e.,
-                // the 1st character of the type we're
-                // after). Always the same regardless of
-                // the type so our use of "float" to
-                // calculate it will work no matter what
-                // the type.
-                ///////////////////////////////////////////
+                //////////////////////////////////////////////////////
+                // Offset to the "f" in "= float]" (i.e., the 1st
+                // character of the type we're after). Always the
+                // same regardless of the type so our use of "float"
+                // to calculate it will work no matter what the type.
+                //////////////////////////////////////////////////////
                 return prettyFunctionFloat.size() - 6;
             #else
-                static_assert(false, "Unknown compiler in use. Only Clang, GCC, Intel and Microsoft are currently supported");
-                return tstring_view(); // Empty but need to return something to shut compiler up
-                                       // (but we always "static_assert" just above anyway)
+                /////////////////////////////////////////////////////
+                // Note: Shouldn't be possible to come through here
+                // at this writing since the same #error message
+                // would have already been displayed earlier (when
+                // the compiler constants just above were #defined
+                // in "CompilerVersions.h")
+                /////////////////////////////////////////////////////
+                #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
             #endif
+
+            // Done with this (for internal use in this function only)
+            #undef PRETTY_FUNCTION_FLOAT_ENDS_WITH
         }
 
         //////////////////////////////////////////////////////////////////////
         // GetTypeNameLen(). Returns the length of template arg "T" within
-        // __PRETTY_FUNCTION__ or (for MSFT only) __FUNCSIG__. If "T" is an
-        // int for instance and it actually appears in the latter string as
-        // "int" (always the case at this writing for all supported compilers
-        // but not guaranteed - "signed int" or "unsigned int" is always
-        // possible for future compilers), then it returns 3 (if it is in
-        // fact "int" - if it resolves to "signed int" for some reason then
-        // 10 would be returned of course, or if "unsigned int" then 12 would
-        // be returned). Note that as explained in the comments preceding
-        // function "GetPrettyFunction()" above, we leverage our knowledge of
-        // type float to help us calculate the length of "T". See
-        // "GetPrettyFunction()" for details.
+        // __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__. If
+        // "T" is an int for instance and it actually appears in the latter
+        // string as "int" (always the case at this writing for all supported
+        // compilers but not guaranteed - "signed int" or "unsigned int" is
+        // always possible for future compilers), then it returns 3 (if it is
+        // in fact "int" - if it resolves to "signed int" for some reason
+        // then 10 would be returned instead, or if "unsigned int" then 12
+        // would be returned). Note that as explained in the comments
+        // preceding function "GetPrettyFunction()" above, we leverage our
+        // knowledge of type float to help us calculate the length of "T".
+        // See "GetPrettyFunction()" for details.
         //////////////////////////////////////////////////////////////////////
         template <typename T>
         static constexpr tstring_view::size_type GetTypeNameLen() noexcept
@@ -539,20 +937,25 @@ namespace Private
             // the length of the pretty function containing "float" and
             // the length of the pretty function containg "T" itself
             // (positive if length of "T" is greater than the length of
-            // "float" which is always 5, negative if less, zero if
-            // equal), and adding this to the length of "float" (again,
-            // always 5). "float" was chosen for this purpose but any type
-            // with a consistent size among all supported compilers will
-            // do. Again, see comments in "GetPrettyFunction()" for
-            // details.
+            // "float" whose length is always 5 of course, negative if
+            // less, zero if equal), and adding this to the length of
+            // "float" (again, always 5). "float" was chosen for this
+            // purpose but any type with a consistent size among all
+            // supported compilers will do. Again, see comments in
+            // "GetPrettyFunction()" for details.
             //
             // Lastly, note that since the following is dealing with
-            // unsigned numbers, I've coded things to avoid the possibility
-            // of a negative number when the length of the pretty strings
-            // are subtracted from each other. It's a confusing area for
-            // many, gets into the possibility of undefined behavior (won't
-            // talk about that here), etc. Therefore simpler to just code
-            // things as seen (whole situation avoided).
+            // unsigned numbers, I've coded things to avoid the
+            // possibility of a negative number when the length of the
+            // pretty strings are subtracted from each other (if we
+            // approached things that way - subtracting a potentially
+            // larger unsigned number from a smaller one obviously gets
+            // into the murky area of "negative" unsigned numbers which
+            // are never actually negative of course, but large unsigned
+            // numbers). It's a confusing area for many, gets into the
+            // possibility of undefined behavior (won't talk about that
+            // here), etc. Therefore much simpler to just code things as
+            // seen (whole situation avoided).
             ///////////////////////////////////////////////////////////////
 
             // Size of type "T" greater than "float" (i.e., > 5)
@@ -568,108 +971,50 @@ namespace Private
         }
     };
 
-    ////////////////////////////////////////////////////////////
-    // MSFT? (though Intel will also #define this when running
-    // on Windows). Just a Visual Studio 2017 bug fix ...
-    ////////////////////////////////////////////////////////////
-    #if defined(_MSC_VER)
-        /////////////////////////////////////////////////
-        // Visual Studio 2017? (can't be earlier since
-        // CPP17_OR_LATER currently in effect from our
-        // check for it earlier - C++17 or later must
-        // therefore be in effect which wasn't supported
-        // in Visual Studio 2015 or earlier so if the
-        // following is true it must be VS 2017)
-        /////////////////////////////////////////////////
-        #if _MSC_VER < MSC_VER_2019
-            /////////////////////////////////////////////////////////
-            // The following code is only required in VS2017 due to
-            // a MSFT bug in that version (which I won't get into
-            // here). The bug was fixed in VS2019. If we ever stop
-            // supporting VS2017 then we can kill this code (and
-            // the code that relies on it later on)
-            /////////////////////////////////////////////////////////
-            static inline constexpr bool IsEqualTo(tstring_view typeName,
-                                                   tstring_view expectedTypeName) noexcept
-            {
-                if (typeName.size() == expectedTypeName.size())
-                {
-                    for (tstring_view::size_type i = 0; i < typeName.size(); ++i)
-                    {
-                        if (typeName[i] != expectedTypeName[i])
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            };
-        #endif // _MSC_VER < MSC_VER_2019
-    #endif // defined(_MSC_VER)
-
     //////////////////////////////////////////////////////////////////////
-    // Sanity check only. The template, "TypeName_v" defined below, is
-    // brittle should any compiler vendor change the format of
-    // __PRETTY_FUNCTION__ or __FUNCSIG__ (MSFT) so that our assumption
-    // about its existing format no longer holds (or we ever encounter
-    // something different than what we expected given that its format is
-    // undocumented). "TypeName_v" could then potentially return an
-    // erroneous value, leading to potentially serious (hard-to-find)
-    // runtime bugs (including possible crashes). The following
-    // compile-time check therefore traps the situation by checking if
-    // the template (and hence its implementation function) works for
-    // type "float". It does this by simply checking that it returns
-    // "float" which I'm arbitrarily choosing since any type whose name
-    // is consistent among all our supported compilers will do (such as
-    // "float"). It doesn't have to be "float" IOW since other types will
-    // also work (see "TypeNameImpl::GetPrettyFunction()" above for
-    // further details).
+    // Sanity check only. The template, "TypeName_v" defined just after
+    // this namespace is brittle should any compiler vendor change the
+    // format of __PRETTY_FUNCTION__ or __FUNCSIG__ (MSFT) so that our
+    // assumption about its existing format no longer holds (or we ever
+    // encounter something different than what we expected given that its
+    // format is undocumented). "TypeName_v" could then potentially
+    // return an erroneous value, leading to potentially serious
+    // (hard-to-find) runtime bugs (including possible crashes). The
+    // following compile-time check therefore traps the situation by
+    // checking if the implementation function for "TypeName_v"
+    // ("TypeNameImpl::Get()") works for type "float". It does this by
+    // simply checking that it returns "float" which I'm arbitrarily
+    // choosing since any type whose name is consistent among all our
+    // supported compilers will do (such as "float"). It doesn't have to
+    // be "float" IOW since other types will also work (see
+    // "TypeNameImpl::GetPrettyFunction()" above for further details).
     //
-    // In any case, if "TypeName_v<float>" doesn't return "float" then
-    // the following "static_assert" will trigger. It normally means that
-    // the compiler vendor changed the format of __PRETTY_FUNCTION__ or
-    // (for MSFT only) __FUNCSIG__, assuming no errors in our
-    // understanding of this string's undocumented format. Note that it's
-    // not a fullproof check though (longer story), the implementation
-    // above will normally "static_assert" anyway (making the following
-    // one superfluous usually), and it's really just a hack, but in
-    // reality it will normally be reliable. The upshot is that if
-    // "TypeName_v" ever starts returning a different name for "float"
-    // than it did at the time "TypeName_v" was written, and our
-    // implementation above doesn't already "static_assert" as a result,
-    // then the following "static_assert" will almost certainly be
-    // triggered (by itself or in addition to those in the implementation
-    // above). You'll then have to review the implementation above to
-    // correct the situation.
+    // In any case, if "TypeNameImpl::Get()" (the implementation function
+    // for "TypeName_v<float>") doesn't return "float" then the following
+    // "static_assert" will trigger. It normally means that the compiler
+    // vendor changed the format of __PRETTY_FUNCTION__ or (when _MSC_VER
+    // is #defined) __FUNCSIG__, assuming no errors in our understanding
+    // of this string's undocumented format. Note that it's not a
+    // fullproof check though (longer story), and if there's an issue then
+    // the implementation code above will normally "static_assert" anyway
+    // (making the following one superfluous usually). The following is
+    // really just a hack, but in reality it will normally be reliable.
+    // The upshot is that if "TypeName_v" ever starts returning a
+    // different name for "float" than it did at the time "TypeName_v"
+    // was written, and our implementation above doesn't already
+    // "static_assert" as a result, then the following "static_assert"
+    // will almost certainly be triggered (by itself or in addition to
+    // those in the implementation above). You'll then have to review the
+    // implementation above to correct the situation.
     //////////////////////////////////////////////////////////////////////
-    static_assert(
-                   ////////////////////////////////////////////////////
-                    // True for all compilers we support except Visual
-                    // Studio 2017. See #else comments below
-                    ////////////////////////////////////////////////////
-                   #if !defined(_MSC_VER) || _MSC_VER >= MSC_VER_2019 
-                       TypeNameImpl::Get<float>() == _T("float"), // Make sure "TypeName_v()" returns "float" (literally, though
-                                                                   // it's returned as a "tstring_view"). See long comments above.
-    
-                   //////////////////////////////////////////////////////
-                    // Visual Studio 2017 only. Call just above should
-                    // also work but fails due to a MSFT bug (in VS2017).
-                    // The following is a work-around ...
-                    //////////////////////////////////////////////////////
-                   #else
-                       IsEqualTo(TypeName_v<float>, _T("float")),
-                   #endif
-                   "A breaking change was detected in template \"TypeNameImpl::Get()\". The format of the "
-                   "predefined string __PRETTY_FUNCTION__ or (for MSFT) __FUNCSIG__ was likely changed by "
-                   "the compiler vendor (though would be very rare). \"TypeNameImpl::Get()\" was (arbitrarily) "
-                   "tested with type float but the returned string isn't \"float\" and normally should be. "
-                   "The format of __PRETTY_FUNCTION__ (or __FUNCSIG__) was therefore (likely) changed since "
-                   "\"TypeNameImpl::Get()\"was written, so its implementation should be reviewed and corrected.");
+    static_assert(IsEqualTo(TypeNameImpl::Get<float>(), _T("float")),
+                  "A breaking change was detected in template \"TypeNameImpl::Get()\". The format of the "
+                  "predefined string __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__ was "
+                  "likely changed by the compiler vendor (though would be very rare). \"TypeNameImpl::Get()\" "
+                  "was (arbitrarily) tested with type float but the returned string isn't \"float\" and "
+                  "normally should be. The format of __PRETTY_FUNCTION__ (or __FUNCSIG__) was therefore "
+                  "(likely) changed since \"TypeNameImpl::Get()\"was written, so its implementation should "
+                  "be reviewed and corrected.");
 } // namespace Private
 
 ////////////////////////////////////////////////////////////////////////
@@ -679,20 +1024,21 @@ namespace Private
 // its name as a "tstring_view". This is always a "std::string_view" on
 // non-MSFT platforms in this release ("tstring_view" always resolves
 // to "std::string_view"), and normally "std::wstring" on MSFT
-// platforms. Note that MSFT platforms are normally compiled for UTF-16
-// based on the #defined constants UNICODE and _UNICODE (see these if
-// you're not already familiar), but if your code is in fact compiled
-// for ANSI instead (on MSFT platforms), though it would be very rare
-// these days, then "tstring_view" will correctly resolve to
-// "std::string_view" which we still support. It *always* resolves to
-// "std::string_view" on non-MSFT platforms however (in this release as
-// noted), since supporting anything else means we'd have to deal with
-// the overhead of character conversions (if "wchar_t" or some other
-// character type had to be supported - easier on MSFT platforms only
-// for now, at least for Unicode vs non-Unicode builds, though in
-// reality Unicode builds are almost always the norm there). We can
-// always review the situation for other platforms in a future release
-// if ever required.
+// platforms (or more accurately on any compiler that #defines _MSC_VER
+// when they're targeting Windows code). Note that MSFT platforms are
+// normally compiled for UTF-16 based on the #defined Microsoft
+// constants UNICODE and _UNICODE (see these if you're not already
+// familiar), but if your code is in fact compiled for ANSI instead (on
+// MSFT platforms), though it would be very rare these days, then
+// "tstring_view" will correctly resolve to "std::string_view" which we
+// still support. It *always* resolves to "std::string_view" on
+// non-MSFT platforms however (in this release as noted), since
+// supporting anything else means we'd have to deal with the overhead
+// of character conversions (if "wchar_t" or some other character type
+// had to be supported - easier on MSFT platforms only for now, at
+// least for Unicode vs non-Unicode builds, though in reality Unicode
+// builds are almost always the norm there). We can always review the
+// situation for other platforms in a future release if ever required.
 //
 //     EXAMPLE 1
 //     ---------
@@ -707,31 +1053,35 @@ namespace Private
 //     ////////////////////////////////////////////////////
 //     // A type like "std::wstring" produces a more
 //     // complicated name than the "float" example above
-//     // of course. For example (for 3 compilers shown -
-//     // note that the surrounding quotes below are just
-//     // for legibility and not actually returned):
-//     //
-//     //   Microsoft:
-//     //   ---------
-//     //   "class std::basic_string<wchar_t,struct std::char_traits<wchar_t>,class std::allocator<wchar_t> >"
+//     // of course. For example (for all 4 compilers we
+//     // currently support shown - note that the surrounding
+//     // quotes below are just for legibility and not
+//     // actually returned):
 //     //
 //     //   GCC
 //     //   ---
 //     //   "std::basic_string<wchar_t>" if "-D _GLIBCXX_USE_CXX11_ABI=0" macro is in effect (see https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html)
 //     //   "std::__cxx11::basic_string<wchar_t>" if above macro is set to 1 instead (again, see above link)
 //     //
-//     //   Clang
-//     //   -----
+//     //   Microsoft
+//     //   ---------
+//     //   "class std::basic_string<wchar_t,struct std::char_traits<wchar_t>,class std::allocator<wchar_t> >"
+//     //
+//     //   Clang and Intel
+//     //   ---------------
 //     //   "std::basic_string<wchar_t>"
 //     ////////////////////////////////////////////////////
 //     constexpr tstring_view typeName = TypeName_v<std::wstring>;
 //
 // Note that this template simply extracts the type from the predefined
 // strings __PRETTY_FUNCTION__ (for non-MSFT compilers), or __FUNCSIG__
-// (Microsoft compilers), noting that these may or may not be defined
-// as a macro or even a string literal depending on the compiler
-// (__FUNCSIG__ is always officially a string literal however but for
-// __PRETTY_FUNCTION__, see here for GCC for instance
+// (when _MSC_VER is #defined), noting that these may or may not be
+// defined as a macro or even a string literal depending on the
+// compiler (__FUNCSIG__ is always officially a string literal in VC++
+// however or specifically treated like one by Clang and Intel even
+// though it's not (a special fix to treat it like a string literal was
+// implemented in those compilers  however), but __PRETTY_FUNCTION__ is
+// not a string literal, see here for GCC for instance
 // https://gcc.gnu.org/onlinedocs/gcc/Function-Names.html). It doesn't
 // matter for our purposes however since we correctly extract the type
 // name portion from the string regardless (corresponding to template
@@ -746,60 +1096,61 @@ namespace Private
 // compiler vendor ever changes the format or we encounter some
 // previously unknown situation with the format, again, since they're
 // not officially documented). However, in practice they're stable, and
-// the techniques we rely on are generally used by many others as well
-// (using similar approaches though unlike many others, our own
-// technique isn't vulnerable to changes in the name of the
-// implementation function the following variable relies on - it can be
-// changed to anything without breaking things but read on). Moreover,
-// a "static_assert" just after the implementation class itself
-// ("Private::TypeNameImpl") checks if it actually works for type float
-// as a quick and dirty (but normally reliable) test, i.e., the
-// function should return "float" if passed float as its template arg
-// (arbitrarily chosen for testing but any type whose name is the same
-// on all supported compilers will do - see
+// the techniques we rely on are generally used by many others as well,
+// using similar approaches (though unlike many other implementations,
+// our own implementation isn't vulnerable to changes in the name of
+// the implementation function the following variable relies on - it
+// can be changed to anything without breaking things but read on).
+// Moreover, a "static_assert" just after the implementation class
+// itself ("Private::TypeNameImpl") checks if it actually works for
+// type float as a quick and dirty (but normally reliable) test, i.e.,
+// the function should return "float" if passed float as its template
+// arg (arbitrarily chosen for testing but any type whose name is the
+// same on all supported compilers will do - see comments preceding
 // "Private::TypeNameImpl::GetPrettyFunction" above for further
 // details). If not then the "static_assert" kicks in with an
-// appropriate message (also in the implementation itself). Note that
-// I've also coded things not to rely on anything in the
-// fully-qualified name (or return type) of __PRETTY_FUNCTION__ and
-// __FUNCSIG___ themselves (beyond what's necessary), as some
-// implementations of this (general) technique do. Doing so is brittle
-// should you change anything in the function's signature, such as its
-// name and/or return type (as some users might do). This would break
-// many implementations even though most will (hopefully) be easy to
-// fix. Ours isn't sensitive to the function's signature however,
-// again, beyond the minimal requirements necessary for the code to
-// work (given that we're dealing with undocumented strings). Changing
-// the function's fully-qualified name for instance (the actual
-// function name, its member class name, or namespace), and/or its
-// return type (to "tstring_view" or "std::basic_string<TCHAR>" for
-// instance) won't break the function. Some users may not like the
-// "auto" return type for example and may want to change it to
-// "tstring_view" (declared in "CompilerVersions.h" though this is a
-// more MSFT-centric technique due to their historical use of TCHAR
-// which you can read up on if not familiar), or
-// "std::basic_string_view<char>" (or replacing "char" with TCHAR or on
-// MSFT platforms only at this writing "wchar_t") or "std::string_view"
-// or "std::wstring_view" (latter only on MSFT platforms at this
-// writing)
+// appropriate message (and likely other "static_asserts" in the
+// implementation code itself). Note that I've also coded things not to
+// rely on anything in the fully-qualified name (or return type) of
+// __PRETTY_FUNCTION__ and __FUNCSIG___ themselves (beyond what's
+// necessary), as some implementations of this (general) technique do.
+// Doing so is brittle should user change anything in the function's
+// signature, such as its name and/or return type (as some users might
+// do). This would break many implementations even though most will
+// (hopefully) be easy to fix. Ours isn't sensitive to the function's
+// signature however, again, beyond the minimal requirements necessary
+// for the code to work (given that we're dealing with undocumented
+// strings). Changing the function's fully-qualified name for instance
+// (the actual function name, its member class name, or namespace),
+// and/or its return type (to "tstring_view" or
+// "std::basic_string<TCHAR>" for instance) won't break the function.
+// Some users may not like the "auto" return type for example and may
+// want to change it to "tstring_view" (declared in
+// "CompilerVersions.h" though this is a more MSFT-centric technique
+// due to their historical use of TCHAR which you can read up on if not
+// familiar), or "std::basic_string_view<char>" (or when replacing
+// "char" with TCHAR or on MSFT platforms, hence resolving to "wchar_t"
+// usually), or "std::string_view" or "std::wstring_view" (the latter
+// only on MSFT platforms at this writing)
 //
 // The bottom line is that you can change our implementation function's
-// signature if you wish and it will still work correctly. Note that if a
-// given compiler vendor ever changes the format of __PRETTY_FUNCTION__
-// itself however (or __FUNCSIG__ for MSFT only), then that could
-// potentially break the function as noted but again, the "static_asserts"
-// in the implementation will normally trigger if this occurs, and you'll
-// then have to fix the implementation function for this template to deal
-// with it ("Private::TypeNameImpl::Get()" as it's currently called at
-// this writing). It seems very unlikely a compiler vendor will ever
-// change the format however, let alone in a way that will break this
+// signature if you wish and it will (normally) still work correctly.
+// Note that if a given compiler vendor ever changes the format of
+// __PRETTY_FUNCTION__ itself however (or __FUNCSIG__ when _MSC_VER is
+// #defined), then that could potentially break the function as noted
+// but again, the "static_asserts" in the implementation will normally
+// trigger if this occurs, and you'll then have to fix the
+// implementation function for this template to deal with it
+// ("Private::TypeNameImpl::Get()" as it's currently called at this
+// writing). It seems very unlikely a compiler vendor will ever change
+// the format however, let alone in a way that will break this
 // function, unless it's done to deal with some new C++ feature perhaps
 // but who knows.
 //
-// Long story short, our implementation function should normally be very
-// stable but compilation will fail with an appropriate error if something
-// goes wrong (again, via the the "static_asserts" in the private
-// implementation function called by this template).
+// Long story short, our implementation function should normally be
+// very stable but compilation will (normally) fail with an appropriate
+// error if something goes wrong (again, via the the "static_asserts"
+// in the private implementation function called by this template).
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline constexpr tstring_view TypeName_v = Private::TypeNameImpl::Get<T>();
@@ -1005,24 +1356,24 @@ inline constexpr bool IsTuple_v = IsTuple<T>::value;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
-// Declarations mostly associated with struct "FunctionTraits" declared
-// later on (the latter struct itself plus its various base classes and
-// other support declarations including helper templates mostly associated
-// with "FunctionTraits" - all code that follows for the remainder of this
-// file). "FunctionTraits" itself is used to retrieve information about
-// any function including (most notably) its return type and the type of
-// any of its arguments (write traits also exist in addition to read
-// traits). Other less used info is also avalable (see
-// "FunctionTraitsBase" members). Simply pass the function's type as the
+// Declarations mostly associated with struct "FunctionTraits"
+// declared later on (the latter struct itself plus its various base
+// classes and other support declarations including helper templates
+// mostly associated with "FunctionTraits"). "FunctionTraits" itself is
+// used to retrieve information about any function including (most
+// notably) its return type and the type of any of its arguments (write
+// traits also exist in addition to read traits). Less frequently used
+// traits are also available. Simply pass the function's type as the
 // template's only argument (see next paragraph), but see the helper alias
 // templates "ReturnType_t" and "ArgType_t" declared later on for an even
 // easier (less verbose) way to access the return type and arg types of
-// any function (and other helper templates also exist). They take the
-// same template arg and simply wrap the appropriate aliases of
-// "FunctionTraits" demo'd in the example below. They're easier to use
-// than "FunctionTraits" directly however, and should normally be relied
-// on. The example below shows how to do it using "FunctionTraits" but the
-// helper aliases should normally be used instead.
+// any function (a full complement of helper templates exist for every
+// possible trait). The helper templates take the same template arg and
+// simply wrap the appropriate aliases of "FunctionTraits" demo'd in the
+// example below. They're easier to use than "FunctionTraits" directly
+// however and should normally be relied on. The example below shows how
+// to do it using "FunctionTraits" directly but the helper aliases should
+// normally be used instead.
 //
 // Please note that template arg F can be any legal C++ syntax for a
 // function's type, so it can refer to free functions, class member
@@ -1530,9 +1881,9 @@ namespace Private
     //   1) A free function including static member functions (but
     //      abominable function types always return false by design -
     //      see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
-    //   2) A (possibly cv-qualified) pointer to a free function
+    //   2) An (optionally cv-qualified) pointer to a free function
     //   3) A reference to a free function
-    //   4) A reference to a (possibly cv-qualified) pointer to a
+    //   4) A reference to an (optionally cv-qualified) pointer to a
     //      free function
     /////////////////////////////////////////////////////////////////
     template <typename T>
@@ -1555,9 +1906,9 @@ namespace Private
     // IsTraitsMemberFunction_v. Variable template set to true if "T"
     // is either of the following or false otherwise:
     // 
-    //   1) A (possibly cv-qualified) pointer to a non-static member
+    //   1) An (optionally cv-qualified) pointer to a non-static member
     //      function
-    //   2) A reference to a (possibly cv-qualified) pointer to a
+    //   2) An reference to an (optionally cv-qualified) pointer to a
     //      non-static member function
     ///////////////////////////////////////////////////////////////////
     template <typename T>
@@ -1584,13 +1935,13 @@ namespace Private
     //   1) A free function including static member functions (but
     //      abominable function types always return false by design -
     //      see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
-    //   2) A (possibly cv-qualified) pointer to a free function
+    //   2) An (optionally cv-qualified) pointer to a free function
     //   3) A reference to a free function
-    //   4) A reference to a (possibly cv-qualified) pointer to a free
+    //   4) A reference to an (optionally cv-qualified) pointer to a free
     //      function
-    //   5) A (possibly cv-qualified) pointer to a non-static member
+    //   5) An (optionally cv-qualified) pointer to a non-static member
     //      function
-    //   6) A reference to a (possibly cv-qualified) pointer to a
+    //   6) A reference to an (optionally cv-qualified) pointer to a
     //      non-static member function
     ///////////////////////////////////////////////////////////////////
     template <typename T>
@@ -1721,20 +2072,20 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
                                                                                  //    encountered more frequently (though item 1 does occur sometimes
                                                                                  //    so it's correctly handled). In any case, if "T" is *not* an
                                                                                  //    actual function type then ...
-                                                                                 // 2) Is "T" a (possibly cv-qualified) pointer to a free function
+                                                                                 // 2) Is "T" an (optionally cv-qualified) pointer to a free function
                                                                                  //    (the most common case in practice since free function names
                                                                                  //    decay to a pointer to the function in most expressions) or ...
                                                                                  // 3) Is "T" a reference to a free function (rare in practice) or ...
-                                                                                 // 4) Is "T" a reference to a (possibly cv-qualified) pointer to
+                                                                                 // 4) Is "T" a reference to an (optionally cv-qualified) pointer to
                                                                                  //    a free function (rare in practice)
                                                                                  // X) None of the above hold so "T" isn't a free function (or
                                                                                  //    a pointer to one or a reference to one or a reference to a
                                                                                  //    pointer to one) so we go on to check if it's a pointer to a
                                                                                  //    non-static member function ...
-                                           Private::IsTraitsMemberFunction_v<T> || // 1) Is T a (possibly cv-qualified) pointer to a non-static
+                                           Private::IsTraitsMemberFunction_v<T> || // 1) Is T an (optionally cv-qualified) pointer to a non-static
                                                                                    //    member function (the most common case for non-static
                                                                                    //    member functions in practice) or ...
-                                                                                   // 2) Is T a reference to a (possibly cv-qualified) pointer
+                                                                                   // 2) Is T a reference to an (optionally cv-qualified) pointer
                                                                                    //    to a non-static member function (rare in practice)
                                                                                    // X) Neither of the above hold noting that "T" *cannot*
                                                                                    //    be a reference to a member function (not supported
@@ -1767,124 +2118,130 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
     #define TRAITS_FUNCTION_C typename
 #endif
 
-/////////////////////////////////////////////////////////////////
-// IMPORTANT: Identifying compilers using #defined constants is
-// somewhat tricky business since some of them #define the same
-// identifying constants as other compilers. See here for instance:
-//
-//    https://stackoverflow.com/a/55926503
-//  
-// See the following for each compiler we currently support
-// (MSFT, GCC, Clang and Intel)
-//
-//  MSFT (see macro _MSC_VER):
-//  https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
-//  https://sourceforge.net/p/predef/wiki/Compilers/#microsoft-visual-c
-// 
-//  GCC (see macro __GNUC__):
-//  https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros
-//  https://sourceforge.net/p/predef/wiki/Compilers/#gcc-cc
-// 
-//  Clang (see macro __clang__):
-//  https://clang.llvm.org/docs/LanguageExtensions.html#builtin-macros
-//  https://sourceforge.net/p/predef/wiki/Compilers/#clang
-// 
-//  Intel (see macro __INTEL_COMPILER):
-//  https://www.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/macros/additional-predefined-macros.html
-//  https://sourceforge.net/p/predef/wiki/Compilers/#intel-cc
-/////////////////////////////////////////////////////////////////
-
-// MSFT? (though Intel also #defines _MSC_VER on Windows - ok)
-#if defined(_MSC_VER) // For Intel: https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/c-c-calling-conventions.html
+////////////////////////////////////////////////////////
+// MSFT? (or any other compiler we support but running
+// in Microsoft VC++ compatibility mode)
+////////////////////////////////////////////////////////
+#if defined(_MSC_VER)
+    ///////////////////////////////////////////////////////////////////
+    // See https://learn.microsoft.com/en-us/cpp/cpp/argument-passing-and-naming-conventions?view=msvc-170
+    ///////////////////////////////////////////////////////////////////
     #define STDEXT_CC_CDECL __cdecl
     #define STDEXT_CC_STDCALL __stdcall
     #define STDEXT_CC_FASTCALL __fastcall
     #define STDEXT_CC_VECTORCALL __vectorcall
-    #define STDEXT_CC_THISCALL __thiscall // Supported by Intel compiler as well (see https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/c-c-calling-conventions.html)
-        
-    // Intel compiler (not Microsoft)
-    #if defined(__INTEL_COMPILER)
-        // "regcall" only available on Intel compiler (among the ones we currently support)
-        // https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/c-c-calling-conventions.html
+    #define STDEXT_CC_THISCALL __thiscall
+
+    /////////////////////////////////////////////////////////////
+    // "regcall" calling convention only available on Clang and
+    // Intel compilers (among the ones we currently support)
+    /////////////////////////////////////////////////////////////
+    #if defined(CLANG_COMPILER) || defined(INTEL_COMPILER)
+        ////////////////////////////////////////////////////////////////////
+        // See https://clang.llvm.org/docs/AttributeReference.html#regcall
+        // See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-10/c-c-calling-conventions.html
+        ////////////////////////////////////////////////////////////////////
         #define STDEXT_CC_REGCALL __regcall
     #endif
-/////////////////////////////////////////////////////////////////////////
-// 1) GCC (or any other compiler that implements the __GNUC__ compiler
-//    extensions and therefore #defines __GNUC__)
-// 2) Clang (note that __GNUC__ above might be #defined for this as well
-//    if the __GNUC__ compiler extensions are in effect - ok)
-// 3) Intel (again, __GNUC__ above might be #defined for this as well if
-//    the __GNUC__ compiler extensions are in effect - ok)
-/////////////////////////////////////////////////////////////////////////
-#elif defined(__GNUC__) || \
-      defined(__clang__) || \
-      defined(__INTEL_COMPILER) 
-    // See Raymond Chen's articles (links) in comments further above (I modified the following however to also support __thiscall)
+#elif defined(GCC_COMPILER) || \
+      defined(CLANG_COMPILER) || \
+      defined(INTEL_COMPILER) 
+
+    /////////////////////////////////////////////////////////////////////////////
     // For GCC: https://gcc.gnu.org/onlinedocs/gcc/x86-Function-Attributes.html
     // For Clang: https://clang.llvm.org/docs/AttributeReference.html#calling-conventions
-    // For Intel: https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/c-c-calling-conventions.html 
-    
+    // For Intel: https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-10/c-c-calling-conventions.html
+    /////////////////////////////////////////////////////////////////////////////
     #define STDEXT_CC_CDECL __attribute__((cdecl))
     #define STDEXT_CC_STDCALL __attribute__((stdcall))
     #define STDEXT_CC_FASTCALL __attribute__((fastcall))
     #define STDEXT_CC_VECTORCALL __attribute__((vectorcall)) // Not supported on GCC so cleaner not to #define it there but then more work to
                                                              // constantly check if it's #defined later on. "FunctionTraits" still designed to
-                                                             // handle things correctly ("cdecl" will kick in instead) so we'll just #define
-                                                             // it (can always reconsider the situation in a future releaase if required)
+                                                             // handle things correctly even when defined ("cdecl" will kick in instead) so
+                                                             // we'll just #define it (can always review the situation in a future releaase if
+                                                             // required)
     #define STDEXT_CC_THISCALL __attribute__((thiscall))
-    #if defined(__INTEL_COMPILER)
-        // "regcall" only available on Intel compiler (among the ones we currently support)
-        // See https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/c-c-calling-conventions.html
+
+    /////////////////////////////////////////////////////////////
+    // "regcall" calling convention only available on Clang and
+    // Intel compilers (among the ones we currently support)
+    /////////////////////////////////////////////////////////////
+    #if defined(CLANG_COMPILER) || defined(INTEL_COMPILER)
+        // See https://clang.llvm.org/docs/AttributeReference.html#regcall
+        // See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-10/c-c-calling-conventions.html
         #define STDEXT_CC_REGCALL __attribute__((regcall))
     #endif
-
-    ///////////////////////////////////////////////////////////////
-    // GCC (or compatible but not including Clang and Intel - see
-    // our GCC #defined constant for details)
-    ///////////////////////////////////////////////////////////////
-    #if defined(GCC) // See https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
-        //////////////////////////////////////////////////////////
-        // When targeting 64 bit builds the above calling
-        // conventions are usually ignored (automatically
-        // replaced by the compiler with STDEXT_CC_CDECL) except
-        // for STDEXT_CC_CDECL itself (always supported).
-        // STDEXT_CC_VECTORCALL is also normally supported in a
-        // 64 bit build for all compilers we support but not GCC
-        // itself (it doesn't support the "vectorcall" calling
-        // convention at all). It's also possible that Some
-        // calling conventions may not be supported depending on
-        // other compiler options though I haven't looked into
-        // this. The bottom line is that this can result in many
-        // annoying warnings about unsupported calling convention
-        // attributes so we'll temporarily turn these warnings
-        // off here and back on later (only if they were already
-        // on). Note that the following (GCC) attributes syntax
-        // also normally works on Clang (and probably other
-        // compilers that #define __GNUC__), but we won't rely on
-        // them for other compilers. We'll use the compiler
-        // specific #pragmas instead in the "#elif" statements
-        // that follow below.
-        //////////////////////////////////////////////////////////
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wattributes" // E.g., "warning: 'stdcall' attribute ignored [-Wattributes]".
-    #elif defined(__clang__) // See: https://clang.llvm.org/docs/UsersManual.html#controlling-diagnostics-via-pragmas
-        // See GCC comments just above (same things applies here)
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wignored-attributes" // E.g., warning: 'stdcall' calling convention is not supported for this target [-Wignored-attributes].
-                                                                // See https://clang.llvm.org/docs/DiagnosticsReference.html#wignored-attributes
-        #pragma clang diagnostic ignored "-Wunknown-attributes" // E.g., warning: unknown attribute 'stdcall' ignored [-Wunknown-attributes] (not normally encountered
-                                                                // however - all calling conventions above are legal in Clang but ignoring this warning just in case)
-                                                                // See https://clang.llvm.org/docs/DiagnosticsReference.html#id886
-    #elif defined (__INTEL_COMPILER)
-        // See GCC comments above (same things applies here)
-        #pragma warning (push)
-        #pragma warning (disable:1292) // E.g. warning #1292: unknown attribute "vectorcall". Note that testing shows
-                                       // this warning might erroneously appear anyway for "cdecl" in a 64 bit build
-                                       // (go figure - Intel compiler I tested with ignores the pragma)
-        #pragma warning (disable:3706) // E.g., warning #3706: attribute is not supported in 64-bit x86 configurations
-    #endif
 #else
-    #error "Unsupported compiler (Microsoft, GCC, Clang and Intel are the only ones supported at this writing)"
+    /////////////////////////////////////////////////////
+    // Note: Shouldn't be possible to come through here
+    // at this writing since the same #error message
+    // would have already been displayed earlier (when
+    // the compiler constants just above were #defined
+    // in "CompilerVersions.h")
+    /////////////////////////////////////////////////////
+    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
+#endif
+
+// For GCC see https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
+#if defined(GCC_COMPILER)
+    ///////////////////////////////////////////////////////////////////
+    // When targeting 64 bit builds the above STDEXT_CC_? calling
+    // conventions are usually ignored (automatically replaced by the
+    // compiler with STDEXT_CC_CDECL) except for STDEXT_CC_CDECL
+    // itself (always supported) and STDEXT_CC_VECTORCALL (also
+    // normally supported in a 64 bit build for all compilers we
+    // support though GCC doesn't support this particular calling
+    // convention). It's also possible that some calling conventions
+    // may not be supported depending on other compiler options though
+    // I haven't looked into this. The bottom line is that this can
+    // result in many annoying warnings about unsupported calling
+    // convention attributes so we'll temporarily turn these warnings
+    // off here and back on later (only if they were already on).
+    ///////////////////////////////////////////////////////////////////
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wattributes" // E.g., "warning: 'stdcall' attribute ignored [-Wattributes]"
+
+// For Clang see https://clang.llvm.org/docs/UsersManual.html#controlling-diagnostics-via-pragmas
+// Note that Intel also relies on Clang as described in the comments just below
+#elif defined(CLANG_COMPILER) || \
+      defined(INTEL_COMPILER)
+
+    /////////////////////////////////////////////////
+    // According to the Intel DPC++/C++ docs here:
+    // 
+    //   Error Handling
+    //   https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2023-0/error-handling.html
+    //
+    // It says:
+    // 
+    //    For a summary of warning and error options,
+    //    see the Clang documentation.
+    //
+    // Where "Clang documentation" is this link:
+    // 
+    //   https://clang.llvm.org/docs/UsersManual.html#options-to-control-error-and-warning-messages
+    // 
+    // Hence the following works for Intel as well
+    // (for the DPC++/C++ compiler which is what we
+    // support, not the "Classic" Intel compiler
+    // which they've deprecated and replaced with
+    // the DPC++/C++ compiler - we don't support
+    // the "Classic" compiler)
+    /////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////
+    // See GCC_COMPILER call to its own "diagnostic push" 
+    // above (comments there apply here as well )
+    //////////////////////////////////////////////////////
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wignored-attributes" // E.g., "warning: 'stdcall' calling convention is not
+                                                            // supported for this target [-Wignored-attributes]"
+                                                            // See https://clang.llvm.org/docs/DiagnosticsReference.html#wignored-attributes
+    #pragma clang diagnostic ignored "-Wunknown-attributes" // E.g., "warning: unknown attribute 'stdcall' ignored
+                                                            // [-Wunknown-attributes]". Not normally encountered
+                                                            // however. All calling conventions above are legal in
+                                                            // Clang but ignoring this warning just in case. See
+                                                            // https://clang.llvm.org/docs/DiagnosticsReference.html#wunknown-attributes
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -1911,12 +2268,12 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
 //
 //    "If you try to declare a variadic function with an incompatible
 //    calling convention, the compiler secretly converts it to cdecl"
-//    https://devblogs.microsoft.com/oldnewthing/20131128-00/?p=2543 We'd need to provide new
+//    https://devblogs.microsoft.com/oldnewthing/20131128-00/?p=2543
 //
 // If we ever do handle other calling conventions for variadic
-// functions then specializations for "FunctionTraits" will
-// have to be be created (plus some other adjustments made in the
-// "FunctionTraits" code as well).
+// functions then additional specializations for "FunctionTraits"
+// will have to be be created to handle them (plus some other
+// adjustments to the "FunctionTraits" code).
 ///////////////////////////////////////////////////////////////////
 #define STDEXT_CC_VARIADIC STDEXT_CC_CDECL
 
@@ -1934,7 +2291,7 @@ enum class CallingConvention
     Fastcall,
     Vectorcall,
     Thiscall,
-#ifdef STDEXT_CC_REGCALL
+#if defined(STDEXT_CC_REGCALL)
     Regcall,
 #endif
     Variadic = Cdecl
@@ -1964,7 +2321,7 @@ inline constexpr tstring_view CallingConventionToString(const CallingConvention 
         case CallingConvention::Thiscall:
             str = _T("Thiscall");
             break;
-    #ifdef STDEXT_CC_REGCALL
+    #if defined(STDEXT_CC_REGCALL)
         case CallingConvention::Regcall:
             str = _T("Regcall");
             break;
@@ -2027,7 +2384,7 @@ inline constexpr bool CallingConventionReplacedWithCdecl() noexcept
         {
             return IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
         }
-    #ifdef STDEXT_CC_REGCALL
+    #if defined(STDEXT_CC_REGCALL)
         else
         {
             return IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
@@ -2088,7 +2445,7 @@ inline constexpr bool CallingConventionReplacedWithCdecl() noexcept
             {
                 return IS_REPLACED_WITH_CDECL(STDEXT_CC_THISCALL);
             }
-        #ifdef STDEXT_CC_REGCALL
+        #if defined(STDEXT_CC_REGCALL)
             else
             {
                 return IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
@@ -2140,115 +2497,166 @@ inline constexpr tstring_view RefQualifierToString(const RefQualifier refQualifi
     return str;
 }
 
-// For internal use only
+///////////////////////////////////////////////////////////////////////////
+// For internal use only (implementation details for "FunctionTraits" and
+// its helper templates, both declared after this namespace)
+///////////////////////////////////////////////////////////////////////////
 namespace Private
 {
+    /////////////////////////////////////////////////
+    // Any compiler other than VC++ from Microsoft
+    // Visual Studio 2017? (usually the case in most
+    // environments so the following will usually
+    // test true). Function write traits are
+    // therefore normally supported. See comments
+    // below.
+    /////////////////////////////////////////////////
+    #if !defined(MICROSOFT_VISUAL_STUDIO_2017)
+        //////////////////////////////////////////////////////////
+        // Function write traits are supported for all compilers
+        // other than VC++ from Visual Studio 2017 (as checked
+        // just above). Two unrelated compiler bugs exist in that
+        // version which cause compilation of our function write
+        // traits to fail (details not worth getting into here
+        // since use of that version is likely in significant
+        // decline by now anyway). The following will therefore
+        // be #undefined for that compiler only meaning that
+        // function write traits will be available in all
+        // compilers we support except VC++ from Visual Studio
+        // 2017. In that version they'll be preprocessed out
+        // based on the following constant being #undefined so
+        // they won't exist at all (and therefore won't be
+        // available to end users). Only function read traits
+        // will therefore be available in versions of VC++ from
+        // Visual Studio 2017. Function write traits will only
+        // be available in versions of VC++ from Visual Studio
+        // 2019 or later (as well as all non-Microsoft compilers).
+        // Note that this constant is for internal use only (we
+        // #undef it later).
+        //////////////////////////////////////////////////////////
+        #define FUNCTION_WRITE_TRAITS_SUPPORTED
+    #endif
+
     ///////////////////////////////////////////////////////////////////////
     // FunctionTraitsHelper. Base class of "FunctionTraitsBase" which all
     // "FunctionTraits" deriviatives (specializations) ultimately inherit
-    // from. The following class is for internal use only so contains no
-    // public members. Contains helper aliases that "FunctionTraits"
+    // from. The following class is for internal use only so it contains
+    // no public members. Contains helper aliases that "FunctionTraits"
     // ultimately relies on for its implementation (specifically for
-    // handling its public add/remove traits - its read traits never rely
+    // handling function write traits - function read traits never rely
     // on this class).
     ///////////////////////////////////////////////////////////////////////
     class FunctionTraitsHelper
     {
-        template <typename F1, typename F2>
-        using MigrateConst = std::conditional_t<std::is_const_v<std::remove_reference_t<F1>>,
-                                                std::add_const_t<F2>,
-                                                F2>;
+        //////////////////////////////////////////////////
+        // See this constant for details. Following code
+        // is preprocessed out if function write traits
+        // not supported (since code is only required to
+        // support function write traits at this writing,
+        // never function read traits). Function write
+        // traits are normally supported however so the
+        // following normally tests true (the only
+        // exception at this writing is Microsoft Visual
+        // C++ from Visual Studio 2017, which has a bug
+        // that prevents us from including this code)
+        //////////////////////////////////////////////////
+        #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+            template <typename F1, typename F2>
+            using MigrateConst = std::conditional_t<std::is_const_v<std::remove_reference_t<F1>>,
+                                                    std::add_const_t<F2>,
+                                                    F2>;
 
-        template <typename F1, typename F2>
-        using MigrateVolatile = std::conditional_t<std::is_volatile_v<std::remove_reference_t<F1>>,
-                                                   std::add_volatile_t<F2>,
-                                                   F2>;
+            template <typename F1, typename F2>
+            using MigrateVolatile = std::conditional_t<std::is_volatile_v<std::remove_reference_t<F1>>,
+                                                       std::add_volatile_t<F2>,
+                                                       F2>;
 
-        template <typename F1, typename F2>
-        using MigrateCv = MigrateVolatile<F1, MigrateConst<F1, F2>>;
+            template <typename F1, typename F2>
+            using MigrateCv = MigrateVolatile<F1, MigrateConst<F1, F2>>;
 
-        template <typename F1, typename F2>
-        using MigrateRef = std::conditional_t<std::is_lvalue_reference_v<F1>,
-                                              std::add_lvalue_reference_t<F2>,
-                                              std::conditional_t<std::is_rvalue_reference_v<F1>,
-                                                                 std::add_rvalue_reference_t<F2>,
-                                                                 F2>>;
+            template <typename F1, typename F2>
+            using MigrateRef = std::conditional_t<std::is_lvalue_reference_v<F1>,
+                                                  std::add_lvalue_reference_t<F2>,
+                                                  std::conditional_t<std::is_rvalue_reference_v<F1>,
+                                                                     std::add_rvalue_reference_t<F2>,
+                                                                     F2>>;
 
-        //////////////////////////////////////////////////////////////////////////////
-        // ReplaceArgsTupleImpl (primary template). Implements the "ReplaceArgsTuple"
-        // alias seen in all "FunctionTraits" derivatives (specializations). That is,
-        // "ReplaceArgsTuple" which is publicly declared in both
-        // "StdExt::Private::FreeFunctionTraits" and
-        // "StdExt::Private::FreeFunctionTraits" ("FunctionTraits" always derives
-        // from either), ultimately defers to the struct you're now reading to carry
-        // out its work. The following primary template never kicks in however, only
-        // the partial specialization just below whenever template arg "T" is a
-        // "std::tuple" and it always is by design (or the "static_assert" seen below
-        // kicks in).        
-        //
-        // Given the following (contrived) example for instance (end-user code):
-        //
-        //     using F = int (Whatever::* const volatile &&)(float, double)>;
-        //     using NewArgsTupleT = std::tuple<char>;
-        //     using FuncWithNewArgs = ReplaceArgsTuple_t<F, NewArgsTupleT>;
-        //
-        // The call to "ReplaceArgsTuple_t" just above (the helper template most
-        // users will rely on), ultimately defers to the following struct with the
-        // following template args (and because template arg "T" is always a
-        // "std::tuple", the partial specialization just below will always kick in to
-        // handle it):        
-        //
-        //     ReplaceArgsT = StdExt::Private::MemberFunctionTraits<int (Whatever::* const volatile &&)(float, double),
-        //                                                          int (Whatever::*)(float, double),
-        //                                                          void
-        //                                                         >::ReplaceArgs,
-        //     T = std::tuple<char>
-        // 
-        // The partial specialization below simply invokes "ReplaceArgsT" seen just
-        // above, passing it the types that tuple "T" is specialized on.
-        //////////////////////////////////////////////////////////////////////////////
-        template <template<typename... NewArgsT> class ReplaceArgsT,
-                  typename T>
-        struct ReplaceArgsTupleImpl
-        {
-            static_assert(AlwaysFalse<T>, "Invalid template arg \"T\". Must be a \"std::tuple\" containing the arg types you wish to apply");
-        };
+            //////////////////////////////////////////////////////////////////////////////
+            // ReplaceArgsTupleImpl (primary template). Implements the "ReplaceArgsTuple"
+            // alias seen in all "FunctionTraits" derivatives (specializations). That is,
+            // "ReplaceArgsTuple" which is publicly declared in both
+            // "StdExt::Private::FreeFunctionTraits" and
+            // "StdExt::Private::FreeFunctionTraits" ("FunctionTraits" always derives
+            // from either), ultimately defers to the struct you're now reading to carry
+            // out its work. The following primary template never kicks in however, only
+            // the partial specialization just below whenever template arg "T" is a
+            // "std::tuple" and it always is by design (or the "static_assert" seen below
+            // kicks in).        
+            //
+            // Given the following (contrived) example for instance (end-user code):
+            //
+            //     using F = int (Whatever::* const volatile &&)(float, double)>;
+            //     using NewArgsTupleT = std::tuple<char>;
+            //     using FuncWithNewArgs = ReplaceArgsTuple_t<F, NewArgsTupleT>;
+            //
+            // The call to "ReplaceArgsTuple_t" just above (the helper template most
+            // users will rely on), ultimately defers to the following struct with the
+            // following template args (and because template arg "T" is always a
+            // "std::tuple", the partial specialization just below will always kick in to
+            // handle it):        
+            //
+            //     ReplaceArgsT = StdExt::Private::MemberFunctionTraits<int (Whatever::* const volatile &&)(float, double),
+            //                                                          int (Whatever::*)(float, double),
+            //                                                          void
+            //                                                         >::ReplaceArgs,
+            //     T = std::tuple<char>
+            // 
+            // The partial specialization below simply invokes "ReplaceArgsT" seen just
+            // above, passing it the types that tuple "T" is specialized on.
+            //////////////////////////////////////////////////////////////////////////////
+            template <template<typename... NewArgsT> class ReplaceArgsT,
+                      typename T>
+            struct ReplaceArgsTupleImpl
+            {
+                static_assert(AlwaysFalse<T>, "Invalid template arg \"T\". Must be a \"std::tuple\" containing the arg types you wish to apply");
+            };
 
-        ///////////////////////////////////////////////////////////////////
-        // ReplaceArgsTupleImpl (partial specialization when 2nd arg is a
-        // "std::tuple" - it always is by design - see primary template
-        // just above for details)
-        ///////////////////////////////////////////////////////////////////
-        template <template<typename...> class ReplaceArgsT,
-                  typename... NewArgsT>
-        struct ReplaceArgsTupleImpl<ReplaceArgsT, std::tuple<NewArgsT...>>
-        {
-            using Type = ReplaceArgsT<NewArgsT...>;
-        };
+            ///////////////////////////////////////////////////////////////////
+            // ReplaceArgsTupleImpl (partial specialization when 2nd arg is a
+            // "std::tuple" - it always is by design - see primary template
+            // just above for details)
+            ///////////////////////////////////////////////////////////////////
+            template <template<typename...> class ReplaceArgsT,
+                      typename... NewArgsT>
+            struct ReplaceArgsTupleImpl<ReplaceArgsT, std::tuple<NewArgsT...>>
+            {
+                using Type = ReplaceArgsT<NewArgsT...>;
+            };
 
-    protected:
-        // Called for free functions only in this release (including static member functions)
-        template <typename F, typename NewF>
-        using MigratePointerAndRef = MigrateRef<F,
-                                                std::conditional_t<std::is_pointer_v<std::remove_reference_t<F>>,
-                                                                   MigrateCv<F, std::add_pointer_t<NewF>>,
-                                                                   NewF>>;
+        protected:
+            // Called for free functions only in this release (including static member functions)
+            template <typename F, typename NewF>
+            using MigratePointerAndRef = MigrateRef<F,
+                                                    std::conditional_t<std::is_pointer_v<std::remove_reference_t<F>>,
+                                                                       MigrateCv<F, std::add_pointer_t<NewF>>,
+                                                                       NewF>>;
 
-        // Called for non-static member functions only in this release
-        template <typename F, typename NewF>
-        using MigrateCvAndRef = MigrateRef<F, MigrateCv<F, NewF>>;
+            // Called for non-static member functions only in this release
+            template <typename F, typename NewF>
+            using MigrateCvAndRef = MigrateRef<F, MigrateCv<F, NewF>>;
 
-        ///////////////////////////////////////////////////////////
-        // Helper alias for "ReplaceArgsTupleImpl" template above.
-        // Implements the public "ReplaceArgsTuple" alias seen in
-        // all "FunctionTraits" derivatives (specializations).
-        // Latter alias just defers to this one which defers to
-        // "ReplaceArgsTupleImpl" as seen. See latter template
-        // above for details.
-        ///////////////////////////////////////////////////////////
-        template <template<typename... NewArgsT> class ReplaceArgsT,
-                  TUPLE_C NewArgsTupleT>
-        using ReplaceArgsTupleImpl_t = typename ReplaceArgsTupleImpl<ReplaceArgsT, NewArgsTupleT>::Type;
+            ///////////////////////////////////////////////////////////
+            // Helper alias for "ReplaceArgsTupleImpl" template above.
+            // Implements the public "ReplaceArgsTuple" alias seen in
+            // all "FunctionTraits" derivatives (specializations).
+            // Latter alias just defers to this one which defers to
+            // "ReplaceArgsTupleImpl" as seen. See latter template
+            // above for details.
+            ///////////////////////////////////////////////////////////
+            template <template<typename... NewArgsT> class ReplaceArgsT,
+                      TUPLE_C NewArgsTupleT>
+            using ReplaceArgsTupleImpl_t = typename ReplaceArgsTupleImpl<ReplaceArgsT, NewArgsTupleT>::Type;
+        #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -2269,14 +2677,14 @@ namespace Private
     // conventions, and "cv-qualifiers" and "ref-qualifiers" on non-static
     // member functions, there would normally be 1878 total specializations to
     // handle on most platforms we currently support (and more than 2000 on
-    // Intel which supports an extra calling convention). While this many
-    // specializations can easily be handled by a relatively small number of
-    // macros which stitches together every permutation (and our original
+    // Clang and Intel which support an extra calling convention). While this
+    // many specializations can easily be handled by a relatively small number
+    // of macros which stitches together every permutation (and our original
     // version did in fact handle things this way - compile time was still very
     // quick though), in this release I've streamlined things to reduce the
     // number of specializations from 1878 on most platforms to 154 (again, a
-    // bit more on Intel). We still handle all 1878 permutations that normally
-    // exist, but through judicious use of "std::remove_reference_t",
+    // bit more on Clang and Intel). We still handle all 1878 permutations that
+    // normally exist, but through judicious use of "std::remove_reference_t",
     // "std::remove_pointer_t" and "std::remove_cv_t", we're now able to
     // capture all 1878 permutations using only 154 specializations (and it may
     // be possible to reduce this even further which I might attempt in a
@@ -2329,21 +2737,23 @@ namespace Private
                           "free function, or a reference to a pointer to a free " \
                           "function, or a pointer to a non-static member function, " \
                           "or a reference to a pointer to a non-static member " \
-                          "function");
+                          "function. In all cases pointers may be cv-qualified " \
+                          "(optional)");
         #endif
 
-        ///////////////////////////////////////////////////////////////////
-        // "ClassT", "IsConstT", "IsVolatileT" and "RefQualifierT" only
-        // apply when "F" is a non-static member function pointer (or a
-        // reference to one). Otherwise we're dealing with a free function
-        // so they're not applicable (make sure they're off) ...
-        ///////////////////////////////////////////////////////////////////
-        static_assert(IsTraitsMemberFunction_v<F> || // Always true when "F" is a non-static member function pointer
-                                                     // or a reference to one (pointer may be cv-qualified). Otherwise
-                                                     // "F" must either be a free function, or a pointer to one, or a
-                                                     // reference to one, or a reference to a pointer to one. In all
-                                                     // free function cases the 4 conditions just below must hold
-                                                     // (since they don't apply to free functions) ...
+        ///////////////////////////////////////////////////////////////
+        // Template args "ClassT", "IsConstT", "IsVolatileT" and
+        // "RefQualifierT" only apply when "F" is a non-static member
+        // function pointer (or a reference to one). Otherwise we're
+        // dealing with a free function so they're not applicable
+        // (make sure they're off) ...
+        ///////////////////////////////////////////////////////////////
+        static_assert(IsTraitsMemberFunction_v<F> || // Always true when "F" is a non-static member function
+                                                     // pointer or a reference to one (pointer may be cv-qualified).
+                                                     // Otherwise "F" must be a free function, or a pointer to one,
+                                                     // or a reference to one, or a reference to a pointer to one.
+                                                     // In all free function cases the 4 conditions just below must
+                                                     // hold (since they don't apply to free functions) ...
                       (std::is_void_v<ClassT> &&
                        !IsConstT &&
                        !IsVolatileT &&
@@ -2641,15 +3051,37 @@ namespace Private
                                       "and more generally for \"FunctionTraits\" or any of its helper templates.");
     };
 
-    //////////////////////////////////////////////////////////////////////////
-    // Base class for "FreeFunctionTraits" specialization further below (all
-    // "FunctionTraits" specializations for free functions derive from this)
-    //////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    // For internal use only. Macro to check if a function
+    // is variadic. ARGS arg will always be either of the
+    // following at this writing (formatted exactly as seen
+    // and nothing else ever passed):
+    //
+    // (ArgsT...)
+    // (ArgsT..., ...)
+    //
+    // Macro simply converts the above to a string (literal)
+    // and checks offset 10 for a NULL-terminator. If present
+    // then we're dealing with the first string above (a
+    // non-variadic function), or the second one otherwise (a
+    // variadic function). Check for hardcoded 10 is brittle
+    // and ugly but should normally be stable so long as
+    // nobody changes the above (so we'll live with it for
+    // now).
+    //////////////////////////////////////////////////////////
+    #define IS_VARIADIC(ARGS) #ARGS[10] != '\0'
+
+    ///////////////////////////////////////////////////////////////
+    // Base class for "FreeFunctionTraits" specialization further
+    // below (macro for internal use only). All "FunctionTraits"
+    // specializations for free functions ultimately derive from
+    // this.
+    ///////////////////////////////////////////////////////////////
     #define FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, IS_NOEXCEPT) \
         FunctionTraitsBase<F, \
                            R, \
                            CALLING_CONVENTION, \
-                           #ARGS[10] != '\0', \
+                           IS_VARIADIC(ARGS), \
                            void, \
                            false, \
                            false, \
@@ -2657,45 +3089,106 @@ namespace Private
                            IS_NOEXCEPT, \
                            ArgsT...>
 
-    //////////////////////////////////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS (combines with macro just below to
-    // implement "FreeFunctionTraits::ReplaceCallingConvention" for non-variadic free
-    // functions). Note that the the (zero-based) 4th entry in the tuple we're creating
-    // below is for handling STDEXT_CC_THISCALL. It's not supported for free functions
-    // so if someone calls "FreeFunctionTraits::ReplaceCallingConvention" and passes
-    // "CallingConvention::Thiscall" for its template arg, the 4th entry below will kick
-    // in to handle it, thus ensuring the calling convention remains unchanged ("CC" in
-    // the 4th entry below will be the calling convention of the function the user is
-    // targeting so it remains unchanged).
-    //////////////////////////////////////////////////////////////////////////////////////
-    #define REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(CC, ARGS, IS_NOEXCEPT) \
-        std::tuple<R STDEXT_CC_CDECL ARGS noexcept(IS_NOEXCEPT), \
-                   R STDEXT_CC_STDCALL ARGS noexcept(IS_NOEXCEPT), \
-                   R STDEXT_CC_FASTCALL ARGS noexcept(IS_NOEXCEPT), \
-                   R STDEXT_CC_VECTORCALL ARGS noexcept(IS_NOEXCEPT), \
-                   R CC ARGS noexcept(IS_NOEXCEPT)
+    ///////////////////////////////////////////////////////
+    // See this constant for details. Following code is
+    // added to "FreeFunctionTraits" specialization
+    // further below if function write traits supported
+    // (normally the case), or preprocessed out otherwise.
+    // If #defined then the latter struct will contain
+    // our implementation of function write traits.
+    ///////////////////////////////////////////////////////
+    #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+        ///////////////////////////////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS (macro for internal use
+        // only). Combines with macro just below to implement
+        // "FreeFunctionTraits::ReplaceCallingConvention" for non-variadic free
+        // functions. Note that the (zero-based) 4th entry in the tuple we're
+        // creating below is for handling STDEXT_CC_THISCALL. It's not supported
+        // for free functions so if someone calls
+        // "FreeFunctionTraits::ReplaceCallingConvention" and passes
+        // "CallingConvention::Thiscall" for its template arg, the 4th entry below
+        // will kick in to handle it, thus ensuring the calling convention remains
+        // unchanged ("CC" in the 4th entry below will be the calling convention
+        // of the function the user is targeting so it remains unchanged).
+        //////////////////////////////////////////////////////////////////////////
+        #define REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(CC, ARGS, IS_NOEXCEPT) \
+            std::tuple<R STDEXT_CC_CDECL ARGS noexcept(IS_NOEXCEPT), \
+                       R STDEXT_CC_STDCALL ARGS noexcept(IS_NOEXCEPT), \
+                       R STDEXT_CC_FASTCALL ARGS noexcept(IS_NOEXCEPT), \
+                       R STDEXT_CC_VECTORCALL ARGS noexcept(IS_NOEXCEPT), \
+                       R CC ARGS noexcept(IS_NOEXCEPT)
 
-    /////////////////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION_TUPLE (combines with macro just below
-    // to implement "FreeFunctionTraits::ReplaceCallingConvention" for
-    // non-variadic free functions)
-    /////////////////////////////////////////////////////////////////////
-    #if !defined (STDEXT_CC_REGCALL)
-        #define REPLACE_CALLING_CONVENTION_TUPLE(CC, ARGS, IS_NOEXCEPT) \
-            REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(CC, ARGS, IS_NOEXCEPT)>
+        ///////////////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION_TUPLE (macro for internal
+        // use only). Combines with macro just below to implement
+        // "FreeFunctionTraits::ReplaceCallingConvention" for
+        // non-variadic free functions.
+        ///////////////////////////////////////////////////////////
+        #if !defined (STDEXT_CC_REGCALL)
+            #define REPLACE_CALLING_CONVENTION_TUPLE(CC, ARGS, IS_NOEXCEPT) \
+                REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(CC, ARGS, IS_NOEXCEPT)>
+        #else
+            #define REPLACE_CALLING_CONVENTION_TUPLE(CC, ARGS, IS_NOEXCEPT) \
+                REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(CC, ARGS, IS_NOEXCEPT) \
+                , R STDEXT_CC_REGCALL ARGS noexcept(IS_NOEXCEPT)>
+        #endif
+
+        ///////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION (macro for internal
+        // use only). Used to implement
+        // "FreeFunctionTraits::ReplaceCallingConvention"
+        // for non-variadic free functions.
+        ///////////////////////////////////////////////////
+        #define REPLACE_CALLING_CONVENTION(CC, ARGS, IS_NOEXCEPT) \
+            std::tuple_element_t<static_cast<std::size_t>(NewCallingConventionT), \
+                                 REPLACE_CALLING_CONVENTION_TUPLE(CC, ARGS, IS_NOEXCEPT)>
+
+        /////////////////////////////////////////////////////
+        // Macro for internal use only. Adds function write
+        // traits to "struct FreeFunctionTraits" below.
+        /////////////////////////////////////////////////////
+        #define DECLARE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ARGS, IS_NOEXCEPT) \
+            private: \
+                using BaseClass = FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, IS_NOEXCEPT); \
+                template <typename NewF> \
+                using MigratePointerAndRef_t = typename BaseClass::template MigratePointerAndRef<F, NewF>; \
+            public: \
+                using AddVariadicArgs = MigratePointerAndRef_t<R STDEXT_CC_VARIADIC (ArgsT..., ...) noexcept(IS_NOEXCEPT)>; \
+                using RemoveVariadicArgs = MigratePointerAndRef_t<R CC (ArgsT...) noexcept(IS_NOEXCEPT)>; \
+                using AddConst = F; \
+                using RemoveConst = F; \
+                using AddVolatile = F; \
+                using RemoveVolatile = F; \
+                using AddCV = F; \
+                using RemoveCV = F; \
+                using AddLValueReference = F; \
+                using AddRValueReference = F; \
+                using RemoveReference = F; \
+                using AddNoexcept = MigratePointerAndRef_t<R CC ARGS noexcept>; \
+                using RemoveNoexcept = MigratePointerAndRef_t<R CC ARGS>; \
+                template <StdExt::CallingConvention NewCallingConventionT> \
+                using ReplaceCallingConvention = MigratePointerAndRef_t<REPLACE_CALLING_CONVENTION(CC, ARGS, IS_NOEXCEPT)>; \
+                template <IS_CLASS_C> \
+                using ReplaceClass = F; \
+                template <typename NewReturnTypeT> \
+                using ReplaceReturnType = MigratePointerAndRef_t<NewReturnTypeT CC ARGS noexcept(IS_NOEXCEPT)>; \
+                template <typename... NewArgsT> \
+                using ReplaceArgs = MigratePointerAndRef_t<std::conditional_t<BaseClass::IsVariadic, \
+                                                                              R STDEXT_CC_VARIADIC (NewArgsT..., ...) noexcept(IS_NOEXCEPT), \
+                                                                              R CC (NewArgsT...) noexcept(IS_NOEXCEPT)>>; \
+                template <TUPLE_C NewArgsTupleT> \
+                using ReplaceArgsTuple = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs, NewArgsTupleT>; \
+                template <std::size_t N, typename NewArgT> \
+                using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, ArgsT...>>;
     #else
-        #define REPLACE_CALLING_CONVENTION_TUPLE(CC, ARGS, IS_NOEXCEPT) \
-            REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(CC, ARGS, IS_NOEXCEPT) \
-            , R STDEXT_CC_REGCALL ARGS noexcept(IS_NOEXCEPT)>
+        ////////////////////////////////////////////////
+        // Macro for internal use only. Does nothing
+        // however. Function write traits simply won't
+        // be added to "struct FreeFunctionTraits"
+        // just below.
+        ////////////////////////////////////////////////
+        #define DECLARE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ARGS, IS_NOEXCEPT)
     #endif
-
-    ///////////////////////////////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION (macro used to implement
-    // "FreeFunctionTraits::ReplaceCallingConvention" for non-variadic free functions)
-    ///////////////////////////////////////////////////////////////////////////////////
-    #define REPLACE_CALLING_CONVENTION(CC, ARGS, IS_NOEXCEPT) \
-        std::tuple_element_t<static_cast<std::size_t>(NewCallingConventionT), \
-                             REPLACE_CALLING_CONVENTION_TUPLE(CC, ARGS, IS_NOEXCEPT)>
 
     ///////////////////////////////////////////////////////////////////////////
     // Macro for internal use only (#undefined when we're done with it).
@@ -2726,39 +3219,8 @@ namespace Private
                                                    AlwaysTrue<F>>> \
             : FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, IS_NOEXCEPT) \
         { \
-        private: \
             static_assert(std::is_same_v<RemovePtrRef<F>, R CC ARGS noexcept(IS_NOEXCEPT)>); \
-            using BaseClass = FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, IS_NOEXCEPT); \
-            template <typename NewF> \
-            using MigratePointerAndRef_t = typename BaseClass::template MigratePointerAndRef<F, NewF>; \
-        public: \
-            using AddVariadicArgs = MigratePointerAndRef_t<R STDEXT_CC_VARIADIC (ArgsT..., ...) noexcept(IS_NOEXCEPT)>; \
-            using RemoveVariadicArgs = MigratePointerAndRef_t<R CC (ArgsT...) noexcept(IS_NOEXCEPT)>; \
-            using AddConst = F; \
-            using RemoveConst = F; \
-            using AddVolatile = F; \
-            using RemoveVolatile = F; \
-            using AddCV = F; \
-            using RemoveCV = F; \
-            using AddLValueReference = F; \
-            using AddRValueReference = F; \
-            using RemoveReference = F; \
-            using AddNoexcept = MigratePointerAndRef_t<R CC ARGS noexcept>; \
-            using RemoveNoexcept = MigratePointerAndRef_t<R CC ARGS>; \
-            template <StdExt::CallingConvention NewCallingConventionT> \
-            using ReplaceCallingConvention = MigratePointerAndRef_t<REPLACE_CALLING_CONVENTION(CC, ARGS, IS_NOEXCEPT)>; \
-            template <IS_CLASS_C> \
-            using ReplaceClass = F; \
-            template <typename NewReturnTypeT> \
-            using ReplaceReturnType = MigratePointerAndRef_t<NewReturnTypeT CC ARGS noexcept(IS_NOEXCEPT)>; \
-            template <typename... NewArgsT> \
-            using ReplaceArgs = MigratePointerAndRef_t<std::conditional_t<BaseClass::IsVariadic, \
-                                                                          R STDEXT_CC_VARIADIC (NewArgsT..., ...) noexcept(IS_NOEXCEPT), \
-                                                                          R CC (NewArgsT...) noexcept(IS_NOEXCEPT)>>; \
-            template <TUPLE_C NewArgsTupleT> \
-            using ReplaceArgsTuple = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs, NewArgsTupleT>; \
-            template <std::size_t N, typename NewArgT> \
-            using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, ArgsT...>>; \
+            DECLARE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ARGS, IS_NOEXCEPT) \
         };
 
     // noexcept (macro for internal use only - invokes macro just above)
@@ -2784,23 +3246,33 @@ namespace Private
     MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_STDCALL,    CallingConvention::Stdcall)
     MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_FASTCALL,   CallingConvention::Fastcall)
     MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_VECTORCALL, CallingConvention::Vectorcall)
-    #ifdef STDEXT_CC_REGCALL
+    #if defined(STDEXT_CC_REGCALL)
         MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_REGCALL, CallingConvention::Regcall)
     #endif
 
-    // Done with these
+    // Done with this
     #undef MAKE_FREE_FUNC_TRAITS_NON_VARIADIC
-    #undef REPLACE_CALLING_CONVENTION
-    #undef REPLACE_CALLING_CONVENTION_TUPLE
-    #undef REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS
 
-    ////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION (macro used to implement
-    // "FreeFunctionTraits::ReplaceCallingConvention" for
-    // variadic free functions)
-    ////////////////////////////////////////////////////////
-    #define REPLACE_CALLING_CONVENTION(CC, ARGS, IS_NOEXCEPT) \
-        R STDEXT_CC_VARIADIC ARGS noexcept(IS_NOEXCEPT)
+    ////////////////////////////////////////////////
+    // Constants just below not #defined otherwise
+    // (applicable only when function write traits
+    // supported - usually the case)
+    ////////////////////////////////////////////////
+    #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+        // Done with these
+        #undef REPLACE_CALLING_CONVENTION
+        #undef REPLACE_CALLING_CONVENTION_TUPLE
+        #undef REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS
+
+        ///////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION (macro for internal
+        // use only). Used to implement
+        // "FreeFunctionTraits::ReplaceCallingConvention"
+        // for variadic free functions.
+        ///////////////////////////////////////////////////
+        #define REPLACE_CALLING_CONVENTION(CC, ARGS, IS_NOEXCEPT) \
+            R STDEXT_CC_VARIADIC ARGS noexcept(IS_NOEXCEPT)
+    #endif
 
     ////////////////////////////////////////////////////////////////////////
     // Macro call for internal use only. Creates partial specializations of
@@ -2819,9 +3291,10 @@ namespace Private
     MAKE_FREE_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, (ArgsT..., ...))
 
     // Done with these
-    #undef REPLACE_CALLING_CONVENTION
+    #undef REPLACE_CALLING_CONVENTION // Only #defined if FUNCTION_WRITE_TRAITS_SUPPORTED is #defined (usually the case but harmless to always #undef it here regardless)
     #undef MAKE_FREE_FUNC_TRAITS_1
     #undef MAKE_FREE_FUNC_TRAITS_2
+    #undef DECLARE_FUNCTION_WRITE_TRAITS
     #undef FUNCTION_TRAITS_BASE_CLASS
     #undef TRAITS_FREE_FUNCTION_C
 
@@ -2869,16 +3342,17 @@ namespace Private
                                       "and more generally for \"FunctionTraits\" or any of its helper templates.");
     };
 
-    //////////////////////////////////////////////////////////////////////////
-    // Base class for "MemberFunctionTraits" specialization further below
-    // (all "FunctionTraits" specializations for non-static member functions
-    // derive from this)
-    //////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // Base class for "MemberFunctionTraits" specialization further
+    // below (macro for internal use only). All "FunctionTraits"
+    // specializations for non-static member functions ultimately
+    // derive from this
+    /////////////////////////////////////////////////////////////////
     #define FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
         FunctionTraitsBase<F, \
                            R, \
                            CALLING_CONVENTION, \
-                           #ARGS[10] != '\0', \
+                           IS_VARIADIC(ARGS), \
                            C, \
                            #CONST[0] != '\0', \
                            #VOLATILE[0] != '\0', \
@@ -2888,40 +3362,99 @@ namespace Private
                            IS_NOEXCEPT, \
                            ArgsT...>
 
-    /////////////////////////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS (combines with macro just
-    // below to implement "MemberFunctionTraits::ReplaceCallingConvention" for
-    // non-variadic, non-static member functions)
-    /////////////////////////////////////////////////////////////////////////////
-    #define REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
-        std::tuple<R (STDEXT_CC_CDECL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                   R (STDEXT_CC_STDCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                   R (STDEXT_CC_FASTCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                   R (STDEXT_CC_VECTORCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                   R (STDEXT_CC_THISCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)
+    //////////////////////////////////////////////////////
+    // See this constant for details. Following code is
+    // added to "MemberFunctionTraits" specialization
+    // further below if function write traits supported
+    // (normally the case), or preprocessed out otherwise.
+    // If #defined then the latter struct will contain
+    // our implementation of function write traits.
+    //////////////////////////////////////////////////////
+    #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+        //////////////////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS (macro for
+        // internal use only). Combines with macro just below to
+        // implement "MemberFunctionTraits::ReplaceCallingConvention"
+        // for non-variadic, non-static member functions.
+        //////////////////////////////////////////////////////////////
+        #define REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+            std::tuple<R (STDEXT_CC_CDECL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
+                       R (STDEXT_CC_STDCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
+                       R (STDEXT_CC_FASTCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
+                       R (STDEXT_CC_VECTORCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
+                       R (STDEXT_CC_THISCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)
 
-    /////////////////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION_TUPLE (combines with macro just below
-    // to implement "MemberFunctionTraits::ReplaceCallingConvention" for
-    // non-variadic, non-static member functions)
-    /////////////////////////////////////////////////////////////////////
-    #if !defined (STDEXT_CC_REGCALL)
-        #define REPLACE_CALLING_CONVENTION_TUPLE(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
-            REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)>
+        ////////////////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION_TUPLE (macro for internal
+        // use only). Ccombines with macro just below to implement
+        // "MemberFunctionTraits::ReplaceCallingConvention" for
+        // non-variadic, non-static member functions.
+        ////////////////////////////////////////////////////////////
+        #if !defined (STDEXT_CC_REGCALL)
+            #define REPLACE_CALLING_CONVENTION_TUPLE(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+                REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)>
+        #else
+            #define REPLACE_CALLING_CONVENTION_TUPLE(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+                REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+                , R (STDEXT_CC_REGCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>
+        #endif
+
+        /////////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION (macro for internal
+        // use only). Used to implement
+        // "MemberFunctionTraits::ReplaceCallingConvention"
+        // for non-variadic, non-static member functions)
+        /////////////////////////////////////////////////////
+        #define REPLACE_CALLING_CONVENTION(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+            std::tuple_element_t<static_cast<std::size_t>(NewCallingConventionT), \
+                                 REPLACE_CALLING_CONVENTION_TUPLE(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)>
+
+        /////////////////////////////////////////////////////
+        // Macro for internal use only. Adds function write
+        // traits to "struct MemberFunctionTraits" below.
+        /////////////////////////////////////////////////////
+        #define DECLARE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+            private: \
+                using BaseClass = FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT); \
+                template <typename NewF> \
+                using MigrateCvAndRef_t = typename BaseClass::template MigrateCvAndRef<F, NewF>; \
+            public: \
+                using AddVariadicArgs = MigrateCvAndRef_t<R (STDEXT_CC_VARIADIC C::*)(ArgsT..., ...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+                using RemoveVariadicArgs = MigrateCvAndRef_t<R (CC C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+                using AddConst = MigrateCvAndRef_t<R (CC C::*)ARGS const VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+                using RemoveConst = MigrateCvAndRef_t<R (CC C::*)ARGS VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+                using AddVolatile = MigrateCvAndRef_t<R (CC C::*)ARGS CONST volatile REF noexcept(IS_NOEXCEPT)>; \
+                using RemoveVolatile = MigrateCvAndRef_t<R (CC C::*)ARGS CONST REF noexcept(IS_NOEXCEPT)>; \
+                using AddCV = MigrateCvAndRef_t<R (CC C::*)ARGS const volatile REF noexcept(IS_NOEXCEPT)>; \
+                using RemoveCV = MigrateCvAndRef_t<R (CC C::*)ARGS REF noexcept(IS_NOEXCEPT)>; \
+                using AddLValueReference = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE & noexcept(IS_NOEXCEPT)>; \
+                using AddRValueReference = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE && noexcept(IS_NOEXCEPT)>; \
+                using RemoveReference = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE noexcept(IS_NOEXCEPT)>; \
+                using AddNoexcept = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE REF noexcept>; \
+                using RemoveNoexcept = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE REF>; \
+                template <StdExt::CallingConvention NewCallingConventionT> \
+                using ReplaceCallingConvention = MigrateCvAndRef_t<REPLACE_CALLING_CONVENTION(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)>; \
+                template <IS_CLASS_C NewClassT> \
+                using ReplaceClass = MigrateCvAndRef_t<R (CC NewClassT::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+                template <typename NewReturnTypeT> \
+                using ReplaceReturnType = MigrateCvAndRef_t<NewReturnTypeT (CC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
+                template <typename... NewArgsT> \
+                using ReplaceArgs = MigrateCvAndRef_t<std::conditional_t<BaseClass::IsVariadic, \
+                                                                         R (STDEXT_CC_VARIADIC C::*)(NewArgsT..., ...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
+                                                                         R (CC C::*)(NewArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>>; \
+                template <TUPLE_C NewArgsTupleT> \
+                using ReplaceArgsTuple = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs, NewArgsTupleT>; \
+                template <std::size_t N, typename NewArgT> \
+                using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, ArgsT...>>;
     #else
-        #define REPLACE_CALLING_CONVENTION_TUPLE(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
-            REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
-            , R (STDEXT_CC_REGCALL C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>
+        ////////////////////////////////////////////////
+        // Macro for internal use only. Does nothing
+        // however. Function write traits simply won't
+        // be added to "struct MemberFunctionTraits"
+        // just below.
+        ////////////////////////////////////////////////
+        #define DECLARE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)
     #endif
-
-    /////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION (macro used to implement
-    // "MemberFunctionTraits::ReplaceCallingConvention" for
-    // non-variadic, non-static member functions)
-    /////////////////////////////////////////////////////////
-    #define REPLACE_CALLING_CONVENTION(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
-        std::tuple_element_t<static_cast<std::size_t>(NewCallingConventionT), \
-                             REPLACE_CALLING_CONVENTION_TUPLE(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)>
 
     ///////////////////////////////////////////////////////////////////////////
     // Macro for internal use only (#undefined when we're done with it).
@@ -2965,7 +3498,7 @@ namespace Private
     #define MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
         template <TRAITS_MEMBER_FUNCTION_C F, \
                   typename R, \
-                  class C, \
+                  IS_CLASS_C C, \
                   typename... ArgsT> \
         struct MemberFunctionTraits<F, \
                                     R (CC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
@@ -2973,72 +3506,57 @@ namespace Private
                                                      AlwaysTrue<F>>> \
             : FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
         { \
-        private: \
             static_assert(std::is_same_v<RemoveCvRef<F>, R (CC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>); \
-            using BaseClass = FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT); \
-            template <typename NewF> \
-            using MigrateCvAndRef_t = typename BaseClass::template MigrateCvAndRef<F, NewF>; \
-        public: \
-            using AddVariadicArgs = MigrateCvAndRef_t<R (STDEXT_CC_VARIADIC C::*)(ArgsT..., ...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            using RemoveVariadicArgs = MigrateCvAndRef_t<R (CC C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            using AddConst = MigrateCvAndRef_t<R (CC C::*)ARGS const VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            using RemoveConst = MigrateCvAndRef_t<R (CC C::*)ARGS VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            using AddVolatile = MigrateCvAndRef_t<R (CC C::*)ARGS CONST volatile REF noexcept(IS_NOEXCEPT)>; \
-            using RemoveVolatile = MigrateCvAndRef_t<R (CC C::*)ARGS CONST REF noexcept(IS_NOEXCEPT)>; \
-            using AddCV = MigrateCvAndRef_t<R (CC C::*)ARGS const volatile REF noexcept(IS_NOEXCEPT)>; \
-            using RemoveCV = MigrateCvAndRef_t<R (CC C::*)ARGS REF noexcept(IS_NOEXCEPT)>; \
-            using AddLValueReference = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE & noexcept(IS_NOEXCEPT)>; \
-            using AddRValueReference = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE && noexcept(IS_NOEXCEPT)>; \
-            using RemoveReference = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE noexcept(IS_NOEXCEPT)>; \
-            using AddNoexcept = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE REF noexcept>; \
-            using RemoveNoexcept = MigrateCvAndRef_t<R (CC C::*)ARGS CONST VOLATILE REF>; \
-            template <StdExt::CallingConvention NewCallingConventionT> \
-            using ReplaceCallingConvention = MigrateCvAndRef_t<REPLACE_CALLING_CONVENTION(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT)>; \
-            template <IS_CLASS_C NewClassT> \
-            using ReplaceClass = MigrateCvAndRef_t<R (CC NewClassT::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            template <typename NewReturnTypeT> \
-            using ReplaceReturnType = MigrateCvAndRef_t<NewReturnTypeT (CC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)>; \
-            template <typename... NewArgsT> \
-            using ReplaceArgs = MigrateCvAndRef_t<std::conditional_t<BaseClass::IsVariadic, \
-                                                                     R (STDEXT_CC_VARIADIC C::*)(NewArgsT..., ...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                                                                     R (CC C::*)(NewArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>>; \
-            template <TUPLE_C NewArgsTupleT> \
-            using ReplaceArgsTuple = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs, NewArgsTupleT>; \
-            template <std::size_t N, typename NewArgT> \
-            using ReplaceNthArg = ReplaceArgsTuple<ReplaceNthType_t<N, NewArgT, ArgsT...>>; \
+            DECLARE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
         };
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // IMPORTANT: The following macros declare all specializations of non-static member
     // function pointers. As an optimization however (premature or not), though it's unclear
-    // if it's actually of any benefit (read on), the specializations are declared in the
-    // order that they're mostly likely to be encountered when applied by end-users. The
-    // first 4 specializations in particular are as follows:
+    // if it's actually of any benefit (very likely negligible), the specializations are
+    // declared in the order that they're mostly likely to be encountered when applied by
+    // end-users, with calling convention preference first given to STDEXT_CC_CDECL and then
+    // STDEXT_CC_THISCALL (read on). The first 4 specializations in particular are as
+    // follows:
     //
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) const noexcept
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) const
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) noexcept
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) 
     //
-    // In practice these are by far the most likely functions users will be passing. There
-    // are just 4 of them as seen so their own order won't make much of a difference but I've
-    // put them first in the order (before all others) in case a given compiler searches for
-    // matching specializations in the order of declaration (so it will find a matching
-    // declaration for any of the above reasonably quickly - no need to search through less
-    // frequently used specializations first, i.e., those with the "volatile" and/or "&" or
-    // "&&" qualifiers). I don't know how a given compiler might actually search through the
-    // specializations however (whether declaration order necessarily matters), and there's
-    // also the issue of the calling convention order since STDEXT_CC_THISCALL may actually
-    // be preferable for non-static member functions (i.e., maybe we should search them first
-    // instead of STDEXT_CC_CDECL though when compiling for 64 bits, STDEXT_CC_CDECL will
-    // kick in instead on the compilers we target). Ideally we should check the calling
-    // convention actually in effect first if possible, regardless of what it is, but maybe
-    // we'll look into that in a future release (may not be doable though). Any peformance
-    // boost will likely (usually) be negligible anyway no matter what the order but with 144
-    // specializations of non-static member functions we're creating at this writing (168 on
-    // Intel due to an extra calling convention it supports), for now am ordering things to
-    // potentially improve the performance even if just a bit (if it has any appreciable
-    // effect but harmless if not).
+    // In practice these are by far the most likely functions users will be passing on
+    // non-Microsoft platforms (read on for Microsoft). There are just 4 of them as seen so
+    // their own order won't make much of a difference but I've put them first in the order
+    // (before all others) in case a given compiler searches for matching specializations in
+    // the order of declaration (so it will find a matching declaration for any of the above
+    // reasonably quickly - no need to search through less frequently used specializations
+    // first, i.e., those with less frequently used calling conventions, and those with the
+    // "volatile" and/or "&" or "&&" qualifiers). I don't know how a given compiler might
+    // actually search through the specializations however (whether declaration order
+    // necessarily matters), and there's also the issue of the calling convention itself,
+    // since STDEXT_CC_THISCALL is normally preferable over STDEXT_CC_CDECL when compiling
+    // for 32 bits on Microsoft platforms (i.e., when compiling for 32 bits in Microsoft
+    // Visual C++, non-static member functions normally default to STDEXT_CC_THISCALL instead
+    // of STDEXT_CC_CDECL so ideally we'd want to check STDEXT_CC_THISCALL first instead).
+    // However, when compiling for 64 bits on Microsoft platforms, STDEXT_CC_CDECL will kick
+    // in instead (even on non-Microsoft platforms for most calling conventions that aren't
+    // already STDEXT_CC_CDECL).
+    //
+    // The upshot is that we should ideally check the calling convention actually in effect
+    // first if possible, regardless of what it is, so that the order of specialization
+    // reflects the calling conventions most likely to be in effect depending on the platform
+    // and target build (32 vs 64 bit normally). For now however we only (very) crudely order
+    // the specializations to try and put some of the most common specializations first, and
+    // STDEXT_CC_CDECL is given priority over STDEXT_CC_THISCALL (so things will be a tiny
+    // bit slower on Microsoft platforms, since all 24 STDEXT_CC_CDECL specializations occur
+    // before the first STDEXT_CC_THISCALL specialization is encountered). A future release
+    // may try to do better assuming it's even doable (and can be done cleanly), but any
+    // peformance boost will likely (usually) be negligible anyway, no matter what the order.
+    // With 144 specializations of non-static member functions we're creating at this writing
+    // however (168 on Clang and Intel due to an extra calling convention they support,
+    // "regcall"), for now I'm ordering things to potentially improve the performance even if
+    // just a bit (again, the attempt is crude), assuming it has any appreciable effect at
+    // all (but harmless if not).
     //////////////////////////////////////////////////////////////////////////////////////////
 
     // noexcept (macro for internal use only - invokes macro just above)
@@ -3086,23 +3604,33 @@ namespace Private
     MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_STDCALL,    CallingConvention::Stdcall)
     MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_FASTCALL,   CallingConvention::Fastcall)
     MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_VECTORCALL, CallingConvention::Vectorcall)
-    #ifdef STDEXT_CC_REGCALL
+    #if defined(STDEXT_CC_REGCALL)
         MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(STDEXT_CC_REGCALL, CallingConvention::Regcall)
     #endif
 
-     // Done with these
+    // Done with this
     #undef MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC
-    #undef REPLACE_CALLING_CONVENTION
-    #undef REPLACE_CALLING_CONVENTION_TUPLE
-    #undef REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS
 
-    //////////////////////////////////////////////////////////
-    // REPLACE_CALLING_CONVENTION (macro used to implement
-    // "MemberFunctionTraits::ReplaceCallingConvention" for
-    // variadic, non-static member functions)
-    //////////////////////////////////////////////////////////
-    #define REPLACE_CALLING_CONVENTION(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
-        R (STDEXT_CC_VARIADIC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)
+    ////////////////////////////////////////////////
+    // Constants just below not #defined otherwise
+    // (applicable only when function write traits
+    // supported - usually the case)
+    ////////////////////////////////////////////////
+    #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+        // Done with these
+        #undef REPLACE_CALLING_CONVENTION
+        #undef REPLACE_CALLING_CONVENTION_TUPLE
+        #undef REPLACE_CALLING_CONVENTION_TUPLE_ALL_COMPILERS
+
+        ////////////////////////////////////////////////////
+        // REPLACE_CALLING_CONVENTION (macro for internal
+        // use only). Used to implement
+        // "MemberFunctionTraits::ReplaceCallingConvention"
+        // for variadic, non-static member functions.
+        ////////////////////////////////////////////////////
+        #define REPLACE_CALLING_CONVENTION(ARGS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+            R (STDEXT_CC_VARIADIC C::*)ARGS CONST VOLATILE REF noexcept(IS_NOEXCEPT)
+    #endif
 
     ////////////////////////////////////////////////////////////////////////
     // Macro call for internal use only. Creates partial specializations of
@@ -3121,13 +3649,15 @@ namespace Private
     MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, (ArgsT..., ...))
 
     // Done with these
-    #undef REPLACE_CALLING_CONVENTION
+    #undef REPLACE_CALLING_CONVENTION // Only #defined if FUNCTION_WRITE_TRAITS_SUPPORTED is #defined (usually the case but harmless to always #undef it here regardless)
     #undef MAKE_MEMBER_FUNC_TRAITS_1
     #undef MAKE_MEMBER_FUNC_TRAITS_2
     #undef MAKE_MEMBER_FUNC_TRAITS_3
     #undef MAKE_MEMBER_FUNC_TRAITS_4
     #undef MAKE_MEMBER_FUNC_TRAITS_5
+    #undef DECLARE_FUNCTION_WRITE_TRAITS
     #undef FUNCTION_TRAITS_BASE_CLASS
+    #undef IS_VARIADIC
     #undef TRAITS_MEMBER_FUNCTION_C
 
     template <TRAITS_FUNCTOR_C F>
@@ -3152,6 +3682,23 @@ namespace Private
         static constexpr bool IsFunctor = true;
     };
 } // namespace Private
+
+//////////////////////////////////////////////////////
+// Restore warnings we disabled earlier (for GCC see
+// earlier call to "#pragma GCC diagnostic push")
+//////////////////////////////////////////////////////
+#if defined(GCC_COMPILER)
+    #pragma GCC diagnostic pop
+//////////////////////////////////////////////////////////
+// Again, restore warnings we disabled earlier (for both
+// Clang and Intel see earlier call to "#pragma clang
+// diagnostic push", noting that Intel is based on Clang
+// so same calls handle both)
+//////////////////////////////////////////////////////////
+#elif defined(CLANG_COMPILER) || \
+      defined(INTEL_COMPILER)
+    #pragma clang diagnostic pop
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // FunctionTraits (primary template). Template that all users rely on to
@@ -3193,21 +3740,21 @@ namespace Private
 // calling conventions on the target function, as well as "noexcept" and
 // for non-static member functions or functors, cv and ref qualifiers,
 // we're dealing with 1878 permutations (required specializations) on all
-// platforms we currently support (a bit more for Intel compiler since it
-// has an extra calling convention, "__regcall"). Although this can
-// easily be handled in a relatively small amount of code using the
-// macros seen further above (used to create these specializations - they
-// handled all 1878 specializations in earlier releases), we've since
-// adjusted these macros to handle a much smaller number of
+// platforms we currently support (a bit more for Clang and Intel
+// compilers which have an extra calling convention, "regcall"). Although
+// this can easily be handled in a relatively small amount of code using
+// the macros seen further above (used to create these specializations -
+// they handled all 1878 specializations in earlier releases), we've
+// since adjusted these macros to handle a much smaller number of
 // specializations (154). We still target all 1878 permutations of
 // function types however by specializing "F" *after* removing the
 // optional reference and/or pointer to "F" if it targets a free function
 // (resulting in the actual free function type itself) , or the optional
-// reference and cv-qualifiers if "F" targets a non-static member function
-// (resulting in a non-cv-qualified, non-static member function pointer -
-// functors are routed through here as well). We rely on these removals
-// to (effectively) specialize "FunctionTraits" on "F" *after* these
-// removals, not on "F" itself, which reduces the number of
+// reference and cv-qualifiers if "F" targets a non-static member
+// function (resulting in a non-cv-qualified, non-static member function
+// pointer - functors are routed through here as well). We rely on these
+// removals to (effectively) specialize "FunctionTraits" on "F" *after*
+// these removals, not on "F" itself, which reduces the number of
 // specializations to 154. After these removals on "F" that is, we only
 // require specializations for either raw free function types (never
 // pointers to free functions or references to free functions or
@@ -3265,9 +3812,9 @@ namespace Private
 // trigger (see below). Specializations whose calling convention is
 // replaced by "cdecl" therefore never wind up here as described, so no
 // error will ever be flagged for them (they're still supported functions
-// that is, only that the "cdecl" specialization will now kick in to handle
-// them instead of the usual specialization that normally targets that
-// specific calling convention).
+// that is, only that the "cdecl" specialization will now kick in to
+// handle them instead of the usual specialization that normally targets
+// that specific calling convention).
 ////////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F,
           typename = void> // For "std::enable_if_t" purposes in our specializations
@@ -3296,9 +3843,9 @@ struct FunctionTraits
 // including static member functions. "F" can be any of the following:
 //
 //   1) A free function including static member functions
-//   2) A (possibly cv-qualified) pointer to a free function
+//   2) An (optionally cv-qualified) pointer to a free function
 //   3) A reference to a free function
-//   4) A reference to a (possibly cv-qualified) pointer to a free
+//   4) A reference to an (optionally cv-qualified) pointer to a free
 //      function
 ////////////////////////////////////////////////////////////////////////
 template <typename F>
@@ -3310,14 +3857,14 @@ struct FunctionTraits<F,
 {
 };
 
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 // "FunctionTraits" partial specialization for handling non-static member
 // functions. "F" can be either of the following:
 // 
-//   1) A (possibly cv-qualified) pointer to a non-static member function
-//   2) A reference to a (possibly cv-qualified) pointer to a non-static
+//   1) An (optionally cv-qualified) pointer to a non-static member function
+//   2) A reference to an (optionally cv-qualified) pointer to a non-static
 //      member function
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 template <typename F>
 struct FunctionTraits<F,
                       std::enable_if_t<Private::IsTraitsMemberFunction_v<F>>> : // True if "F" is a pointer to a
@@ -3338,7 +3885,8 @@ struct FunctionTraits<F,
 // therefore isn't a function type in this specialization (unlike all
 // other specializations which handle function types and pointers and
 // references to such types), but a class or struct type with a single
-// "F::operator()" member function. The traits created by this
+// "F::operator()" member function (the class or struct type itself is
+// known as the lambda's "closure type"). The traits created by this
 // specialization are therefore for that function. Note that overloads of
 // "F::operator()" aren't supported however since it would be ambiguous
 // (which "F::operator()" to use). In this case the following template
@@ -3385,7 +3933,7 @@ struct FunctionTraits<F,
 //     ///////////////////////////////////////////////////////////////
 //     using MyLambdaReturnType_t = ReturnType_t<decltype(myLambda)>;
 //
-//       ////////////////////////////////////////////////////////////
+//     ////////////////////////////////////////////////////////////
 //     // Resolves to "const std::string &" (passing 1 here which
 //     // is the zero-based index of the arg we want). Following
 //     // helper template relies on "FunctionTraits" to determine
@@ -3402,79 +3950,112 @@ struct FunctionTraits<F,
 //                                 return rc;
 //                             };
 //
-//       //////////////////////////////////////////////////////////////
-//       // Generic lambdas, similar to lambda templates in C++20,
-//       // can't be handled using functor syntax (i.e., by passing
-//       // the lambda's type like in "Example 2" above). That's
-//       // because behind the scenes C++ creates a hidden functor for
-//       // lambdas whose "operator()" member has the same args as
-//       // the lambda itself, but when a generic lambda is created,
-//       // such as the one above, a template version of "operator()"
-//       // is created instead (to handle type "auto"). The class is
-//       // therefore not really a functor in the conventional sense
-//       // since "operator()" is actually a template. In the above
-//       // example for instance C++ will create a class that looks
-//       // something like the following (which we're calling "Lambda"
-//       // here but whatever name the compiler actually assigns it -
-//       // it's an implementation detail we don't care about):
-//       //
-//       //     class Lambda
-//       //     {
-//       //     public:
-//       //         template<class T>
-//       //         inline auto operator()(T val, const std::string &str) const
-//       //         {
-//       //            int rc;
-//       //            // ...
-//       //            return rc;
-//       //         }
-//       //     };
-//       //
-//       // You therefore can't use the same functor syntax seen in
-//       // "Example 2" above because "operator()" needs to be
-//       // specialized on template arg "T" first, unlike "Example 2"
-//       // above whose own "operator()" member isn't a template (it's
-//       // a non-template function). Dealing with "Lambda" above
-//       // (determining it's a functor) is therefore different than
-//       // for "Example 2" above (it's a "normal" functor), so we
-//       // don't support this in this release (but may in a future
-//       // release if viable). However, for purposes of using
-//       // "FunctionTraits" or any of its helper templates, you can
-//       // still instantiate the above "operator()" member template
-//       // and access it using pointer-to-member function syntax
-//       // instead of functor syntax (though it's much uglier unless
-//       // you create a helper alias to clean it up a bit though we
-//       // don't do that here). The following does just that to create
-//       // alias "F", specializing "operator()" on "float" so analogous
-//       // to "Example 2" above (but no template is involved in
-//       // "Example 2"), and then taking its address as seen. "F" in
-//       // the following call therefore effectively resolves to the
-//       // following:
-//       //
-//       //     int (Lambda::*)(float, const std::string &) const
-//       //
-//       // We therefore have an ordinary member function pointer type
-//       // that we can pass to "FunctionTraits" or any of its helper
-//       // templates (and from this point on everything works the
-//       // same as "Example 2" above except "F" is the functor's
-//       // class type in that example and a pointer to a non-static
-//       // member function in this example):
-//       //////////////////////////////////////////////////////////////
-//       using F = decltype(&decltype(myLambda)::operator()<float>); // Can always wrap this in a helper
-//                                                                   // alias to make the syntax cleaner
-// 
-//       ///////////////////////////////////////////////////////
-//       // Resolves to "int" (lambda's return type) just like
-//       // "Example 2".
-//       ///////////////////////////////////////////////////////
-//       using MyLambdaReturnType_t = ReturnType_t<F>;
-// 
-//       ////////////////////////////////////////////////////////
-//       // Resolves to "const std::string &", again, just like
-//       // "Example 2" (and again, passing 1 here which is the
-//       // zero-based index of the arg we want).
-//       ////////////////////////////////////////////////////////
-//       using Arg2Type_t = ArgType_t<F, 1>;
+//     //////////////////////////////////////////////////////////////
+//     // Generic lambdas, similar to lambda templates in C++20,
+//     // can't be handled using functor syntax, i.e., by passing
+//     // the lambda's type like in "Example 2" above (to
+//     // "FunctionTraits" or any of its helper templates). That's
+//     // because for all lambdas, generic or not, C++ creates a
+//     // hidden functor behind the scenes whose "operator()" member
+//     // has the same args as the lambda itself, but when a generic
+//     // lambda is created, such as the one in "Example 3", a
+//     // template version of "operator()" is created instead (to
+//     // handle the lambda's "auto" parameters). The functor's
+//     // class (i.e., it's "closure type") is therefore not really
+//     // a functor in the conventional sense since "operator()" is
+//     // actually a function template (unlike for non-generic
+//     // lambdas where "operator()" isn't a template). In "Example
+//     // 3" above for instance, C++ will create a class behind the
+//     // scenes that looks something like the following (which
+//     // we're calling "Lambda" here but whatever internal name the
+//     // compiler actually assigns it - it's an implementation
+//     // detail we don't care about):
+//     //
+//     //     class Lambda
+//     //     {
+//     //     public:
+//     //         template<class T>
+//     //         inline auto operator()(T val, const std::string &str) const
+//     //         {
+//     //            int rc;
+//     //            // ...
+//     //            return rc;
+//     //         }
+//     //     };
+//     //
+//     // You therefore can't simply pass "decltype(myLambda)" to
+//     // "FunctionTraits" or any of its helper templates like you
+//     // could in "Example 2" because "operator()" is now a
+//     // template. It therefore needs to be specialized on template
+//     // arg "T" first, unlike "Example 2" whose own "operator()"
+//     // member isn't a template (it's a non-template function).
+//     // Dealing with "myLambda" in "Example 3" is therefore
+//     // different than for "Example 2" because you can't pass
+//     // "decltype(myLambda)" to "FunctionTraits" or any of its
+//     // helper templates (since the compiler doesn't know the
+//     // function template arguments for "operator()" until you
+//     // explicitly tell it). To do so you need to instantiate the
+//     // underlying "Lambda::operator()" template in "Example 3"
+//     // and access it using pointer-to-member function syntax
+//     // instead of functor syntax. The syntax for doing so is
+//     // ugly compared to normal functor syntax but you can always
+//     // create a helper alias to clean it up a bit if you wish
+//     // (though we don't do that here). The following example
+//     // demonstrates this by creating alias "F" which specializes
+//     // "operator()" on type "float" and then takes its address
+//     // as seen (details to follow). "F" in the following call
+//     // therefore effectively resolves to the following type:
+//     //
+//     //     int (Lambda::*)(float, const std::string &) const
+//     //
+//     // We therefore have an ordinary member function pointer type
+//     // that we can pass to "FunctionTraits" or any of its helper
+//     // templates. From this point on everything works the same as
+//     // "Example 2" above except "F" is the functor's class type
+//     // in that example and a pointer to a non-static member
+//     // function in the following example (but the 1st arg in each
+//     // example is still a "float" - the only difference for our
+//     // purposes is how we pass the lambda to "FunctionTraits" or
+//     // any of its helper functions, by using functor syntax in
+//     // "Example 2" and pointer-to-member function syntax in
+//     // "Example 3")
+//     //
+//     // Lastly, note that in the following (cryptic) call, the
+//     // call to "decltype(myLambda)" simply returns the type of
+//     // "myLambda" (i.e., the compiler-generated class for this
+//     // which is just "class Lambda" seen above), and we then
+//     // specialize its "operator()" member on type "float". By
+//     // applying the "&" operator to the result, we therefore
+//     // get back a pointer to "operator()" which is now just an
+//     // ordinary member function specialized on "float" (so we
+//     // have a pointer to this function). The outer "decltype"
+//     // then returns the type of this pointer as seen above.
+//     // Again, the syntax is nasty but a helper alias can always
+//     // be written to clean it up a bit (and may be made available
+//     // in a future release of this header). Note that creating a
+//     // specialization of "FunctionTraits" itself to handle this
+//     // syntax instead isn't viable for reasons beyond the scope
+//     // of this documentation (such a specialization would require
+//     // the caller to pass the type(s) that "operator()" needs to
+//     // be specialized on which introduces unwieldy complications).
+//     //////////////////////////////////////////////////////////////
+//     using F = decltype(&decltype(myLambda)::template operator()<float>); // See above for details. A helper alias
+//                                                                          // to make the syntax cleaner will likely
+//                                                                          // be made available in a future release
+//                                                                         //  of this header.
+//
+//     ///////////////////////////////////////////////////////
+//     // Resolves to "int" (lambda's return type) just like
+//     // "Example 2".
+//     ///////////////////////////////////////////////////////
+//     using MyLambdaReturnType_t = ReturnType_t<F>;
+//
+//     ////////////////////////////////////////////////////////
+//     // Resolves to "const std::string &", again, just like
+//     // "Example 2" (and again, passing 1 here which is the
+//     // zero-based index of the arg we want).
+//     ////////////////////////////////////////////////////////
+//     using Arg2Type_t = ArgType_t<F, 1>;
 //////////////////////////////////////////////////////////////////////////
 template <typename F>
 struct FunctionTraits<F,
@@ -3483,15 +4064,6 @@ struct FunctionTraits<F,
     Private::FunctorTraits<F>
 {   
 };
-
-// Restore warnings we disabled earlier (see these for details)
-#if defined(GCC)
-    #pragma GCC diagnostic pop
-#elif defined (__clang__)
-    #pragma clang diagnostic pop
-#elif defined(__INTEL_COMPILER)
-    #pragma warning (pop)
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // "IsFunctionTraits" (primary template). Primary template inherits from
@@ -3580,7 +4152,7 @@ inline constexpr bool IsFunctionTraits_v = IsFunctionTraits<T>::value;
 // completely empty, then inspecting this helper template for zero (0) is
 // not sufficient, since it may return zero but still contain variadic
 // args. To check for a completely empty argument list, call
-// "IsFunctionTraitsEmptyArgList_v" instead. See this for further details.
+// "FunctionTraitsIsEmptyArgList_v" instead. See this for further details.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -3794,7 +4366,7 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr tstring_view FunctionTraitsTypeName_v = TypeName_v<FunctionTraitsFunctionType_t<FunctionTraitsT>>;
 
 ///////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsFreeFunction_v. Helper template yielding
+// FunctionTraitsIsFreeFunction_v. Helper template yielding
 // "FunctionTraitsT::IsFreeFunction" (true or false to indicate if the
 // function repesented by "FunctionTraitsT" is a free function including
 // static member functions), where "FunctionTraitsT" is a "FunctionTraits"
@@ -3804,7 +4376,7 @@ inline constexpr tstring_view FunctionTraitsTypeName_v = TypeName_v<FunctionTrai
 // consistency anyway (to ensure a template is available for all members
 // of "FunctionTraits"). In most cases you should rely on the
 // "IsFreeFunction_v" helper template instead however, which just defers
-// to "IsFunctionTraitsFreeFunction_v" and is easier to use.
+// to "FunctionTraitsIsFreeFunction_v" and is easier to use.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -3815,21 +4387,21 @@ inline constexpr tstring_view FunctionTraitsTypeName_v = TypeName_v<FunctionTrai
 // "FunctionTraits" template arg and everything will be fine).
 ///////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsFreeFunction_v = FunctionTraitsT::IsFreeFunction;
+inline constexpr bool FunctionTraitsIsFreeFunction_v = FunctionTraitsT::IsFreeFunction;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsFunctor_v. Helper template yielding
+// FunctionTraitsIsFunctor_v. Helper template yielding
 // "FunctionTraitsT::IsFunctor" (true or false to indicate if the
 // function repesented by "FunctionTraitsT" is a functor), where
 // "FunctionTraitsT" is a "FunctionTraits" specialization. If "true"
-// then note that "IsFunctionTraitsMemberFunction_v" is also guaranteed
+// then note that "FunctionTraitsIsMemberFunction_v" is also guaranteed
 // to return true. Please note that there's usually no benefit to this
 // particular helper template however compared to calling
 // "FunctionTraitsT::IsFunctor" directly (there's no reduction in
 // verbosity), but it's provided for consistency anyway (to ensure a
 // helper template is available for all members of "FunctionTraits"). In
 // most cases you should rely on the "IsFunctor_v" helper template
-// instead however, which just defers to "IsFunctionTraitsFunctor_v" and
+// instead however, which just defers to "FunctionTraitsIsFunctor_v" and
 // is easier to use.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
@@ -3841,10 +4413,10 @@ inline constexpr bool IsFunctionTraitsFreeFunction_v = FunctionTraitsT::IsFreeFu
 // expected "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsFunctor_v = FunctionTraitsT::IsFunctor;
+inline constexpr bool FunctionTraitsIsFunctor_v = FunctionTraitsT::IsFunctor;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsMemberFunction_v. Helper template yielding
+// FunctionTraitsIsMemberFunction_v. Helper template yielding
 // "FunctionTraitsT::IsMemberFunction" (which stores "true" if
 // "FunctionTraitsT" represents a non-static member function including
 // functors), where "FunctionTraitsT" is a "FunctionTraits"
@@ -3855,7 +4427,7 @@ inline constexpr bool IsFunctionTraitsFunctor_v = FunctionTraitsT::IsFunctor;
 // helper template is available for all members of"FunctionTraits"). In
 // most cases you should rely on the "IsMemberFunction_v" helper
 // template instead however, which just defers to
-// "IsFunctionTraitsMemberFunction_v" and is easier to use.
+// "FunctionTraitsIsMemberFunction_v" and is easier to use.
 //
 // Note that you might want to invoke the following to determine if
 // "FunctionTraits" does in fact target a non-static member function
@@ -3865,8 +4437,8 @@ inline constexpr bool IsFunctionTraitsFunctor_v = FunctionTraitsT::IsFunctor;
 //
 //     1) FunctionTraitsMemberFunctionClass_t
 //     2) MemberFunctionTraitsClassName
-//     3) IsFunctionTraitsMemberFunctionConst_v
-//     4) IsFunctionTraitsMemberFunctionVolatile_v
+//     3) FunctionTraitsIsMemberFunctionConst_v
+//     4) FunctionTraitsIsMemberFunctionVolatile_v
 //     4) FunctionTraitsMemberFunctionRefQualifier_v
 //     6) FunctionTraitsMemberFunctionRefQualifierName_v
 //
@@ -3879,10 +4451,10 @@ inline constexpr bool IsFunctionTraitsFunctor_v = FunctionTraitsT::IsFunctor;
 // expected "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsMemberFunction_v = FunctionTraitsT::IsMemberFunction;
+inline constexpr bool FunctionTraitsIsMemberFunction_v = FunctionTraitsT::IsMemberFunction;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsMemberFunctionConst_v. Helper template yielding
+// FunctionTraitsIsMemberFunctionConst_v. Helper template yielding
 // "FunctionTraitsT::IsConst" (storing true or false to indicate if the
 // non-static function repesented by "FunctionTraitsT" is declared with
 // the "const" qualifier), where "FunctionTraitsT" is a "FunctionTraits"    
@@ -3893,11 +4465,11 @@ inline constexpr bool IsFunctionTraitsMemberFunction_v = FunctionTraitsT::IsMemb
 // helper template is available for all members of "FunctionTraits"). In
 // most cases you should rely on the "IsMemberFunctionConst_v" helper
 // template instead however, which just defers to
-// "IsFunctionTraitsMemberFunctionConst_v" and is easier to use.
+// "FunctionTraitsIsMemberFunctionConst_v" and is easier to use.
 //
 // Note that this member is always false for free functions and static
 // member functions (not applicable to them). You may therefore want to
-// call "IsFunctionTraitsMemberFunction_v" to determine if
+// call "FunctionTraitsIsMemberFunction_v" to determine if
 // "FunctionTraitsT" targets a non-static member function before
 // invoking the following (if required). Lastly, note that the
 // "FunctionTraitsT" template arg must be a "FunctionTraits"
@@ -3909,10 +4481,10 @@ inline constexpr bool IsFunctionTraitsMemberFunction_v = FunctionTraitsT::IsMemb
 // "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsMemberFunctionConst_v = FunctionTraitsT::IsConst;
+inline constexpr bool FunctionTraitsIsMemberFunctionConst_v = FunctionTraitsT::IsConst;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsMemberFunctionVolatile_v. Helper template yielding
+// FunctionTraitsIsMemberFunctionVolatile_v. Helper template yielding
 // "FunctionTraitsT::IsVolatile" (storing true or false to indicate if
 // the non-static function repesented by "FunctionTraitsT" is declared
 // with the "volatile" qualifier), where "FunctionTraitsT" is a
@@ -3923,11 +4495,11 @@ inline constexpr bool IsFunctionTraitsMemberFunctionConst_v = FunctionTraitsT::I
 // helper template is available for all members of "FunctionTraits"). In
 // most cases you should rely on the "IsMemberFunctionVolatile_v" helper
 // template instead however, which just defers to
-// "IsFunctionTraitsMemberFunctionVolatile_v" and is easier to use.
+// "FunctionTraitsIsMemberFunctionVolatile_v" and is easier to use.
 //
 // Note that this member is always false for free functions and static
 // member functions (not applicable to them). You may therefore want to
-// call "IsFunctionTraitsMemberFunction_v" to determine if
+// call "FunctionTraitsIsMemberFunction_v" to determine if
 // "FunctionTraitsT" targets a non-static member function before
 // invoking the following (if required). Lastly, note that the
 // "FunctionTraitsT" template arg must be a "FunctionTraits"
@@ -3939,10 +4511,10 @@ inline constexpr bool IsFunctionTraitsMemberFunctionConst_v = FunctionTraitsT::I
 // "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsMemberFunctionVolatile_v = FunctionTraitsT::IsVolatile;
+inline constexpr bool FunctionTraitsIsMemberFunctionVolatile_v = FunctionTraitsT::IsVolatile;
 
 /////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsNoexcept_v. Helper template yielding
+// FunctionTraitsIsNoexcept_v. Helper template yielding
 // "FunctionTraitsT::IsNoexcept" (true or false to indicate if the
 // function repesented by "FunctionTraitsT" is declared as "noexcept"),
 // where "FunctionTraitsT" is a "FunctionTraits" specialization. Note
@@ -3952,7 +4524,7 @@ inline constexpr bool IsFunctionTraitsMemberFunctionVolatile_v = FunctionTraitsT
 // consistency anyway (to ensure a helper template is available for all
 // members of "FunctionTraits"). In most cases you should rely on the
 // "IsNoexcept_v" helper template instead however, which just defers to
-// "IsFunctionTraitsNoexcept_v" and is easier to use.
+// "FunctionTraitsIsNoexcept_v" and is easier to use.
 //
 // Lastly, note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -3963,10 +4535,10 @@ inline constexpr bool IsFunctionTraitsMemberFunctionVolatile_v = FunctionTraitsT
 // expected "FunctionTraits" template arg and everything will be fine).
 /////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsNoexcept_v = FunctionTraitsT::IsNoexcept;
+inline constexpr bool FunctionTraitsIsNoexcept_v = FunctionTraitsT::IsNoexcept;
 
 //////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsVariadic_v. Helper template yielding
+// FunctionTraitsIsVariadic_v. Helper template yielding
 // "FunctionTraitsT::IsVariadic" (storing true or false to indicate
 // if the function repesented by "FunctionTraitsT" is variadic),
 // where "FunctionTraitsT" is a "FunctionTraits" specialization. Note
@@ -3976,7 +4548,7 @@ inline constexpr bool IsFunctionTraitsNoexcept_v = FunctionTraitsT::IsNoexcept;
 // consistency anyway (to ensure a helper template is available for
 // all members of "FunctionTraits"). In most cases you should rely on
 // the "IsVariadic_v" helper template instead however, which just
-// defers to "IsFunctionTraitsVariadic_v" and is easier to use.
+// defers to "FunctionTraitsIsVariadic_v" and is easier to use.
 //
 // Note that the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -3988,10 +4560,10 @@ inline constexpr bool IsFunctionTraitsNoexcept_v = FunctionTraitsT::IsNoexcept;
 // will be fine).
 //////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsVariadic_v = FunctionTraitsT::IsVariadic;
+inline constexpr bool FunctionTraitsIsVariadic_v = FunctionTraitsT::IsVariadic;
 
 //////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsVoidReturnType_v. Helper template returning "true"
+// FunctionTraitsIsVoidReturnType_v. Helper template returning "true"
 // if "FunctionTraitsT::ReturnType" is "void" (after ignoring any
 // cv-qualifiers), or "false" otherwise (where "FunctionTraitsT" is a
 // "FunctionTraits" specialization).
@@ -4006,7 +4578,7 @@ inline constexpr bool IsFunctionTraitsVariadic_v = FunctionTraitsT::IsVariadic;
 // will be fine).
 //////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsVoidReturnType_v = std::is_void_v<typename FunctionTraitsT::ReturnType>;
+inline constexpr bool FunctionTraitsIsVoidReturnType_v = std::is_void_v<typename FunctionTraitsT::ReturnType>;
 
 /////////////////////////////////////////////////////////////////////////
 // FunctionTraitsMemberFunctionClass_t. Helper alias template yielding
@@ -4023,7 +4595,7 @@ inline constexpr bool IsFunctionTraitsVoidReturnType_v = std::is_void_v<typename
 // "void" (not applicable to them noting that the class for static
 // member functions can't be retrieved in this release due to language
 // limitations). Note that you might want to call
-// "IsFunctionTraitsMemberFunction_v" to determine if "FunctionTraitsT"
+// "FunctionTraitsIsMemberFunction_v" to determine if "FunctionTraitsT"
 // targets a non-static member function before invoking the following
 // (if required). Lastly, the "FunctionTraitsT" template arg must be a
 // "FunctionTraits" specialization or compilation will normally fail
@@ -4061,7 +4633,7 @@ inline constexpr tstring_view FunctionTraitsMemberFunctionClassName_v = TypeName
 //
 // Note that this member is always "RefQualifier::None" for free
 // functions and static member functions (not applicable to them). You
-// may therefore want to call "IsFunctionTraitsMemberFunction_v" to
+// may therefore want to call "FunctionTraitsIsMemberFunction_v" to
 // determine if "FunctionTraitsT" targets a non-static member function
 // before invoking the following (if required). Lastly, note that the
 // "FunctionTraitsT" template arg must be a "FunctionTraits"
@@ -4134,15 +4706,15 @@ template <FUNCTION_TRAITS_C FunctionTraitsT>
 inline constexpr tstring_view FunctionTraitsReturnTypeName_v = TypeName_v<FunctionTraitsReturnType_t<FunctionTraitsT>>;
 
 ////////////////////////////////////////////////////////////////////////////
-// IsFunctionTraitsEmptyArgList_v. Helper template returning "true" if the
+// FunctionTraitsIsEmptyArgList_v. Helper template returning "true" if the
 // function represented by "FunctionTraitsT" has an empty arg list (it has
 // no args whatsoever including variadic args), or "false" otherwise (where
 // "FunctionTraitsT" is a "FunctionTraits" specialization). If true then
 // note that the "FunctionTraitsArgCount_v" helper is guaranteed to return
-// zero (0), and the "IsFunctionTraitsVariadic_v" helper is guaranteed to
+// zero (0), and the "FunctionTraitsIsVariadic_v" helper is guaranteed to
 // return false. Please note that in most cases you should rely on the
 // "IsEmptyArgList_v" helper template instead however, which just defers to
-// "IsFunctionTraitsEmptyArgList_v" and is easier to use.
+// "FunctionTraitsIsEmptyArgList_v" and is easier to use.
 //
 // IMPORTANT:
 // ----------
@@ -4164,309 +4736,318 @@ inline constexpr tstring_view FunctionTraitsReturnTypeName_v = TypeName_v<Functi
 // "FunctionTraits" template arg and everything will be fine).
 ////////////////////////////////////////////////////////////////////////////
 template <FUNCTION_TRAITS_C FunctionTraitsT>
-inline constexpr bool IsFunctionTraitsEmptyArgList_v = FunctionTraitsArgCount_v<FunctionTraitsT> == 0 && // Zero (non-variadic) args
-                                                       !IsFunctionTraitsVariadic_v<FunctionTraitsT>; // Not variadic
+inline constexpr bool FunctionTraitsIsEmptyArgList_v = FunctionTraitsArgCount_v<FunctionTraitsT> == 0 && // Zero (non-variadic) args
+                                                       !FunctionTraitsIsVariadic_v<FunctionTraitsT>; // Not variadic
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsAddVariadicArgs_t. Helper alias for
-// "FunctionTraitsT::AddVariadicArgs" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after adding "..." to the end of its
-// argument list if not already present. Note that the calling convention is
-// also changed to the "Cdecl" calling convention for the given compiler.
-// This is the only supported calling convention for variadic functions in
-// this release but most platforms require this calling convention for
-// variadic functions. It ensures that the calling function (opposed to the
-// called function) pops the stack of arguments after the function is
-// called, which is required by variadic functions. Other calling
-// conventions that also do this are possible though none are currently
-// supported in this release (since none of the currently supported
-// compilers support this - such calling conventions are rare in practice).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsAddVariadicArgs_t = typename FunctionTraitsT::AddVariadicArgs;
+/////////////////////////////////////////////////////
+// See this constant for details. Following helper
+// templates for function write traits are declared
+// only if function write traits are supported.
+// They're preprocessed out otherwise (so function
+// write traits simply won't be available).
+/////////////////////////////////////////////////////
+#if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsAddVariadicArgs_t. Helper alias for
+    // "FunctionTraitsT::AddVariadicArgs" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after adding "..." to the end of its
+    // argument list if not already present. Note that the calling convention is
+    // also changed to the "Cdecl" calling convention for the given compiler.
+    // This is the only supported calling convention for variadic functions in
+    // this release but most platforms require this calling convention for
+    // variadic functions. It ensures that the calling function (opposed to the
+    // called function) pops the stack of arguments after the function is
+    // called, which is required by variadic functions. Other calling
+    // conventions that also do this are possible though none are currently
+    // supported in this release (since none of the currently supported
+    // compilers support this - such calling conventions are rare in practice).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsAddVariadicArgs_t = typename FunctionTraitsT::AddVariadicArgs;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsRemoveVariadicArgs_t. Helper alias for
-// "FunctionTraitsT::RemoveVariadicArgs" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a variadic function (its last arg is "..."), yields
-// a type alias for "F" after removing the "..." from the argument list. All
-// non-variadic arguments (if any) remain intact (only the "..." is
-// removed).types alias "F" is a variadic function (its last arg is "..."),
-// yields a type alias for "FunctionTraitsT::RemoveVariadicArgs" after
-// removing the "..." from the argument list (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). All non-variadic arguments (if any)
-// remain intact (only the "..." is removed).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsRemoveVariadicArgs_t = typename FunctionTraitsT::RemoveVariadicArgs;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsRemoveVariadicArgs_t. Helper alias for
+    // "FunctionTraitsT::RemoveVariadicArgs" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a variadic function (its last arg is "..."), yields
+    // a type alias for "F" after removing the "..." from the argument list. All
+    // non-variadic arguments (if any) remain intact (only the "..." is
+    // removed).types alias "F" is a variadic function (its last arg is "..."),
+    // yields a type alias for "FunctionTraitsT::RemoveVariadicArgs" after
+    // removing the "..." from the argument list (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). All non-variadic arguments (if any)
+    // remain intact (only the "..." is removed).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsRemoveVariadicArgs_t = typename FunctionTraitsT::RemoveVariadicArgs;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionAddConst_t. Helper alias for
-// "FunctionTraitsT::AddConst_t" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" represents a non-static member function, yields a type
-// alias for "FunctionTraitsT::AddConst"" after adding the "const"
-// cv-qualifier to the function if not already present (where
-// "FunctionTraitsT" is a "FunctionTraits" specialization). If "F" is a free
-// function including static member functions, yields "F" itself
-// (effectively does nothing since "const" applies to non-static member
-// functions only).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionAddConst_t = typename FunctionTraitsT::AddConst;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionAddConst_t. Helper alias for
+    // "FunctionTraitsT::AddConst_t" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" represents a non-static member function, yields a type
+    // alias for "FunctionTraitsT::AddConst"" after adding the "const"
+    // cv-qualifier to the function if not already present (where
+    // "FunctionTraitsT" is a "FunctionTraits" specialization). If "F" is a free
+    // function including static member functions, yields "F" itself
+    // (effectively does nothing since "const" applies to non-static member
+    // functions only).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionAddConst_t = typename FunctionTraitsT::AddConst;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionRemoveConst_t. Helper alias for
-// "FunctionTraitsT::RemoveConst" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after removing the "const" cv-qualifier from the function if
-// present. If "F" is a free function including static member functions,
-// yields "F" itself (effectively does nothing since "const" applies to
-// non-static member functions only so will never be present otherwise).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionRemoveConst_t = typename FunctionTraitsT::RemoveConst;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionRemoveConst_t. Helper alias for
+    // "FunctionTraitsT::RemoveConst" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after removing the "const" cv-qualifier from the function if
+    // present. If "F" is a free function including static member functions,
+    // yields "F" itself (effectively does nothing since "const" applies to
+    // non-static member functions only so will never be present otherwise).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionRemoveConst_t = typename FunctionTraitsT::RemoveConst;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionAddVolatile_t. Helper alias for
-// "FunctionTraitsT::AddVolatile" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after adding the "volatile" cv-qualifier to the function if not
-// already present. If "F" is a free function including static member
-// functions, yields "F" itself (effectively does nothing since "volatile"
-// applies to non-static member functions only).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionAddVolatile_t = typename FunctionTraitsT::AddVolatile;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionAddVolatile_t. Helper alias for
+    // "FunctionTraitsT::AddVolatile" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after adding the "volatile" cv-qualifier to the function if not
+    // already present. If "F" is a free function including static member
+    // functions, yields "F" itself (effectively does nothing since "volatile"
+    // applies to non-static member functions only).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionAddVolatile_t = typename FunctionTraitsT::AddVolatile;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionRemoveVolatile_t. Helper alias for
-// "FunctionTraitsT::RemoveVolatile" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after removing the "volatile" cv-qualifier from the function if
-// present. If "F" is a free function including static member functions,
-// yields "F" itself (effectively does nothing since "volatile" applies to
-// non-static member functions only so will never be present otherwise).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionRemoveVolatile_t = typename FunctionTraitsT::RemoveVolatile;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionRemoveVolatile_t. Helper alias for
+    // "FunctionTraitsT::RemoveVolatile" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after removing the "volatile" cv-qualifier from the function if
+    // present. If "F" is a free function including static member functions,
+    // yields "F" itself (effectively does nothing since "volatile" applies to
+    // non-static member functions only so will never be present otherwise).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionRemoveVolatile_t = typename FunctionTraitsT::RemoveVolatile;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionAddCV_t. Helper alias for
-// "FunctionTraitsT::AddCV" (where "FunctionTraitsT" is a "FunctionTraits"
-// specialization). If the function "F" represented by "FunctionTraitsT" is
-// a non-static member function, yields a type alias for "F" after adding
-// both the "const" AND "volatile" cv-qualifiers to the function if not
-// already present. If "F" is a free function including static member
-// functions, yields "F" itself (effectively does nothing since "const" and
-// "volatile" apply to non-static member functions only).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionAddCV_t = typename FunctionTraitsT::AddCV;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionAddCV_t. Helper alias for
+    // "FunctionTraitsT::AddCV" (where "FunctionTraitsT" is a "FunctionTraits"
+    // specialization). If the function "F" represented by "FunctionTraitsT" is
+    // a non-static member function, yields a type alias for "F" after adding
+    // both the "const" AND "volatile" cv-qualifiers to the function if not
+    // already present. If "F" is a free function including static member
+    // functions, yields "F" itself (effectively does nothing since "const" and
+    // "volatile" apply to non-static member functions only).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionAddCV_t = typename FunctionTraitsT::AddCV;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionRemoveCV_t. Helper alias for
-// "FunctionTraitsT::RemoveCV" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after removing both the "const" AND "volatile" cv-qualifiers from
-// the function if present. If "F" is a free function including static
-// member functions, yields "F" itself (effectively does nothing since
-// "const" and "volatile" apply to non-static member functions only so will
-// never be present otherwise).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionRemoveCV_t = typename FunctionTraitsT::RemoveCV;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionRemoveCV_t. Helper alias for
+    // "FunctionTraitsT::RemoveCV" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after removing both the "const" AND "volatile" cv-qualifiers from
+    // the function if present. If "F" is a free function including static
+    // member functions, yields "F" itself (effectively does nothing since
+    // "const" and "volatile" apply to non-static member functions only so will
+    // never be present otherwise).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionRemoveCV_t = typename FunctionTraitsT::RemoveCV;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionAddLValueReference_t. Helper alias for
-// "FunctionTraitsT::AddLValueReference" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after adding the "&" reference-qualifier to the function if not
-// already present (replacing the "&&" reference-qualifier if present). If
-// "F" is a free function including static member functions, yields "F"
-// itself (effectively does nothing since reference-qualifiers apply to
-// non-static member functions only).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionAddLValueReference_t = typename FunctionTraitsT::AddLValueReference;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionAddLValueReference_t. Helper alias for
+    // "FunctionTraitsT::AddLValueReference" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after adding the "&" reference-qualifier to the function if not
+    // already present (replacing the "&&" reference-qualifier if present). If
+    // "F" is a free function including static member functions, yields "F"
+    // itself (effectively does nothing since reference-qualifiers apply to
+    // non-static member functions only).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionAddLValueReference_t = typename FunctionTraitsT::AddLValueReference;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionAddRValueReference_t. Helper alias for
-// "FunctionTraitsT::AddRValueReference" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after adding the "&&" reference-qualifier to the function
-// (replacing the "&" reference-qualifier if present). If "F" is a free
-// function including static member functions, yields "F" itself
-// (effectively does nothing since reference-qualifiers apply to non-static
-// member functions only).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionAddRValueReference_t = typename FunctionTraitsT::AddRValueReference;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionAddRValueReference_t. Helper alias for
+    // "FunctionTraitsT::AddRValueReference" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after adding the "&&" reference-qualifier to the function
+    // (replacing the "&" reference-qualifier if present). If "F" is a free
+    // function including static member functions, yields "F" itself
+    // (effectively does nothing since reference-qualifiers apply to non-static
+    // member functions only).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionAddRValueReference_t = typename FunctionTraitsT::AddRValueReference;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionRemoveReference_t. Helper alias for
-// "FunctionTraitsT::RemoveReference" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after removing the "&" or "&&" reference-qualifier from the
-// function if present. If "F" is a free function including static member
-// functions, yields "F" itself (effectively does nothing since
-// reference-qualifiers to non-static member functions only so will never be
-// present otherwise).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsMemberFunctionRemoveReference_t = typename FunctionTraitsT::RemoveReference;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionRemoveReference_t. Helper alias for
+    // "FunctionTraitsT::RemoveReference" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after removing the "&" or "&&" reference-qualifier from the
+    // function if present. If "F" is a free function including static member
+    // functions, yields "F" itself (effectively does nothing since
+    // reference-qualifiers to non-static member functions only so will never be
+    // present otherwise).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsMemberFunctionRemoveReference_t = typename FunctionTraitsT::RemoveReference;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsAddNoexcept_t. Helper alias for
-// "FunctionTraitsT::AddNoexcept" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after adding "noexcept" to "F" if
-// not already present
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsAddNoexcept_t = typename FunctionTraitsT::AddNoexcept;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsAddNoexcept_t. Helper alias for
+    // "FunctionTraitsT::AddNoexcept" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after adding "noexcept" to "F" if
+    // not already present
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsAddNoexcept_t = typename FunctionTraitsT::AddNoexcept;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsRemoveNoexcept_t. Helper alias for
-// "FunctionTraitsT::RemoveNoexcept" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after removing "noexcept" from "F"
-// if present
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT>
-using FunctionTraitsRemoveNoexcept_t = typename FunctionTraitsT::RemoveNoexcept;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsRemoveNoexcept_t. Helper alias for
+    // "FunctionTraitsT::RemoveNoexcept" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after removing "noexcept" from "F"
+    // if present
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsRemoveNoexcept_t = typename FunctionTraitsT::RemoveNoexcept;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsReplaceCallingConvention_t. Helper alias for
-// "FunctionTraitsT::ReplaceCallingConvention" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after replacing its calling
-// convention with the platform-specific calling convention corresponding to
-// "NewCallingConventionT" (a "CallingConvention" enumerator declared in
-// "TypeTraits.h"). For instance, if you pass  "CallingConvention::FastCall"
-// then the calling convention on "F" is replaced with
-// "__attribute__((cdecl))" on GCC, Clang and others, but "__cdecl" on
-// Microsoft platforms. Note however that the calling convention for
-// variadic functions (those whose last arg is "...") can't be changed in
-// this release. Variadic functions require that the calling function pop
-// the stack to clean up passed arguments and only the "Cdecl" calling
-// convention supports that in this release (on all supported compilers at
-// this writing). Attempts to change it are therefore ignored. Note that you
-// also can't change the calling convention of free functions to
-// "CallingConvention::Thiscall" (including for static member functions
-// which are considered "free" functions). Attempts to do so are ignored
-// since the latter calling convention applies to non-static member
-// functions only. Lastly, please note that compilers will sometimes change
-// the calling convention declared on your functions to the "Cdecl" calling
-// convention depending on the compiler options in effect at the time (in
-// particular when compiling for 64 bits opposed to 32 bits, though the
-// "Vectorcall" calling convention is supported on 64 bits). Therefore, if
-// you specify a calling convention that the compiler changes to "Cdecl"
-// based on the compiler options currently in effect, then
-// "ReplaceCallingConvention_t" will also ignore your calling convention and
-// apply "Cdecl" instead (since that's what the compiler actually uses).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT, CallingConvention NewCallingConventionT>
-using FunctionTraitsReplaceCallingConvention_t = typename FunctionTraitsT::template ReplaceCallingConvention<NewCallingConventionT>;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsReplaceCallingConvention_t. Helper alias for
+    // "FunctionTraitsT::ReplaceCallingConvention" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after replacing its calling
+    // convention with the platform-specific calling convention corresponding to
+    // "NewCallingConventionT" (a "CallingConvention" enumerator declared in
+    // "TypeTraits.h"). For instance, if you pass  "CallingConvention::FastCall"
+    // then the calling convention on "F" is replaced with
+    // "__attribute__((cdecl))" on GCC, Clang and others, but "__cdecl" on
+    // Microsoft platforms. Note however that the calling convention for
+    // variadic functions (those whose last arg is "...") can't be changed in
+    // this release. Variadic functions require that the calling function pop
+    // the stack to clean up passed arguments and only the "Cdecl" calling
+    // convention supports that in this release (on all supported compilers at
+    // this writing). Attempts to change it are therefore ignored. Note that you
+    // also can't change the calling convention of free functions to
+    // "CallingConvention::Thiscall" (including for static member functions
+    // which are considered "free" functions). Attempts to do so are ignored
+    // since the latter calling convention applies to non-static member
+    // functions only. Lastly, please note that compilers will sometimes change
+    // the calling convention declared on your functions to the "Cdecl" calling
+    // convention depending on the compiler options in effect at the time (in
+    // particular when compiling for 64 bits opposed to 32 bits, though the
+    // "Vectorcall" calling convention is supported on 64 bits). Therefore, if
+    // you specify a calling convention that the compiler changes to "Cdecl"
+    // based on the compiler options currently in effect, then
+    // "ReplaceCallingConvention_t" will also ignore your calling convention and
+    // apply "Cdecl" instead (since that's what the compiler actually uses).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, CallingConvention NewCallingConventionT>
+    using FunctionTraitsReplaceCallingConvention_t = typename FunctionTraitsT::template ReplaceCallingConvention<NewCallingConventionT>;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsMemberFunctionReplaceClass_t. Helper alias for
-// "FunctionTraits::ReplaceClass" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). If the function "F" represented by
-// "FunctionTraitsT" is a non-static member function, yields a type alias
-// for "F" after replacing the class this function belongs to with
-// "NewClassT". If "F" is a free function including static member functions,
-// yields "F" itself (effectively does nothing since a "class" applies to
-// non-static member functions only so will never be present otherwise -
-// note that due to limitations in C++ itself, replacing the class for
-// static member functions is not supported).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT, IS_CLASS_C NewClassT>
-using FunctionTraitsMemberFunctionReplaceClass_t = typename FunctionTraitsT::template ReplaceClass<NewClassT>;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsMemberFunctionReplaceClass_t. Helper alias for
+    // "FunctionTraits::ReplaceClass" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). If the function "F" represented by
+    // "FunctionTraitsT" is a non-static member function, yields a type alias
+    // for "F" after replacing the class this function belongs to with
+    // "NewClassT". If "F" is a free function including static member functions,
+    // yields "F" itself (effectively does nothing since a "class" applies to
+    // non-static member functions only so will never be present otherwise -
+    // note that due to limitations in C++ itself, replacing the class for
+    // static member functions is not supported).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, IS_CLASS_C NewClassT>
+    using FunctionTraitsMemberFunctionReplaceClass_t = typename FunctionTraitsT::template ReplaceClass<NewClassT>;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsReplaceReturnType_t. Helper alias for
-// "FunctionTraitsT::ReplaceReturnType" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after replacing the return type for
-// "F" with "NewReturnTypeT"
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT, typename NewReturnTypeT>
-using FunctionTraitsReplaceReturnType_t = typename FunctionTraitsT::template ReplaceReturnType<NewReturnTypeT>;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsReplaceReturnType_t. Helper alias for
+    // "FunctionTraitsT::ReplaceReturnType" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after replacing the return type for
+    // "F" with "NewReturnTypeT"
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, typename NewReturnTypeT>
+    using FunctionTraitsReplaceReturnType_t = typename FunctionTraitsT::template ReplaceReturnType<NewReturnTypeT>;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsReplaceArgs_t. Helper alias for
-// "FunctionTraitsT::ReplaceArgs" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after replacing all its existing
-// non-variadic arguments with the args given by "NewArgsT" (a parameter
-// pack of the types that become the new argument list). If none are passed
-// then an empty argument list results instead, though if variadic args are
-// present in "F" then they still remain intact (the "..." remains - read
-// on). The resulting alias is identical to "F" itself except that the
-// non-variadic arguments in "F" are completely replaced with "NewArgsT".
-// Note that if "F" is a variadic function (its last parameter is "..."),
-// then it remains a variadiac function after the call (the "..." remains in
-// place). If you wish to explicitly add or remove the "..." as well then
-// pass the resulting type to "AddVariadicArgs_t" or "RemoveVariadicArgs_t"
-// respectively (either before or after the call to "ReplaceArgs_t"). Note
-// that if you wish to remove specific arguments instead of all of them,
-// then call "ReplaceNthArg_t" instead. Lastly, you can alternatively use
-// "ReplaceArgsTuple_t" instead of "ReplaceArgs_t" if you have a
-// "std::tuple" of types you wish to use for the argument list instead of a
-// parameter pack. "ReplaceArgsTuple_t" is identical to ""ReplaceArgs_t""
-// otherwise (it ultimately defers to it).
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT, typename... NewArgsT>
-using FunctionTraitsReplaceArgs_t = typename FunctionTraitsT::template ReplaceArgs<NewArgsT...>;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsReplaceArgs_t. Helper alias for
+    // "FunctionTraitsT::ReplaceArgs" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after replacing all its existing
+    // non-variadic arguments with the args given by "NewArgsT" (a parameter
+    // pack of the types that become the new argument list). If none are passed
+    // then an empty argument list results instead, though if variadic args are
+    // present in "F" then they still remain intact (the "..." remains - read
+    // on). The resulting alias is identical to "F" itself except that the
+    // non-variadic arguments in "F" are completely replaced with "NewArgsT".
+    // Note that if "F" is a variadic function (its last parameter is "..."),
+    // then it remains a variadiac function after the call (the "..." remains in
+    // place). If you wish to explicitly add or remove the "..." as well then
+    // pass the resulting type to "AddVariadicArgs_t" or "RemoveVariadicArgs_t"
+    // respectively (either before or after the call to "ReplaceArgs_t"). Note
+    // that if you wish to remove specific arguments instead of all of them,
+    // then call "ReplaceNthArg_t" instead. Lastly, you can alternatively use
+    // "ReplaceArgsTuple_t" instead of "ReplaceArgs_t" if you have a
+    // "std::tuple" of types you wish to use for the argument list instead of a
+    // parameter pack. "ReplaceArgsTuple_t" is identical to ""ReplaceArgs_t""
+    // otherwise (it ultimately defers to it).
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, typename... NewArgsT>
+    using FunctionTraitsReplaceArgs_t = typename FunctionTraitsT::template ReplaceArgs<NewArgsT...>;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsReplaceArgsTuple_t. Helper alias for
-// "FunctionTraitsT::ReplaceArgsTuple" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Identical to
-// "FunctionTraitsReplaceArgs_t" just above except the argument list is
-// passed as a "std::tuple" instead of a parameter pack (via the 2nd
-// template arg). The types in the "std::tuple" are therefore used for the
-// resulting argument list. "FunctionTraitsReplaceArgsTuple_t" is otherwise
-// identical to "FunctionTraitsReplaceArgs_t".
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT, typename NewArgsTupleT>
-using FunctionTraitsReplaceArgsTuple_t = typename FunctionTraitsT::template ReplaceArgsTuple<NewArgsTupleT>;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsReplaceArgsTuple_t. Helper alias for
+    // "FunctionTraitsT::ReplaceArgsTuple" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Identical to
+    // "FunctionTraitsReplaceArgs_t" just above except the argument list is
+    // passed as a "std::tuple" instead of a parameter pack (via the 2nd
+    // template arg). The types in the "std::tuple" are therefore used for the
+    // resulting argument list. "FunctionTraitsReplaceArgsTuple_t" is otherwise
+    // identical to "FunctionTraitsReplaceArgs_t".
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, typename NewArgsTupleT>
+    using FunctionTraitsReplaceArgsTuple_t = typename FunctionTraitsT::template ReplaceArgsTuple<NewArgsTupleT>;
 
-/////////////////////////////////////////////////////////////////////////////
-// FunctionTraitsReplaceNthArg_t. Helper alias for
-// "FunctionTraits::ReplaceNthArg" (where "FunctionTraitsT" is a
-// "FunctionTraits" specialization). Returns a type alias for the function
-// "F" represented by "FunctionTraitsT" after replacing its (zero-based)
-// "Nth" argument with "NewArgT". Pass "N" via the 2nd template arg (e.g.,
-// the zero-based index of the arg you're targeting) and the type you wish
-// to replace it with via the 3rd template arg ("NewArgT"). The resulting
-// alias is therefore identical to "F" except its "Nth" argument is replaced
-// by "NewArgT" (so passing, say, zero-based "2" for "N" and "int" for
-// "NewArgT" would replace the 3rd function argument with an "int"). Note
-// that "N" must be less than the number of arguments in the function or a
-// "static_assert" will occur (new argument types can't be added using this
-// trait, only existing argument types replaced). If you need to replace
-// multiple arguments then recursively call "ReplaceNthArg_t" again, passing
-// the result as the "F" template arg of "ReplaceNthArg_t" as many times as
-// you need to (each time specifying a new "N" and "NewArgT"). If you wish
-// to replace all arguments at once then call "ReplaceArgs_t" or
-// "ReplaceArgsTuple_t" instead. Lastly, note that if "F" has variadic
-// arguments (it ends with "..."), then these remain intact. If you need to
-// remove them then call "RemoveVariadicArgs_t" before or after the call to
-// "ReplaceNthArg_t".
-/////////////////////////////////////////////////////////////////////////////
-template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t N, typename NewArgT>
-using FunctionTraitsReplaceNthArg_t = typename FunctionTraitsT::template ReplaceNthArg<N, NewArgT>;
+    /////////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsReplaceNthArg_t. Helper alias for
+    // "FunctionTraits::ReplaceNthArg" (where "FunctionTraitsT" is a
+    // "FunctionTraits" specialization). Returns a type alias for the function
+    // "F" represented by "FunctionTraitsT" after replacing its (zero-based)
+    // "Nth" argument with "NewArgT". Pass "N" via the 2nd template arg (e.g.,
+    // the zero-based index of the arg you're targeting) and the type you wish
+    // to replace it with via the 3rd template arg ("NewArgT"). The resulting
+    // alias is therefore identical to "F" except its "Nth" argument is replaced
+    // by "NewArgT" (so passing, say, zero-based "2" for "N" and "int" for
+    // "NewArgT" would replace the 3rd function argument with an "int"). Note
+    // that "N" must be less than the number of arguments in the function or a
+    // "static_assert" will occur (new argument types can't be added using this
+    // trait, only existing argument types replaced). If you need to replace
+    // multiple arguments then recursively call "ReplaceNthArg_t" again, passing
+    // the result as the "F" template arg of "ReplaceNthArg_t" as many times as
+    // you need to (each time specifying a new "N" and "NewArgT"). If you wish
+    // to replace all arguments at once then call "ReplaceArgs_t" or
+    // "ReplaceArgsTuple_t" instead. Lastly, note that if "F" has variadic
+    // arguments (it ends with "..."), then these remain intact. If you need to
+    // remove them then call "RemoveVariadicArgs_t" before or after the call to
+    // "ReplaceNthArg_t".
+    /////////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t N, typename NewArgT>
+    using FunctionTraitsReplaceNthArg_t = typename FunctionTraitsT::template ReplaceNthArg<N, NewArgT>;
+#endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
 
 /////////////////////////////////////////////////////////////////////////
 // ArgCount_v. Helper template for "FunctionTraits::ArgCount" which
@@ -4635,7 +5216,7 @@ inline constexpr tstring_view FunctionTypeName_v = FunctionTraitsTypeName_v<Func
 // the "ArgCount_v" helper is guaranteed to return zero (0), and the
 // "IsVariadic_v" helper is guaranteed to return false. Note that this
 // helper template is less verbose than creating a "FunctionTraits"
-// directly from "F" and calling its own "IsFunctionTraitsEmptyArgList_v"
+// directly from "F" and calling its own "FunctionTraitsIsEmptyArgList_v"
 // helper. The follow wraps the latter call for you.
 //
 // IMPORTANT:
@@ -4649,7 +5230,7 @@ inline constexpr tstring_view FunctionTypeName_v = FunctionTraitsTypeName_v<Func
 // args). Caution advised.
 ///////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsEmptyArgList_v = IsFunctionTraitsEmptyArgList_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsEmptyArgList_v = FunctionTraitsIsEmptyArgList_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 //////////////////////////////////////////////////////////////////////////////
 // IsFreeFunction_v. Helper template for "FunctionTraits::IsFreeFunction"
@@ -4659,7 +5240,7 @@ inline constexpr bool IsEmptyArgList_v = IsFunctionTraitsEmptyArgList_v<Function
 // its "IsFreeFunction" member. The following provides a convenient wrappper.
 //////////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsFreeFunction_v = IsFunctionTraitsFreeFunction_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsFreeFunction_v = FunctionTraitsIsFreeFunction_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 ///////////////////////////////////////////////////////////////////////
 // IsFunctor_v. Helper template for "FunctionTraits::IsFunctor" which
@@ -4670,7 +5251,7 @@ inline constexpr bool IsFreeFunction_v = IsFunctionTraitsFreeFunction_v<Function
 // member. The following provides a convenient wrappper.
 ///////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsFunctor_v = IsFunctionTraitsFunctor_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsFunctor_v = FunctionTraitsIsFunctor_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 ///////////////////////////////////////////////////////////////////////////
 // IsMemberFunction_v. Helper template for "FunctionTraits::IsMemberFunction"
@@ -4693,7 +5274,7 @@ inline constexpr bool IsFunctor_v = IsFunctionTraitsFunctor_v<FunctionTraits<F>>
 //     6) MemberFunctionRefQualifierName_v
 ///////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsMemberFunction_v = IsFunctionTraitsMemberFunction_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsMemberFunction_v = FunctionTraitsIsMemberFunction_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 //////////////////////////////////////////////////////////////////////////
 // IsMemberFunctionConst_v. Helper template for "FunctionTraits::IsConst"
@@ -4708,7 +5289,7 @@ inline constexpr bool IsMemberFunction_v = IsFunctionTraitsMemberFunction_v<Func
 // required).
 //////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsMemberFunctionConst_v = IsFunctionTraitsMemberFunctionConst_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsMemberFunctionConst_v = FunctionTraitsIsMemberFunctionConst_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 /////////////////////////////////////////////////////////////////////////////////
 // IsMemberFunctionVolatile_v. Helper template for "FunctionTraits::IsVolatile"
@@ -4722,7 +5303,7 @@ inline constexpr bool IsMemberFunctionConst_v = IsFunctionTraitsMemberFunctionCo
 // before invoking the following (if required).
 /////////////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsMemberFunctionVolatile_v = IsFunctionTraitsMemberFunctionVolatile_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsMemberFunctionVolatile_v = FunctionTraitsIsMemberFunctionVolatile_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 /////////////////////////////////////////////////////////////////////////
 // IsNoexcept_v. Helper template for "FunctionTraits::IsNoexcept" which
@@ -4732,7 +5313,7 @@ inline constexpr bool IsMemberFunctionVolatile_v = IsFunctionTraitsMemberFunctio
 // member. The following provides a convenient wrappper.
 /////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsNoexcept_v = IsFunctionTraitsNoexcept_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsNoexcept_v = FunctionTraitsIsNoexcept_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 /////////////////////////////////////////////////////////////////////////
 // IsVariadic_v. Helper template for "FunctionTraits::IsVariadic" which
@@ -4742,7 +5323,7 @@ inline constexpr bool IsNoexcept_v = IsFunctionTraitsNoexcept_v<FunctionTraits<F
 // "IsVariadic" member. The following provides a convenient wrappper.
 /////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsVariadic_v = IsFunctionTraitsVariadic_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsVariadic_v = FunctionTraitsIsVariadic_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 ///////////////////////////////////////////////////////////////////////////
 // IsVoidReturnType_v. Helper template that returns "true" if the return
@@ -4753,7 +5334,7 @@ inline constexpr bool IsVariadic_v = IsFunctionTraitsVariadic_v<FunctionTraits<F
 // convenient wrappper.
 ///////////////////////////////////////////////////////////////////////////
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool IsVoidReturnType_v = IsFunctionTraitsVoidReturnType_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+inline constexpr bool IsVoidReturnType_v = FunctionTraitsIsVoidReturnType_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 ///////////////////////////////////////////////////////////////////////////
 // MemberFunctionClass_t. Helper alias for "FunctionTraits::Class" which
@@ -4839,253 +5420,265 @@ using ReturnType_t = FunctionTraitsReturnType_t<FunctionTraits<F>>; // Defers to
 template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view ReturnTypeName_v = FunctionTraitsReturnTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// AddVariadicArgs_t. Type alias for "F" after adding "..." to the end of
-// its argument list if not already present. Note that the calling
-// convention is also changed to the "Cdecl" calling convention for the
-// given compiler. This is the only supported calling convention for
-// variadic functions in this release but most platforms require this
-// calling convention for variadic functions. It ensures that the calling
-// function (opposed to the called function) pops the stack of arguments
-// after the function is called, which is required by variadic functions.
-// Other calling conventions that also do this are possible though none
-// are currently supported in this release (since none of the currently
-// supported compilers support this - such calling conventions are rare
-// in practice).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using AddVariadicArgs_t = FunctionTraitsAddVariadicArgs_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+/////////////////////////////////////////////////////
+// See this constant for details. Following helper
+// templates for function write traits are declared
+// only if function write traits are supported.
+// They're preprocessed out otherwise (so function
+// write traits simply won't be available).
+/////////////////////////////////////////////////////
+#if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+    //////////////////////////////////////////////////////////////////////////
+    // AddVariadicArgs_t. Type alias for "F" after adding "..." to the end of
+    // its argument list if not already present. Note that the calling
+    // convention is also changed to the "Cdecl" calling convention for the
+    // given compiler. This is the only supported calling convention for
+    // variadic functions in this release but most platforms require this
+    // calling convention for variadic functions. It ensures that the calling
+    // function (opposed to the called function) pops the stack of arguments
+    // after the function is called, which is required by variadic functions.
+    // Other calling conventions that also do this are possible though none
+    // are currently supported in this release (since none of the currently
+    // supported compilers support this - such calling conventions are rare
+    // in practice).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using AddVariadicArgs_t = FunctionTraitsAddVariadicArgs_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// RemoveVariadicArgs_t. If "F" is a variadic function (its last arg is
-// "..."), yields a type alias for "F" after removing the "..." from the
-// argument list. All non-variadic arguments (if any) remain intact (only
-// the "..." is removed).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using RemoveVariadicArgs_t = FunctionTraitsRemoveVariadicArgs_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // RemoveVariadicArgs_t. If "F" is a variadic function (its last arg is
+    // "..."), yields a type alias for "F" after removing the "..." from the
+    // argument list. All non-variadic arguments (if any) remain intact (only
+    // the "..." is removed).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using RemoveVariadicArgs_t = FunctionTraitsRemoveVariadicArgs_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionAddConst_t. If "F" is a non-static member function,
-// yields a type alias for "F" after adding the "const" cv-qualifier to
-// the function if not already present. If "F" is a free function
-// including static member functions, yields "F" itself (effectively does
-// nothing since "const" applies to non-static member functions only).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionAddConst_t = FunctionTraitsMemberFunctionAddConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionAddConst_t. If "F" is a non-static member function,
+    // yields a type alias for "F" after adding the "const" cv-qualifier to
+    // the function if not already present. If "F" is a free function
+    // including static member functions, yields "F" itself (effectively does
+    // nothing since "const" applies to non-static member functions only).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionAddConst_t = FunctionTraitsMemberFunctionAddConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionRemoveConst_t. If "F" is a non-static member function,
-// yields a type alias for "F" after removing the "const" cv-qualifier
-// from the function if present. If "F" is a free function including
-// static member functions, yields "F" itself (effectively does nothing
-// since "const" applies to non-static member functions only so will
-// never be present otherwise).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionRemoveConst_t = FunctionTraitsMemberFunctionRemoveConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionRemoveConst_t. If "F" is a non-static member function,
+    // yields a type alias for "F" after removing the "const" cv-qualifier
+    // from the function if present. If "F" is a free function including
+    // static member functions, yields "F" itself (effectively does nothing
+    // since "const" applies to non-static member functions only so will
+    // never be present otherwise).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionRemoveConst_t = FunctionTraitsMemberFunctionRemoveConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionAddVolatile_t. If "F" is a non-static member function,
-// yields a type alias for "F" after adding the "volatile" cv-qualifier
-// to the function if not already present. If "F" is a free function
-// including static member functions, yields "F" itself (effectively does
-// nothing since "volatile" applies to non-static member functions only).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionAddVolatile_t = FunctionTraitsMemberFunctionAddVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionAddVolatile_t. If "F" is a non-static member function,
+    // yields a type alias for "F" after adding the "volatile" cv-qualifier
+    // to the function if not already present. If "F" is a free function
+    // including static member functions, yields "F" itself (effectively does
+    // nothing since "volatile" applies to non-static member functions only).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionAddVolatile_t = FunctionTraitsMemberFunctionAddVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionRemoveVolatile_t. If "F" is a non-static member
-// function, yields a type alias for "F" after removing the "volatile"
-// cv-qualifier from the function if present. If "F" is a free function
-// including static member functions, yields "F" itself (effectively does
-// nothing since "volatile" applies to non-static member functions only
-// so will never be present otherwise).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionRemoveVolatile_t = FunctionTraitsMemberFunctionRemoveVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionRemoveVolatile_t. If "F" is a non-static member
+    // function, yields a type alias for "F" after removing the "volatile"
+    // cv-qualifier from the function if present. If "F" is a free function
+    // including static member functions, yields "F" itself (effectively does
+    // nothing since "volatile" applies to non-static member functions only
+    // so will never be present otherwise).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionRemoveVolatile_t = FunctionTraitsMemberFunctionRemoveVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionAddCV_t. If "F" is a non-static member function, yields
-// a type alias for "F" after adding both the "const" AND "volatile"
-// cv-qualifiers to the function if not already present. If "F" is a free
-// function including static member functions, yields "F" itself
-// (effectively does nothing since "const" and "volatile" apply to
-// non-static member functions only).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionAddCV_t = FunctionTraitsMemberFunctionAddCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionAddCV_t. If "F" is a non-static member function, yields
+    // a type alias for "F" after adding both the "const" AND "volatile"
+    // cv-qualifiers to the function if not already present. If "F" is a free
+    // function including static member functions, yields "F" itself
+    // (effectively does nothing since "const" and "volatile" apply to
+    // non-static member functions only).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionAddCV_t = FunctionTraitsMemberFunctionAddCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionRemoveCV_t. If "F" is a non-static member function,
-// yields a type alias for "F" after removing both the "const" AND
-// "volatile" cv-qualifiers from the function if present. If "F" is a
-// free function including static member functions, yields "F" itself
-// (effectively does nothing since "const" and "volatile" apply to
-// non-static member functions only so will never be present otherwise).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionRemoveCV_t = FunctionTraitsMemberFunctionRemoveCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionRemoveCV_t. If "F" is a non-static member function,
+    // yields a type alias for "F" after removing both the "const" AND
+    // "volatile" cv-qualifiers from the function if present. If "F" is a
+    // free function including static member functions, yields "F" itself
+    // (effectively does nothing since "const" and "volatile" apply to
+    // non-static member functions only so will never be present otherwise).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionRemoveCV_t = FunctionTraitsMemberFunctionRemoveCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionAddLValueReference_t. If "F" is a non-static member
-// function, yields a type alias for "F" after adding the "&"
-// reference-qualifier to the function if not already present (replacing
-// the "&&" reference-qualifier if present). If "F" is a free function
-// including static member functions, yields "F" itself (effectively does
-// nothing since reference-qualifiers apply to non-static member
-// functions only).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionAddLValueReference_t = FunctionTraitsMemberFunctionAddLValueReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionAddLValueReference_t. If "F" is a non-static member
+    // function, yields a type alias for "F" after adding the "&"
+    // reference-qualifier to the function if not already present (replacing
+    // the "&&" reference-qualifier if present). If "F" is a free function
+    // including static member functions, yields "F" itself (effectively does
+    // nothing since reference-qualifiers apply to non-static member
+    // functions only).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionAddLValueReference_t = FunctionTraitsMemberFunctionAddLValueReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionAddRValueReference_t. If "F" is a non-static member
-// function, yields a type alias for "F" after adding the "&&"
-// reference-qualifier to the function (replacing the "&"
-// reference-qualifier if present). If "F" is a free function including
-// static member functions, yields "F" itself (effectively does nothing
-// since reference-qualifiers apply to non-static member functions only).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionAddRValueReference_t = FunctionTraitsMemberFunctionAddRValueReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionAddRValueReference_t. If "F" is a non-static member
+    // function, yields a type alias for "F" after adding the "&&"
+    // reference-qualifier to the function (replacing the "&"
+    // reference-qualifier if present). If "F" is a free function including
+    // static member functions, yields "F" itself (effectively does nothing
+    // since reference-qualifiers apply to non-static member functions only).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionAddRValueReference_t = FunctionTraitsMemberFunctionAddRValueReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionRemoveReference_t. If "F" is a non-static member
-// function, yields a type alias for "F" after removing the "&" or "&&"
-// reference-qualifier from the function if present. If "F" is a free
-// function including static member functions, yields "F" itself
-// (effectively does nothing since reference-qualifiers to non-static
-// member functions only so will never be present otherwise).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using MemberFunctionRemoveReference_t = FunctionTraitsMemberFunctionRemoveReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionRemoveReference_t. If "F" is a non-static member
+    // function, yields a type alias for "F" after removing the "&" or "&&"
+    // reference-qualifier from the function if present. If "F" is a free
+    // function including static member functions, yields "F" itself
+    // (effectively does nothing since reference-qualifiers to non-static
+    // member functions only so will never be present otherwise).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using MemberFunctionRemoveReference_t = FunctionTraitsMemberFunctionRemoveReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// AddNoexcept_t. Type alias for "F" after adding "noexcept" to "F" if
-// not already present
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using AddNoexcept_t = FunctionTraitsAddNoexcept_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // AddNoexcept_t. Type alias for "F" after adding "noexcept" to "F" if
+    // not already present
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using AddNoexcept_t = FunctionTraitsAddNoexcept_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// RemoveNoexcept_t. Type alias for "F" after removing "noexcept" from
-// "F" if present
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F>
-using RemoveNoexcept_t = FunctionTraitsRemoveNoexcept_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // RemoveNoexcept_t. Type alias for "F" after removing "noexcept" from
+    // "F" if present
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using RemoveNoexcept_t = FunctionTraitsRemoveNoexcept_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// ReplaceCallingConvention_t. Type alias for "F" after replacing its
-// calling convention with the platform-specific calling convention
-// corresponding to "NewCallingConventionT" (a "CallingConvention"
-// enumerator declared in "TypeTraits.h"). For instance, if you pass
-// "CallingConvention::FastCall" then the calling convention on "F" is
-// replaced with "__attribute__((cdecl))" on GCC, Clang and others, but
-// "__cdecl" on Microsoft platforms. Note however that the calling
-// convention for variadic functions (those whose last arg is "...")
-// can't be changed in this release. Variadic functions require that the
-// calling function pop the stack to clean up passed arguments and only
-// the "Cdecl" calling convention supports that in this release (on all
-// supported compilers at this writing). Attempts to change it are
-// therefore ignored. Note that you also can't change the calling
-// convention of free functions to "CallingConvention::Thiscall"
-// (including for static member functions which are considered "free"
-// functions). Attempts to do so are ignored since the latter calling
-// convention applies to non-static member functions only. Lastly, please
-// note that compilers will sometimes change the calling convention
-// declared on your functions to the "Cdecl" calling convention depending
-// on the compiler options in effect at the time (in particular when
-// compiling for 64 bits opposed to 32 bits, though the "Vectorcall"
-// calling convention is supported on 64 bits). Therefore, if you specify
-// a calling convention that the compiler changes to "Cdecl" based on the
-// compiler options currently in effect, then "ReplaceCallingConvention_t"
-// will also ignore your calling convention and apply "Cdecl" instead
-// (since that's what the compiler actually uses).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F, CallingConvention NewCallingConventionT>
-using ReplaceCallingConvention_t = FunctionTraitsReplaceCallingConvention_t<FunctionTraits<F>, NewCallingConventionT>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // ReplaceCallingConvention_t. Type alias for "F" after replacing its
+    // calling convention with the platform-specific calling convention
+    // corresponding to "NewCallingConventionT" (a "CallingConvention"
+    // enumerator declared in "TypeTraits.h"). For instance, if you pass
+    // "CallingConvention::FastCall" then the calling convention on "F" is
+    // replaced with "__attribute__((cdecl))" on GCC, Clang and others, but
+    // "__cdecl" on Microsoft platforms. Note however that the calling
+    // convention for variadic functions (those whose last arg is "...")
+    // can't be changed in this release. Variadic functions require that the
+    // calling function pop the stack to clean up passed arguments and only
+    // the "Cdecl" calling convention supports that in this release (on all
+    // supported compilers at this writing). Attempts to change it are
+    // therefore ignored. Note that you also can't change the calling
+    // convention of free functions to "CallingConvention::Thiscall"
+    // (including for static member functions which are considered "free"
+    // functions). Attempts to do so are ignored since the latter calling
+    // convention applies to non-static member functions only. Lastly, please
+    // note that compilers will sometimes change the calling convention
+    // declared on your functions to the "Cdecl" calling convention depending
+    // on the compiler options in effect at the time (in particular when
+    // compiling for 64 bits opposed to 32 bits, though the "Vectorcall"
+    // calling convention is supported on 64 bits). Therefore, if you specify
+    // a calling convention that the compiler changes to "Cdecl" based on the
+    // compiler options currently in effect, then "ReplaceCallingConvention_t"
+    // will also ignore your calling convention and apply "Cdecl" instead
+    // (since that's what the compiler actually uses).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, CallingConvention NewCallingConventionT>
+    using ReplaceCallingConvention_t = FunctionTraitsReplaceCallingConvention_t<FunctionTraits<F>, NewCallingConventionT>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// MemberFunctionReplaceClass_t. If "F" is a non-static member function,
-// yields a type alias for "F" after replacing the class this function
-// belongs to with "NewClassT". If "F" is a free function including
-// static member functions, yields "F" itself (effectively does nothing
-// since a "class" applies to non-static member functions only so will
-// never be present otherwise - note that due to limitations in C++
-// itself, replacing the class for static member functions is not
-// supported).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F, IS_CLASS_C NewClassT>
-using MemberFunctionReplaceClass_t = FunctionTraitsMemberFunctionReplaceClass_t<FunctionTraits<F>, NewClassT>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // MemberFunctionReplaceClass_t. If "F" is a non-static member function,
+    // yields a type alias for "F" after replacing the class this function
+    // belongs to with "NewClassT". If "F" is a free function including
+    // static member functions, yields "F" itself (effectively does nothing
+    // since a "class" applies to non-static member functions only so will
+    // never be present otherwise - note that due to limitations in C++
+    // itself, replacing the class for static member functions is not
+    // supported).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, IS_CLASS_C NewClassT>
+    using MemberFunctionReplaceClass_t = FunctionTraitsMemberFunctionReplaceClass_t<FunctionTraits<F>, NewClassT>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// ReplaceReturnType_t. Type alias for "F" after replacing its return
-// type with "NewReturnTypeT"
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F, typename NewReturnTypeT>
-using ReplaceReturnType_t = FunctionTraitsReplaceReturnType_t<FunctionTraits<F>, NewReturnTypeT>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // ReplaceReturnType_t. Type alias for "F" after replacing its return
+    // type with "NewReturnTypeT"
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, typename NewReturnTypeT>
+    using ReplaceReturnType_t = FunctionTraitsReplaceReturnType_t<FunctionTraits<F>, NewReturnTypeT>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// ReplaceArgs_t. Type alias for "F" after replacing all its existing
-// non-variadic arguments with the args given by "NewArgsT" (a parameter
-// pack of the types that become the new argument list). If none are
-// passed then an empty argument list results instead, though if variadic
-// args are present in "F" then they still remain intact (the "..."
-// remains - read on). The resulting alias is identical to "F" itself
-// except that the non-variadic arguments in "F" are completely replaced
-// with "NewArgsT". Note that if "F" is a variadic function (its last
-// parameter is "..."), then it remains a variadiac function after the
-// call (the "..." remains in place). If you wish to explicitly add or
-// remove the "..." as well then pass the resulting type to
-// "AddVariadicArgs_t" or "RemoveVariadicArgs_t" respectively (either
-// before or after the call to "ReplaceArgs_t"). Note that if you wish to
-// remove specific arguments instead of all of them, then call
-// "ReplaceNthArg_t" instead. Lastly, you can alternatively use
-// "ReplaceArgsTuple_t" instead of "ReplaceArgs_t" if you have a
-// "std::tuple" of types you wish to use for the argument list instead of
-// a parameter pack. "ReplaceArgsTuple_t" is identical to
-// "ReplaceArgs_t" otherwise (it ultimately defers to it).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F, typename... NewArgsT>
-using ReplaceArgs_t = FunctionTraitsReplaceArgs_t<FunctionTraits<F>, NewArgsT...>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // ReplaceArgs_t. Type alias for "F" after replacing all its existing
+    // non-variadic arguments with the args given by "NewArgsT" (a parameter
+    // pack of the types that become the new argument list). If none are
+    // passed then an empty argument list results instead, though if variadic
+    // args are present in "F" then they still remain intact (the "..."
+    // remains - read on). The resulting alias is identical to "F" itself
+    // except that the non-variadic arguments in "F" are completely replaced
+    // with "NewArgsT". Note that if "F" is a variadic function (its last
+    // parameter is "..."), then it remains a variadiac function after the
+    // call (the "..." remains in place). If you wish to explicitly add or
+    // remove the "..." as well then pass the resulting type to
+    // "AddVariadicArgs_t" or "RemoveVariadicArgs_t" respectively (either
+    // before or after the call to "ReplaceArgs_t"). Note that if you wish to
+    // remove specific arguments instead of all of them, then call
+    // "ReplaceNthArg_t" instead. Lastly, you can alternatively use
+    // "ReplaceArgsTuple_t" instead of "ReplaceArgs_t" if you have a
+    // "std::tuple" of types you wish to use for the argument list instead of
+    // a parameter pack. "ReplaceArgsTuple_t" is identical to
+    // "ReplaceArgs_t" otherwise (it ultimately defers to it).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, typename... NewArgsT>
+    using ReplaceArgs_t = FunctionTraitsReplaceArgs_t<FunctionTraits<F>, NewArgsT...>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// ReplaceArgsTuple_t. Identical to "ReplaceArgs_t" just above except the
-// argument list is passed as a "std::tuple" instead of a parameter pack
-// (via the 2nd template arg). The types in the "std::tuple" are
-// therefore used for the resulting argument list. "ReplaceArgsTuple_t"
-// is otherwise identical to "ReplaceArgs_t" (it ultimately defers to
-// it).
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F, TUPLE_C NewArgsTupleT>
-using ReplaceArgsTuple_t = FunctionTraitsReplaceArgsTuple_t<FunctionTraits<F>, NewArgsTupleT>; // Defers to the "FunctionTraits" helper further above
+    //////////////////////////////////////////////////////////////////////////
+    // ReplaceArgsTuple_t. Identical to "ReplaceArgs_t" just above except the
+    // argument list is passed as a "std::tuple" instead of a parameter pack
+    // (via the 2nd template arg). The types in the "std::tuple" are
+    // therefore used for the resulting argument list. "ReplaceArgsTuple_t"
+    // is otherwise identical to "ReplaceArgs_t" (it ultimately defers to
+    // it).
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, TUPLE_C NewArgsTupleT>
+    using ReplaceArgsTuple_t = FunctionTraitsReplaceArgsTuple_t<FunctionTraits<F>, NewArgsTupleT>; // Defers to the "FunctionTraits" helper further above
 
-//////////////////////////////////////////////////////////////////////////
-// ReplaceNthArg_t. Type alias for "F" after replacing its (zero-based)
-// "Nth" argument with "NewArgT". Pass "N" via the 2nd template arg
-// (e.g., the zero-based index of the arg you're targeting) and the type
-// you wish to replace it with via the 3rd template arg ("NewArgT"). The
-// resulting alias is therefore identical to "F" except its "Nth"
-// argument is replaced by "NewArgT" (so passing, say, zero-based "2" for
-// "N" and "int" for "NewArgT" would replace the 3rd function argument
-// with an "int"). Note that "N" must be less than the number of
-// arguments in the function or a "static_assert" will occur (new
-// argument types can't be added using this trait, only existing argument
-// types replaced). If you need to replace multiple arguments then
-// recursively call "ReplaceNthArg_t" again, passing the result as the
-// "F" template arg of "ReplaceNthArg_t" as many times as you need to
-// (each time specifying a new "N" and "NewArgT"). If you wish to replace
-// all arguments at once then call "ReplaceArgs_t" or
-// "ReplaceArgsTuple_t" instead. Lastly, note that if "F" has variadic
-// arguments (it ends with "..."), then these remain intact. If you need
-// to remove them then call "RemoveVariadicArgs_t" before or after the
-// call to "ReplaceNthArg_t".
-//////////////////////////////////////////////////////////////////////////
-template <TRAITS_FUNCTION_C F, std::size_t N, typename NewArgT>
-using ReplaceNthArg_t = FunctionTraitsReplaceNthArg_t<FunctionTraits<F>, N, NewArgT>; // Defer to this in private namespace just above
+    //////////////////////////////////////////////////////////////////////////
+    // ReplaceNthArg_t. Type alias for "F" after replacing its (zero-based)
+    // "Nth" argument with "NewArgT". Pass "N" via the 2nd template arg
+    // (e.g., the zero-based index of the arg you're targeting) and the type
+    // you wish to replace it with via the 3rd template arg ("NewArgT"). The
+    // resulting alias is therefore identical to "F" except its "Nth"
+    // argument is replaced by "NewArgT" (so passing, say, zero-based "2" for
+    // "N" and "int" for "NewArgT" would replace the 3rd function argument
+    // with an "int"). Note that "N" must be less than the number of
+    // arguments in the function or a "static_assert" will occur (new
+    // argument types can't be added using this trait, only existing argument
+    // types replaced). If you need to replace multiple arguments then
+    // recursively call "ReplaceNthArg_t" again, passing the result as the
+    // "F" template arg of "ReplaceNthArg_t" as many times as you need to
+    // (each time specifying a new "N" and "NewArgT"). If you wish to replace
+    // all arguments at once then call "ReplaceArgs_t" or
+    // "ReplaceArgsTuple_t" instead. Lastly, note that if "F" has variadic
+    // arguments (it ends with "..."), then these remain intact. If you need
+    // to remove them then call "RemoveVariadicArgs_t" before or after the
+    // call to "ReplaceNthArg_t".
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, std::size_t N, typename NewArgT>
+    using ReplaceNthArg_t = FunctionTraitsReplaceNthArg_t<FunctionTraits<F>, N, NewArgT>; // Defer to this in private namespace just above
+#endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+
+// Done with this (for internal use by this file only - see definition earlier for details)
+#undef FUNCTION_WRITE_TRAITS_SUPPORTED
 
 ////////////////////////////////////////////////////////////////////////////
 // "IsForEachFunctor" (primary template). Determines if template arg "T" is
@@ -5308,9 +5901,9 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 // any of those iterations in which case processing immediately
 // stops and "false" is immediately returned - read on).    
 //
-// Note that "operator()" in your functor must be declared as follows
-// (and will typically be "const" as seen though it can be non-const
-// as well if required, and/or noexcept as well)
+// Note that "operator()" in your functor must be declared as
+// follows (and will typically be "const" as seen though it can be
+// non-const as well if required, and/or noexcept as well)
 //
 //     template <std::size_t I>
 //     bool operator()() const
@@ -5356,7 +5949,7 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 //    -----------------------------------------------------
 //    std::Tuple<int, float, double> myTuple; // Tuple with 3 elements whose types we wish to iterate (and display)
 //    using TupleT = decltype(myTuple); // Type of the above tuple
-// 
+//
 //    //////////////////////////////////////////////////////
 //    // Lambda (template) stamped out and invoked 3 times
 //    // by "ForEach()" below (for I=0, I=1 and I=2). See
@@ -5366,14 +5959,14 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 //                                     {
 //                                         // Type of the this tuple element (for the current "I")
 //                                         using TupleElement_t = std::tuple_element_t<I, TupleT>;
-// 
+//
 //                                         /////////////////////////////////////////////////
 //                                         // Displays (literally) "int" when I=0, "float"
 //                                         // when I=1 and "double" when I=2 (for this
 //                                         // particular tuple - see "myTuple above)
 //                                         /////////////////////////////////////////////////
 //                                         std::cout << TypeName_v<TupleElement_t> << "\n";
-//        
+//
 //                                         //////////////////////////////////////////////
 //                                         // Return false here instead if you need to
 //                                         // stop processing (equivalent to "break" in
@@ -5394,10 +5987,10 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 //     // the 2nd template arg is implicitly deduced to the type of this
 //     // functor, i.e., whatever class the compiler generates for the
 //     // above lambda behind the scenes (recall that a lambda is just
-//     // syntactic sugar for a compiler-generated functor). The upshot
-//     // is that "operator()" in this functor (the above lambda) is
-//     // effectively stamped out 3 times and invoked for each (for I=0,
-//     // I=1 and I=2)
+//     // syntactic sugar for a compiler-generated functor - the functor's
+//     // class is called its "closure type"). The upshot is that
+//     // "operator()" in this functor (the above lambda) is effectively
+//     // stamped out 3 times and invoked for each (for I=0, I=1 and I=2)
 //     ///////////////////////////////////////////////////////////////////
 //     ForEach<std::tuple_size_v<TupleT>>(displayTupleElement);
 ///////////////////////////////////////////////////////////////////
@@ -6306,7 +6899,10 @@ inline constexpr bool ForEachArg(ForEachTupleFunctorT&& functor)
     return ForEachFunctionTraitsArg<FunctionTraits<F>>(std::forward<ForEachTupleFunctorT>(functor));
 }
 
+// Done with this (for internal use in this file only)
+#undef MICROSOFT_VISUAL_STUDIO_2017
+
 } // namespace StdExt
 
 #endif // #if CPP17_OR_LATER
-#endif // TYPETRAITS (#include guard)
+#endif // #ifndef TYPETRAITS (#include guard)

@@ -1,9 +1,9 @@
 # FunctionTraits
 ## C++ function traits library (single header-only) for retrieving info about any function (arg types, arg count, return type, etc.). Clean and easy-to-use, the most "complete" implementation on the web.
 
-See [here](https://godbolt.org/z/f7jGo8h8j) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
+See [here](https://godbolt.org/z/jbnevYn6z) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
 
-"FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a natural extension to the C++ standard whose [<type_traits>](https://en.cppreference.com/w/cpp/header/type_traits) header offers almost no support for handling function traits, save for [std::is_function](https://en.cppreference.com/w/cpp/types/is_function) and [std::is_member_function_pointer](https://en.cppreference.com/w/cpp/types/is_member_function_pointer) (and one or two other borderline cases). It's also a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike any other implementation you'll normally find at this writing, which usually fail to address one or more issues (including the Boost implementation - read on). Many (actually most) of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on "stackoverflow.com" for instance. Only a small handful are more complete and far fewer are reasonably complete, though still missing at least one or two features, in particular calling convention support (again, read on).
+"FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a natural extension to the C++ standard itself, whose [<type_traits>](https://en.cppreference.com/w/cpp/header/type_traits) header offers almost no support for handling function traits, save for [std::is_function](https://en.cppreference.com/w/cpp/types/is_function) and [std::is_member_function_pointer](https://en.cppreference.com/w/cpp/types/is_member_function_pointer) (and one or two other borderline cases). It's also a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike any other implementation you'll normally find at this writing, which usually fail to address one or more issues (including the Boost implementation - read on). Many (actually most) of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on "stackoverflow.com" for instance. Only a small handful are more complete and far fewer are reasonably complete, though still missing at least one or two features, in particular calling convention support (again, read on).
  
 Some have even written articles on the subject but still don't address various issues. Some of these issues are obvious (or should be), such as failing to detect functions declared as "noexcept" (part of a function's type since C++17), or const and/or volatile non-static member functions (usually "const" in practice), or variadic functions (those whose arguments end with "..."), or function pointers with cv-qualifiers (the pointers themselves are "const" and/or "volatile"), among other things (often resulting in a lot of cryptic compiler errors).
 
@@ -24,7 +24,7 @@ Some are less obvious, like failing to detect non-static [Member functions with 
 
 The above covers almost all traits most programmers will ever be interested in. Other possible traits such as whether a function is a static member function, whether a non-static member function is virtual (and/or the "override" keyword is in effect), etc., are not available in this release, normally due to limitations in the language itself (either impossible or difficult/unwieldy to implement in current releases of C++). They may be available in a future version however if C++ better supports it.
 
-## Usage (GCC or compatible, Clang, Microsoft and Intel compilers only - C++17 and later)
+## Usage (C++17 and later: GCC[^1], Microsoft[^2], Clang[^3] and Intel[^4] compilers only)
 To use "FunctionTraits", simply add both "TypeTraits.h" and "CompilerVersions.h" to your code and then #include "TypeTraits.h" wherever you require it (all code is declared in namespace "StdExt"). Note that you need not explicitly #include "CompilerVersions.h" unless you wish to use it independently of "TypeTraits.h", since "TypeTraits.h" itself #includes it as a dependency ("CompilerVersions.h" simply declares various #defined constants used to identify the version of C++ you're using, and a few other compiler-related declarations - you're free to use these in your own code as well if you wish). The struct (template) "FunctionTraits" is then immediately available for use (see [Technique 1 of 2](#technique1of2) below), though you'll normally rely on its [Helper templates](#helpertemplates) instead (see [Technique 2 of 2](#technique2of2) below). Note that both files above have no platform-specific dependencies, except when targeting Microsoft, where the native Microsoft header <tchar.h> is expected to be in the usual #include search path (and it normally will be on Microsoft platforms). Otherwise they rely on the C++ standard headers only which are therefore (also) expected to be in the usual search path on your platform.
 
 <a name="TemplateArgF"></a>
@@ -367,7 +367,7 @@ template <TRAITS_FUNCTION_C F,
           std::size_t I>
 inline constexpr tstring_view ArgTypeName_v;
 ```
-Same as "ArgType_t" just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details). A float would therefore be (literally) returned as "float" for instance (quotes not included).</details>
+Same as [ArgType_t](#argtype_t) just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details). A float would therefore be (literally) returned as "float" for instance (quotes not included).</details>
 
 <a name="ArgTypes_t"></a><details><summary>ArgTypes_t</summary>
 ```C++
@@ -388,7 +388,7 @@ Calling convention of "F" returned as a "CallingConvention" enumerator (declared
 template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view CallingConventionName_v;
 ```
-Same as "CallingConvention_v" just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details).</details>
+Same as [CallingConvention_v](#callingconvention_v) just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details).</details>
 
 <a name="ForEachArg"></a><details><summary>ForEachArg</summary>
 ```C++
@@ -396,21 +396,21 @@ template <TRAITS_FUNCTION_C F,>
           FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
 inline constexpr bool ForEachArg(ForEachTupleFunctorT &&);
 ```
-Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/f7jGo8h8j) program, also available in the repository itself).</details>
+Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/jbnevYn6z) program, also available in the repository itself).</details>
 
 <a name="FunctionType_t"></a><details><summary>FunctionType_t</summary>
 ```C++
 template <TRAITS_FUNCTION_C F>
 using FunctionType_t;
 ```
-Type alias identical to "F" itself unless "F" is a functor (i.e., "IsFunctor_v" returns true), in which case it's a type alias for the "operator()" member of the functor (to retrieve the functor type itself in this case, see [MemberFunctionClass_t](#memberfunctionclass_t)).</details>
+Type alias identical to "F" itself unless "F" is a functor (i.e., [IsFunctor_v](#isfunctor_v) returns true), in which case it's a type alias for the "operator()" member of the functor (to retrieve the functor type itself in this case see [MemberFunctionClass_t](#memberfunctionclass_t)).</details>
 
 <a name="FunctionTypeName_v"></a><details><summary>FunctionTypeName_v</summary>
 ```C++
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool FunctionTypeName_v;
 ```
-Same as "FunctionType_t" just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details).</details>
+Same as [FunctionType_t](#functiontype_t) just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details).</details>
 
 <a name="IsEmptyArgList_v"></a><details><summary>IsEmptyArgList_v</summary>
 ```C++
@@ -438,7 +438,7 @@ inline constexpr bool IsFunctor_v;
 template <TRAITS_FUNCTION_C F>
 inline constexpr bool IsMemberFunction_v;
 ```
-"bool" variable set to "true" if "F" is a non-static member function (including when "F" is a functor), or "false" otherwise (if you need to specifically check for functors only then see "IsFunctor_v" just above). Note that you may need to invoke this before accessing the following helper templates. Since the following are applicable to non-static member functions only, if you don't know whether "F" is a non-static member function ahead of time (or a functor), then you should normally call "IsMemberFunction_v" to determine this first. If it's "false" then "F" is a free function (which includes static member functions), so a call to any of the following will result in default values being returned that aren't applicable to free functions (so you shouldn't normally invoke them unless you're ok with the default values they return for free functions):<br /><br />- [IsMemberFunctionConst_v](#ismemberfunctionconst_v)<br />- [IsMemberFunctionVolatile_v](#ismemberfunctionvolatile_v)<br />- [MemberFunctionClass_t](#memberfunctionclass_t)<br />- [MemberFunctionClassName_v](#memberfunctionclassname_v)<br />- [MemberFunctionRefQualifier_v](#memberfunctionrefqualifier_v)<br />- [MemberFunctionRefQualifierName_v](#memberfunctionrefqualifiername_v)</details>
+"bool" variable set to "true" if "F" is a non-static member function (including when "F" is a functor), or "false" otherwise (if you need to specifically check for functors only then see [IsFunctor_v](#isfunctor_v). Note that you may need to invoke this before accessing the following helper templates. Since the following are applicable to non-static member functions only, if you don't know whether "F" is a non-static member function ahead of time (or a functor), then you should normally call "IsMemberFunction_v" to determine this first. If it's "false" then "F" is a free function (which includes static member functions), so a call to any of the following will result in default values being returned that aren't applicable to free functions (so you shouldn't normally invoke them unless you're ok with the default values they return for free functions):<br /><br />- [IsMemberFunctionConst_v](#ismemberfunctionconst_v)<br />- [IsMemberFunctionVolatile_v](#ismemberfunctionvolatile_v)<br />- [MemberFunctionClass_t](#memberfunctionclass_t)<br />- [MemberFunctionClassName_v](#memberfunctionclassname_v)<br />- [MemberFunctionRefQualifier_v](#memberfunctionrefqualifier_v)<br />- [MemberFunctionRefQualifierName_v](#memberfunctionrefqualifiername_v)</details>
 
 <a name="IsMemberFunctionConst_v"></a><details><summary>IsMemberFunctionConst_v</summary>
 ```C++
@@ -487,7 +487,7 @@ If "F" is a non-static member function (or a functor), a type alias for the type
 template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view MemberFunctionClassName_v;
 ```
-Same as "MemberFunctionClass_t" just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details).</details>
+Same as [MemberFunctionClass_t](#memberfunctionclass_t) just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details).</details>
 
 <a name="MemberFunctionRefQualifier_v"></a><details><summary>MemberFunctionRefQualifier_v</summary>
 ```C++
@@ -502,7 +502,7 @@ template <TRAITS_FUNCTION_C F,
           bool UseAmpersands = true>
 inline constexpr tstring_view MemberFunctionRefQualifierName_v;
 ```
-Same as "MemberFunctionRefQualifier_v" just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details). Note that this template also takes an extra template arg besides function "F", a "bool" called "UseAmpersands", indicating whether the returned string should be returned as "&" or "&&" (if the function is declared with an "&" or "&&" reference qualifier respectively), or "LValue" or "RValue" otherwise. Defaults to "true" if not specified (returns "&" or "&&" by default). Not applicable however if no reference qualifiers are present ("None" is always returned).</details>
+Same as [MemberFunctionRefQualifier_v](#memberfunctionrefqualifier_v) just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details). Note that this template also takes an extra template arg besides function "F", a "bool" called "UseAmpersands", indicating whether the returned string should be returned as "&" or "&&" (if the function is declared with an "&" or "&&" reference qualifier respectively), or "LValue" or "RValue" otherwise. Defaults to "true" if not specified (returns "&" or "&&" by default). Not applicable however if no reference qualifiers are present ("None" is always returned).</details>
 
 <a name="ReturnType_t"></a><details><summary>ReturnType_t</summary>
 ```C++
@@ -516,7 +516,7 @@ Type alias for the return type of function "F".</details>
 template <TRAITS_FUNCTION_C F>
 inline constexpr tstring_view ReturnTypeName_v;
 ```
-Same as "ReturnType_t" just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details). A float would therefore be (literally) returned as "float" for instance (quotes not included).</details>
+Same as [ReturnType_t](#returntype_t) just above but returns this as a (WYSIWYG) string (of type "tstring_view" - see [TypeName_v](#typename_v) for details). A float would therefore be (literally) returned as "float" for instance (quotes not included).</details>
 
 <a name="TypeName_v"></a><details><summary>TypeName_v</summary>
 ```C++
@@ -609,7 +609,7 @@ If "F" is a non-static member function, yields a type alias for "F" after removi
 <a name="MemberFunctionReplaceClass_t"></a><details><summary>MemberFunctionReplaceClass_t</summary>
 ```C++
 template <TRAITS_FUNCTION_C F,
-          typename NewClassT>
+          IS_CLASS_C NewClassT>
 using MemberFunctionReplaceClass_t;
 ```
 If "F" is a non-static member function, yields a type alias for "F" after replacing the class this function belongs to with "NewClassT". If "F" is a free function including static member functions, yields "F" itself (effectively does nothing since a "class" applies to non-static member functions only so will never be present otherwise - note that due to limitations in C++ itself, replacing the class for static member functions is not supported).</details>
@@ -683,3 +683,9 @@ Note that "FunctionTraits" is not a canonical C++ "traits" class that would like
 While I'm not a member of the C++ committee, it seems very likely that a "canonical" implementation for inclusion in the standard itself likely wouldn't (or might not) address certain features, like calling conventions since they don't currently exist in the C++ standard as described earlier (unless it's ever added at some point). It's also unlikely to support all the variations of pointers and reference types (and/or possibly functors) that "FunctionTraits" handles. In the real world however function types include calling conventions so they need to be detected by a function traits library (not just the default calling convention), and programmers are also often working with raw function types or pointers to functions or functors (or references to functions or references to pointers to functions though these are typically encountered less frequently). For non-static member functions in particular pointers to member functions are the norm. In fact, for non-static member functions, almost nobody in the real world ever works with their actual (non-pointer) function type. I've been programming in C++ for decades and don't recall a single time I've ever worked with the actual type of one. You work with pointers to non-static member functions instead when you need to, such as **void (YourClass::*)()**. Even for free functions (which for our purposes also includes static member functions), since the name of a free function decays into a pointer to the function in most expressions, you often find yourself working with a pointer to such functions, not the actual function type (though you do work with the actual function type sometimes, unlike for non-static member functions which is extremely rare in the real world). Supporting pointers and references to functions and even references to pointers to functions therefore just make things easier even if some consider it unclean (I don't). A practical traits struct should just make it very easy to use without having to manually remove things using "std::remove_pointer" and/or "std::remove_reference" first (which would be required if such a traits struct was designed to handle pure C++ function types only, not pointers and references to function types or even references to pointers). It's just easier and more flexible to use it this way (syntatically cleaner). Some would argue it's not a clean approach but I disagree. It may not be consistent with how things are normally done in the standard itself (again, I suspect it might only handle raw function types only), but it better deals with the real-world needs of most developers IMHO (so it's "clean" because its syntax is designed to cleanly support that).
 
 Lastly, note that "FunctionTraits" doesn't support the so-called [abominable function types](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html). These are simply non-static member function types (not pointers to such types but the actual raw C++ type) with cv ("const" and/or "volatile") and/or reference qualifiers (& and &&). For full details, see the comments preceding "Private::IsFreeFunction" in the "TypeTraits.h" header. Abominable functions are arguably a flawed feature of the C++ type system, and a wider discussion of them isn't warranted here. The bottom line is that most programmers will never encounter them throughout their entire career, and for practical reasons (not discussed here), their lack of support by "FunctionTraits" makes its design cleaner and easier to use. "FunctionTraits" will therefore reject such functions via a concept in C++20 or later (possibly depending on the context), or a "static_assert" otherwise (always in C++17). Instead, non-static member functions are always handled using mainstream pointer-to-member function syntax. Raw C++ function types are always treated as free functions by "FunctionTraits" (which includes static member functions for our purposes), so if you pass a raw C++ function type (i.e., an actual function type and not a pointer or reference to such a type), no cv or ref qualifiers are allowed on that type (i.e., abominable functions aren't supported), since free functions don't have such qualifiers. They're only legal in C++ for non-static member functions. Passing an abominable function is therefore considered illegal by "FunctionTraits" even though it's a valid C++ function type (but they're "abominable" nevertheless so we don't support them because the design is cleaner and easier to use when we don't - in the real-world almost nobody will care).
+
+### Footnotes
+[^1]: GCC V10.2 or later (or any GCC compatible compiler based on the presence of the #defined constant \_\_GNUC\_\_)
+[^2]: Microsoft Visual C++ V19.16 or later for [Read traits](#readtraits) (compiler normally installed with Visual Studio 2017 V15.9 or later), or V19.20 or later for [Write traits](#writetraits) (compiler normally installed with Visual Studio 2019 or later). Note that [Write traits](#writetraits) are unavailable in Visual Studio 2017 releases of VC++ due to compiler bugs in those versions.
+[^3]: Clang V11.0 or later. Note that [Microsoft Visual C++ compatibility mode](https://clang.llvm.org/docs/MSVCCompatibility.html) is also supported.
+[^4]: Intel oneAPI DPC++/C++ V2021.4.0 or later. Note that [Microsoft Visual C++ compatibility mode](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2023-2/microsoft-compatibility.html) is also supported.
