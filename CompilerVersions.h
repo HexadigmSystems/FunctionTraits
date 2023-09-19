@@ -99,7 +99,7 @@
 #elif defined(_MSC_VER) // See https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
                         //     https://devblogs.microsoft.com/cppblog/visual-c-compiler-version/
                         // Note: __INTEL_COMPILER identifies the classic Intel compiler which
-                        //       is now deprecated by Intel (so we longer support it)  
+                        //       is now deprecated by Intel (so we longer support it)
     #define MICROSOFT_COMPILER _MSC_VER
 #else
     #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
@@ -330,7 +330,7 @@
     // you normally shouldn't pass _MSC_VER and _MSC_FULL_VER directly
     // as seen in this example, since the constants described just
     // below are easier - read on):
-    // 
+    //
     //     // Displays "19.20.27508"
     //     tcout << MSC_GET_VER_MAJOR(_MSC_VER) << "." <<
     //              MSC_GET_VER_MINOR(_MSC_VER) << "." <<
@@ -383,20 +383,20 @@
     // at the following link (though I've changed the build number in
     // their example from "00" to "03" to reduce possible confusion -
     // "00" not an ideal choice for an example):
-    // 
+    //
     //    Predefined macros
     //    https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170&redirectedfrom=MSDN
-    // 
+    //
     // Then given the above (example) where the version number is
     // 15.03.20706.01, the predefined Microsoft constants would be:
     //
     //    _MSC_VER = 1503 (major and minor number)
     //    _MSC_FULL_VER = 150320706 (major, minor and build number)
     //    _MSC_BUILD  = 1 (revision number)
-    // 
+    //
     // The major, minor, build and revision numbers are then
     // extracted from the above to populate these constants.
-    // 
+    //
     //     Example (using the above values)
     //     --------------------------------
     //     // Displays "15.3.20706.1"
@@ -428,7 +428,7 @@
     //
     //     Microsoft Visual C++
     //     https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering
-    // 
+    //
     //     Pre-defined Compiler Macros (Note: no longer being updated!)
     //     https://sourceforge.net/p/predef/wiki/Compilers/
     //
@@ -672,7 +672,7 @@ namespace StdExt
         // but for now the following is the only type we ever
         // use (but we can add more using statements later on
         // an as-needed basis).
-        // 
+        //
         // Lastly, we could convert all functions, etc. that
         // deal with TCHARs into templates instead, with a
         // template arg specifying the character type, but

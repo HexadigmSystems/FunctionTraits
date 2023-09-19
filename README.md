@@ -1,14 +1,14 @@
 # FunctionTraits
 ## C++ function traits library (single header-only) for retrieving info about any function (arg types, arg count, return type, etc.). Clean and easy-to-use, the most "complete" implementation on the web.
 
-See [here](https://godbolt.org/z/jbnevYn6z) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
+See [here](https://godbolt.org/z/zz5jcnbGP) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
 
 "FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a natural extension to the C++ standard itself, whose [<type_traits>](https://en.cppreference.com/w/cpp/header/type_traits) header offers almost no support for handling function traits, save for [std::is_function](https://en.cppreference.com/w/cpp/types/is_function) and [std::is_member_function_pointer](https://en.cppreference.com/w/cpp/types/is_member_function_pointer) (and one or two other borderline cases). It's also a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike any other implementation you'll normally find at this writing, which usually fail to address one or more issues (including the Boost implementation - read on). Many (actually most) of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on "stackoverflow.com" for instance. Only a small handful are more complete and far fewer are reasonably complete, though still missing at least one or two features, in particular calling convention support (again, read on).
- 
+
 Some have even written articles on the subject but still don't address various issues. Some of these issues are obvious (or should be), such as failing to detect functions declared as "noexcept" (part of a function's type since C++17), or const and/or volatile non-static member functions (usually "const" in practice), or variadic functions (those whose arguments end with "..."), or function pointers with cv-qualifiers (the pointers themselves are "const" and/or "volatile"), among other things (often resulting in a lot of cryptic compiler errors).
 
 Some are less obvious, like failing to detect non-static [Member functions with ref-qualifiers](https://en.cppreference.com/w/cpp/language/member_functions#Member_functions_with_ref-qualifier) (rarely used but still required for completeness), or much more prominently (and important usually), functions with calling conventions other than the default (usually "cdecl"), which isn't addressed in the C++ standard itself (and a bit more tricky to implement than it first appears as far as creating a functions traits class is concerned). With the exception of the one from Boost ("boost::callable_traits"), whose own support for calling conventions is limited and even discouraged by the author's internal comments (and not on by default or even officially documented - more on this later), I have yet to see any other implementation address calling conventions at all, even in the (very) few other (mostly) "complete" solutions for handling function traits that are out there (that I've ever come across). Without (mainstream) calling convention support however, all functions in the entire Microsoft Windows API would fail to be detected for instance, since it's almost entirely based on the "stdcall" calling convention. Again, the result is usually a lot of cryptic compiler errors.
- 
+
 "FunctionTraits" does address all these issues however. It provides traits info about every (mainstream) aspect of any function within the limitations of what C++ currently supports (or easily supports), and allows you to change every trait as well, where applicable (including function parameter types, which will be rarely used by most but no other implementation I've seen at this writing supports it, including the one from Boost). You can currently obtain and/or change (where applicable) the following information:
 
 1. `Return type` - Function's return type and/or its name as a WYSIWYG string (std::basic_string_view)
@@ -122,7 +122,7 @@ using SomeFuncArg3Type_t = typename SomeFuncTraits::template Args<2>::Type;
 // associated with "FunctionTraits". See its entry in the
 // "Helper templates" section later.
 ////////////////////////////////////////////////////////////////
-constexpr auto SomeFuncArg3TypeName = TypeName_v<SomeFuncArg3Type_t>; 
+constexpr auto SomeFuncArg3TypeName = TypeName_v<SomeFuncArg3Type_t>;
 
 /////////////////////////////////////////////////////////////////
 // Though few will rarely need to update a function trait (most
@@ -315,7 +315,7 @@ const auto displayArgType = []<std::size_t I, typename ArgTypeT>()
                                 // and "TCHAR" in "CompilerVersions.h" (for non-Microsoft
                                 // platforms but those targeting Microsoft may wish to
                                 // review this as well).
-                                ////////////////////////////////////////////////////////// 
+                                //////////////////////////////////////////////////////////
                                 tcout << TypeName_v<ArgTypeT> << _T("\n");
 
                                 //////////////////////////////////////////////
@@ -345,7 +345,7 @@ Finally, please note that each template below simply wraps the corresponding mem
 
 <a name="ReadTraits"></a>
 ### _Read traits_
-  
+
 <a name="ArgCount_v"></a><details><summary>ArgCount_v</summary>
 ```C++
 template <TRAITS_FUNCTION_C F>
@@ -359,7 +359,7 @@ template <TRAITS_FUNCTION_C F,
           std::size_t I>
 using ArgType_t;
 ```
-Type alias for the type of the "Ith" arg in function "F", where "I" is in the range 0 to the number of (non-variadic) arguments in "F" minus 1 (see [ArgCount_v](#argcount_v) just above). Pass "I" as the (zero-based) 2nd template arg (see earlier examples). Note that if "I" is greater than or equal to the number of args in "F" (again, see [ArgCount_v](#argcount_v) just above), then a compiler error will occur (so if "F" has no non-variadic args whatsoever, a compiler error will always occur, even if passing zero).</details>
+Type alias for the type of the "Ith" arg in function "F", where "I" is in the range 0 to the number of (non-variadic) arguments in "F" minus 1 (see [ArgCount_v](#argcount_v) just above). Pass "I" as the (zero-based) 2nd template arg (see earlier examples). Note that if "I" is greater than or equal to the number of args in "F" (again, see [ArgCount_v](#argcount_v) just above), then a "static_assert" will trigger (so if "F" has no non-variadic args whatsoever, a "static_assert" will always trigger, even if passing zero).</details>
 
 <a name="ArgTypeName_v"></a><details><summary>ArgTypeName_v</summary>
 ```C++
@@ -396,7 +396,7 @@ template <TRAITS_FUNCTION_C F,>
           FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
 inline constexpr bool ForEachArg(ForEachTupleFunctorT &&);
 ```
-Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/jbnevYn6z) program, also available in the repository itself).</details>
+Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "F" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "ForEachArg()" in "TypeTraits.h" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/zz5jcnbGP) program, also available in the repository itself).</details>
 
 <a name="FunctionType_t"></a><details><summary>FunctionType_t</summary>
 ```C++

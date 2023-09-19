@@ -46,7 +46,7 @@
 
 //////////////////////////////////////////////////////////////
 // This header supports C++17 and later only. All code below
-// ignored otherwise (preprocessed out). 
+// ignored otherwise (preprocessed out).
 //////////////////////////////////////////////////////////////
 #if CPP17_OR_LATER
 
@@ -59,7 +59,7 @@
 // by the following call instead since they claim to be GCC
 // compatible) ...
 //////////////////////////////////////////////////////////////
-#if defined(GCC_COMPILER)
+#if defined(GCC_COMPILER)  
     ///////////////////////////////////////////////////
     // We only support GCC >= 10.2. Abort compilation
     // otherwise.
@@ -125,7 +125,7 @@
             // #include <StopCompilingNow> hack used for the
             // other compilers (above and below). See:
             //
-            //     #error directive (C/C++) 
+            //     #error directive (C/C++)
             //     https://learn.microsoft.com/en-us/cpp/preprocessor/hash-error-directive-c-cpp?view=msvc-170
             ////////////////////////////////////////////////////
             #error "Unsupported version of Microsoft Visual C++ detected. Must be >= V19.16 (normally released with VS2017 V15.9). This header doesn't support earlier versions."
@@ -158,7 +158,7 @@
 #endif
 
 // Standard C/C++ headers
-#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <string_view>
 #include <tuple>
@@ -220,19 +220,19 @@ inline constexpr bool AlwaysTrue = true;
 /////////////////////////////////////////////////////////////////////
 namespace Private
 {
-    /////////////////////////////////////////////////////
-    // The following function is only required due to a
-    // MSFT bug in the VS2017 release of VC++ (details
+    ///////////////////////////////////////////////////////
+    // Identical to "tstring_view::operator==()" but this
+    // has a bug in the VS2017 release of VC++ (details
     // don't matter since VS2017 is getting old now
-    // anyway). The bug was fixed in the VS2019 release
-    // of VC++. If (when) the VS2017 release of VC++ is
-    // eventually dropped, the function can be removed
-    // and calls to it can simply be replaced with a
-    // call to "str1 == str2" (i.e., the first return
-    // statement in the function below)
-    /////////////////////////////////////////////////////
-    static inline constexpr bool IsEqualTo(tstring_view str1,
-                                           tstring_view str2) noexcept
+    // anyway). The bug was fixed in the VS2019 release of
+    // VC++. If (when) the VS2017 release of VC++ is
+    // eventually dropped, the function can be removed and
+    // calls to it can simply be replaced with a call to
+    // "str1 == str2" (i.e., the first return statement
+    // seen below).
+    ///////////////////////////////////////////////////////
+    inline constexpr bool IsEqualTo(tstring_view str1,
+                                    tstring_view str2) noexcept
     {
         ////////////////////////////////////////////////
         // Any compiler other than VC++ from Microsoft
@@ -267,291 +267,517 @@ namespace Private
         #endif
     };
 
-    //////////////////////////////////////////////////////////////////////
-    // Implementation class for variable template "TypeName_v" declared
-    // just after this class but outside of this "Private" namespace (so
-    // for public use). The latter variable just invokes static member
-    // "Get()" below which carries out all the work. See "TypeName_v" for
-    // complete details.        
-    //
-    // IMPORTANT:
-    // ---------
-    // Note that the implementation below relies on the predefined string
-    // __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__
-    // (Google these for details). All implementations you can find on
-    // the web normally rely on these as does our own "Get()" member
-    // below, but unlike most other implementations I've seen, ours
-    // doesn't require any changes should you modify any part of the
-    // latter function's fully-qualified name or signature (affecting the
-    // value of the above predefined strings). Most other implementations
-    // I've seen would require changes, even though they should normally
-    // be very simple changes (trivial usually but changes nevertheless).
-    // Our implementation doesn't require any so users can move the
-    // following code to another namespace if they wish, change the
-    // function's class name and/or any of its member functions without
-    // breaking anything (well, except for its "noexcept" specifier on
-    // MSFT platforms only, but nobody will ever need to change this
-    // anyway, regardless of platform). Note that the code is fairly
-    // small and clean notwithstanding first impressions, lengthy only
-    // because of the many comments (the code itself is fairly short and
-    // digestible however). It will only break normally if a compiler
-    // vendor makes a breaking change to __PRETTY_FUNCTION__ or (when
-    // _MSC_VER is #defined) __FUNCSIG__, but this will normally be
-    // caught by judicious use of "static_asserts" in the implementation
-    // and just after the following class itself (where we arbitrarily
-    // test it with a float to make sure it returns "float", a quick and
-    // dirty test but normally reliable).
-    //////////////////////////////////////////////////////////////////////
-    class TypeNameImpl
+    /////////////////////////////////////////////////
+    // Identical to "tstring_view::ends_with()" but
+    // this member isn't "constexpr" until C++20.
+    // The following function is constexpr so it can
+    // be called in earlier versions of C++.
+    /////////////////////////////////////////////////
+    inline constexpr bool EndsWith(tstring_view str,
+                                   tstring_view suffix) noexcept
     {
-    public:
-        ////////////////////////////////////////////////////////////////////
-        // Implementation function called by variable template "TypeName_v"
-        // just after the "Private" namespace this class is declared in.
-        // The following function does all the work. See "TypeName_v" for
-        // details.
-        ////////////////////////////////////////////////////////////////////
-        template <typename T>
-        static constexpr tstring_view Get() noexcept
-        {
-            //////////////////////////////////////////////////////////
-            // Extract template arg "T" (whatever string it resolves
-            // to) from __PRETTY_FUNCTION__ or (for MSFT only)
-            // __FUNCSIG__. Returns it as a "tstring_view" which
-            // remains alive for the life of the app (since it's just
-            // a view into the latter string which is always
-            // statically defined).
-            //////////////////////////////////////////////////////////
-            return GetPrettyFunction<T>().substr(GetTypeNameOffset<T>(), // Offset of type "T" in __PRETTY_FUNCTION__
-                                                                         // or (when _MSC_VER is #defined) __FUNCSIG__
-                                                 GetTypeNameLen<T>()); // Length of type "T" in __PRETTY_FUNCTION__
-                                                                       // or (when _MSC_VER is #defined) __FUNCSIG__
-        }
+        #if CPP20_OR_LATER
+            // Not available until C++20
+            return str.ends_with(suffix);
+        #else
+            ///////////////////////////////////////////////////////
+            // Roll our own in C++17 (no earlier version possible
+            // at this stage - checked for CPP17_OR_LATER at top
+            // of file and preprocessed out any earlier versions).
+            ///////////////////////////////////////////////////////
+            return str.size() >= suffix.size() &&
+                   IsEqualTo(str.substr(str.size() - suffix.size()),
+                             suffix);
+        #endif
+    }
 
-    private:
-        ///////////////////////////////////////////////////////////////////////////////////
-        // GetPrettyFunction(). Returns the predefined string constant __PRETTY_FUNCTION__
-        // or (for MSFT) __FUNCSIG__ (the latter if _MSC_VER is #defined so it applies
-        // to non-Microsoft compilers as well when running in Microsoft VC++ compatibility
-        // mode - see "Non-Microsoft compilers targeting Windows" further below).
-        // Returns these as a "tstring_view" which lives for the life of the app (since
-        // it's just a view into the latter strings which are always statically
-        // defined). Assuming template arg "T" is a float for instance, each resolves to
-        // the following (where the first three rows show the offsets in the strings for
-        // your guidance only, and the rows just after show the actual value of the above
-        // strings for the compilers we currently support). Note that each string
-        // originates from __PRETTY_FUNCTION__ if _MSC_VER is not #defined or __FUNCSIG__
-        // otherwise (note that when non-Microsoft compilers are running in Microsoft
-        // compatibility VC++ mode then _MSC_VER will always be #defined so we rely on
-        // __FUNCSIG__ as noted, but __PRETTY_FUNCTION__ is still #defined by those
-        // compilers as well, even though the format differs from __FUNCSIG__ a bit - we
-        // just ignore __PRETTY_FUNCTION__ altogether however)
+    ////////////////////////////////////////////////////////////
+    // Converts "str" to a "std::array" consisting of all chars
+    // in "str" at the indexes specified by the 2nd arg (a
+    // collection of indexes in "str" indicating which chars in
+    // "str" will be copied into the array). The size of the
+    // returned "std::array" is therefore the number of indexes
+    // in the 2nd arg, and the array itself is populated with
+    // all chars in "str" at these particular indexes. The type
+    // of the returned array is therefore this:
+    //
+    //    std::array<TCHAR, sizeof...(I)>
+    //
+    // Note that in practice this function is usually called to
+    // convert an entire constexpr string to a "std::array" so
+    // the function is usually called this way:
+    //
+    //     // Any "constexpr" string
+    //     constexpr tstring_view str = _T("Testing");
+    //
+    //     ///////////////////////////////////////////////////////
+    //     // Convert above to a "std::array". The 2nd arg is
+    //     // just the sequential sequence {0, 1, 2, ..., N - 1}
+    //     // where "N" is "str.size()" so all chars in "str" are
+    //     // copied over (in the expected order 0 to N - 1).
+    //     ///////////////////////////////////////////////////////
+    //     constexpr auto array = StrToArray(str, std::make_index_sequence<str.size()>());
+    //
+    // The 2nd arg above is therefore just the sequence of
+    // (std::size_t) integers in the range 0 to the number of
+    // characters in "str" - 1. The function therefore returns
+    // a "std::array" containing a copy of "str" itself since
+    // the 2nd arg specifies every index in "str" (so each
+    // character at these indexes is copied to the array). The
+    // returned type in the above example is therefore this:
+    //
+    //     std::array<TCHAR, 7>;
+    //
+    // Having to pass "std::make_index_sequence" as seen above
+    // is syntactically ugly however. It's therefore cleaner to
+    // call the other "StrToArray" overload just below instead,
+    // which is designed for this purpose (when copying all of
+    // "str" - see this overload for details). It simply defers
+    // to the overload you're now reading but it's a bit cleaner.
+    //
+    // Even this cleaner overload is still syntactically ugly
+    // however (both overloads are), but unfortunately C++
+    // doesn't support "constexpr" parameters at this writing
+    // which would eliminate the issue. The issue is that the
+    // 2nd template arg of "std::array" is the size of the
+    // array itself and this arg must be known at compile-time
+    // of course (since it's a template arg). Since the "str"
+    // parameter of both overloads isn't "constexpr" however
+    // (since the language doesn't currently support
+    // "constexpr" parameters), neither function can pass
+    // "str.size()" as the 2nd template parameter to
+    // "std::array" even though "str" itself may be "constexpr"
+    // at the point of call. It means that when "str" is
+    // "constexpr" at the point of call, the user is forced to
+    // pass "str.size()" as a template parameter at the point
+    // of call since the function itself can't legally do it
+    // (it can't pass it as the 2nd template arg of
+    // "std::array" - it must therefore be passed at the point
+    // of call instead which makes the syntax of these
+    // functions unnatural). The situation is ugly and unwieldy
+    // since it would much cleaner and natural to just grab the
+    // size from "str.size()" inside the function itself but
+    // the language doesn't allow it.
+    //
+    // The upshot is that the following overload is designed to
+    // circumvent this C++ deficiency but will rarely be called
+    // directly by most users (unless it's needed to copy a
+    // different sequence of characters from "str" to the
+    // returned array other than all of them). If you need to
+    // copy all of "str" to the returned array (usually the
+    // case) then it's cleaner to call the other overload just
+    // below instead. See this for details.
+    ////////////////////////////////////////////////////////////
+    template <std::size_t...I>
+    inline constexpr auto StrToArray(tstring_view str, std::index_sequence<I...>) noexcept
+    {
+        ///////////////////////////////////////////////////////////
+        // Create a "std::array" and initialize to all chars in
+        // "str" (so effectively copied). Note BTW that we can't
+        // rely on CTAD (Class Template Argument Deduction) to
+        // determine the type of the returned "std::array" since
+        // it will fail if "I" is an empty parameter pack (but
+        // works otherwise). If we simply returned the following
+        // for instance (i.e., rely on CTAD by not explicitly
+        // passing the "std::array" template args):
         //
-        //                                                                                                                                       1         1         1         1         1
-        //                                             1         2         3         4         5         6         7         8         9         0         1         2         3         4
-        //                                   0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
-        //   GCC (1 of 2 - described below): static constexpr auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [with T = float]
-        //   GCC (2 of 2 - described below): static constexpr tstring_view StdExt::Private::TypeNameImpl::GetPrettyFunction() [with T = float; tstring_view = std::basic_string_view<char>]
-        //   Clang:                          static auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [T = float]
-        //   Clang (if _MSC_VER #defined):   static auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction(void) [T = float]
-        //   Intel:                          static auto StdExt::Private::TypeNameImpl::GetPrettyFunction() [T = float]
-        //   Intel (if _MSC_VER #defined):   static auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction(void) [T = float]
-        //   Microsoft VC++:                 auto __cdecl StdExt::Private::TypeNameImpl::GetPrettyFunction<float>(void) noexcept
+        //     return std::array{str[I]...};  
+        //
+        // Then the type of "std:array" would resolve to this
+        // (where "N" is the number of (std::size_t) integers in
+        // parameter pack "I"):
+        //  
+        //     std::array<TCHAR, N>;
+        //
+        // We fill the array in using pack expansion so if "I" is
+        // {0, 1, 2} for instance (though it doesn't have to be
+        // in sequential order but most will call it that way),
+        // then it resolves to the following:
+        //
+        //     return std::array<TCHAR, 3>{str[0], str[1], str[2]};
+        //
+        // However if "I" is empty then compiler errors result
+        // indicting that the template args for "std::array" can't
+        // be deduced. We're therefore forced to explicitly pass
+        // them even though for our purposes we never call this
+        // (internal) function with an empty "I" (but to make
+        // things clean we'll handle it anyway - no big deal to
+        // explicitly pass them noting that if "I" were in fact
+        // empty then an empty array would be returned as
+        // expected).
+        ///////////////////////////////////////////////////////////
+        return std::array<TCHAR, sizeof...(I)>{str[I]...};
+    }
+
+    ////////////////////////////////////////////////////////////
+    // See other overload just above. The following overload
+    // just defers to it in order to convert "str" to a
+    // "std::array" which it then returns. This overload exists
+    // to clean up the syntax of the other overload a bit when
+    // you need to convert the entire "str" to a "std::array"
+    // as most will usually be doing (though to copy any other
+    // sequence of characters from "str" to a "std::array"
+    // you'll need to call the above overload directly instead,
+    // passing the specific indexes in "str" you wish to copy -
+    // for purposes of "FunctionTraits we never need to).
+    //
+    // Note that as explained in the other overload above, the
+    // syntax for both overloads is ugly due to "constexpr"
+    // shortcomings in current versions of C++. The following
+    // overload is nevertheless a bit cleaner than the one
+    // above however (for converting all of "str" to a
+    // "std::array")
+    //
+    //     Example
+    //     -------
+    //     // Any "constexpr" string
+    //     constexpr tstring_view str = _T("Testing");
+    //
+    //     /////////////////////////////////////////////////
+    //     // The type of "array" returned by this example
+    //     // is therefore:
+    //     //
+    //     //      std::array<TCHAR, 7>
+    //     //
+    //     // Note that "str.size()" should always be
+    //     // passed as the 1st template arg but having to
+    //     // do this is ugly and even potentially brittle
+    //     // if a different value is passed. Until C++
+    //     // supports "constexpr" parameters however (if
+    //     // ever), we'll have to live with it for now
+    //     // (since the function can't pass this on its
+    //     // own - it must be passed as a template arg
+    //     // at the point of call)
+    //     /////////////////////////////////////////////////
+    //     constexpr auto array = StrToArray<str.size()>(str);
+    ////////////////////////////////////////////////////////////
+    template <std::size_t Size> // Always pass "str.size()"
+    inline constexpr auto StrToArray(tstring_view str) noexcept
+    {
+        ////////////////////////////////////////////////
+        // Defer to overload just above, passing all
+        // indexes in the array via the 2nd arg (so zero
+        // to the number of indexes in "str" - 1). Note
+        // that the "Size" template arg must always be
+        // "str.size()" (callers should always call us
+        // this way - see function comments above)
+        ////////////////////////////////////////////////
+        return StrToArray(str, std::make_index_sequence<Size>());
+    }
+
+    ///////////////////////////////////////////////////////////////
+    // "TypeNameImplBase". Base class of "TypeNameImpl" that
+    // follows just after it. Latter class is a template but the
+    // following class isn't. Therefore contains functions that
+    // don't depend on template arg "T" of "TypeNameImpl" so no
+    // need to declare them there. "TypeNameImpl" simply inherits
+    // from the following class instead and defers to it to carry
+    // out the actual work (of extracting the type name for its
+    // "T" template arg from __PRETTY_FUNCTION__ or (on MSFT
+    // platforms) __FUNCSIG__)
+    ///////////////////////////////////////////////////////////////
+    class TypeNameImplBase
+    {
+    protected:
+        //////////////////////////////////////////////////////////////////
+        // *** IMPORTANT ***
+        //
+        // Must be declared before 1st use or compilation will fail in
+        // some compilers (declaration order of function templates
+        // matters).
+        //
+        // GetPrettyFunction(). Returns the predefined string constant
+        // __PRETTY_FUNCTION__ or (for MSFT) __FUNCSIG__ (the latter if
+        // _MSC_VER is #defined so it also applies to non-Microsoft
+        // compilers running in Microsoft VC++ compatibility mode - see
+        // "Non-Microsoft compilers targeting Windows" further below).
+        // Returns these as a "tstring_view" which lives for the life of
+        // the app since it's just a view into the latter strings which
+        // are always statically defined (though compilers will normally
+        // remove these static strings from the final compiled binary if
+        // they determine the returned "tstring_view" is used in a
+        // compile-time only context - they're not used at runtime IOW so
+        // they can safely be removed).
+        //
+        // Assuming template arg "T" is a float for instance, each
+        // resolves to the following at this writing (where the first
+        // three rows show the offsets in the strings for your guidance
+        // only, and the rows just after show the actual value of the
+        // above strings for the compilers we currently support). Note
+        // that each string originates from __PRETTY_FUNCTION__ if
+        // _MSC_VER is not #defined or __FUNCSIG__ otherwise (note that
+        // when non-Microsoft compilers are running in Microsoft VC++
+        // compatibility mode then _MSC_VER will always be #defined so we
+        // rely on __FUNCSIG__ as noted, but __PRETTY_FUNCTION__ is still
+        // #defined by those compilers as well, even though the format
+        // differs from __FUNCSIG__ a bit - we just ignore
+        // __PRETTY_FUNCTION__ altogether in this case however):
+        //                                                                                                                                       1         1         1         1         1         1         1
+        //                                             1         2         3         4         5         6         7         8         9         0         1         2         3         4         5         6
+        //                                   012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+        //   GCC (1 of 2 - described below): static constexpr auto StdExt::Private::TypeNameImplBase::GetPrettyFunction() [with T = float]
+        //   GCC (2 of 2 - described below): static constexpr StdExt::tstring_view StdExt::Private::TypeNameImplBase::GetPrettyFunction() [with T = float; StdExt::tstring_view = std::basic_string_view<char>]
+        //   Clang:                          static auto StdExt::Private::TypeNameImplBase::GetPrettyFunction() [T = float]
+        //   Clang (if _MSC_VER #defined):   static auto __cdecl StdExt::Private::TypeNameImplBase::GetPrettyFunction(void) [T = float]
+        //   Intel:                          static auto StdExt::Private::TypeNameImplBase::GetPrettyFunction() [T = float]
+        //   Intel (if _MSC_VER #defined):   static auto __cdecl StdExt::Private::TypeNameImplBase::GetPrettyFunction(void) [T = float]
+        //   Microsoft VC++:                 auto __cdecl StdExt::Private::TypeNameImplBase::GetPrettyFunction<float>(void) noexcept
         //
         // GCC
-        // ---        
-        // Note that unlike the other compilers, two possible formats exist for GCC as
-        // seen above (the others have one), where the one used depends on the return
-        // type of "GetPrettyFunction()" itself. GCC format "1 of 2" above is the one
-        // currently in effect at this writing since "GetPrettyFunction()" currently
-        // returns "auto", which just resolves to "std::basic_string_view<TCHAR>"
-        // (unless someone changed the return type since this writing which is safely
-        // handled but read on). Because "GetPrettyFunction()" is *not* returning an
-        // alias for another type in this case (it's returning "auto" which is not
-        // treated as an alias by GCC), GCC uses format "1 of 2". If the return type of
-        // "GetPrettyFunction()" is ever changed however so that it returns an alias
-        // instead, such as "tstring_view" seen in "2 of 2" above (which is an alias for
-        // "std::basic_string_view<TCHAR>" - note that TCHAR always resolves to "char"
-        // on GCC), then GCC uses format "2 of 2" above instead. In this case it
-        // includes (resolves) this alias at the end of __PRETTY_FUNCTION__ itself, as
-        // seen. This refers to the "tstring_view = std::basic_string_view<char>"
-        // portion of the "2 of 2" string above. It removes this portion of the string
-        // in "1 of 2" however since the return value of "GetPrettyFunction()" is not
-        // returning an alias in this case but "auto" (or you can change "auto" directly
-        // to "std::basic_string_view<TCHAR>" if you wish since it's still not an
-        // alias). The "tstring_view = std::basic_string_view<char>" portion of the "2
-        // of 2" string is no longer required IOW since there's no "tstring_view" alias
-        // anymore so GCC removes it. The upshot is that the offset to the type we're
-        // trying to extract from __PRETTY_FUNCTION__, a "float" in the above example
-        // but whatever the type happens to be, can change depending on the return type
-        // of "GetPrettyFunction()" itself. Therefore, unlike the case for all other
-        // compilers we currently support, whose offset to the type is always at the
-        // same consistent location from the start of __PRETTY_FUNCTION__ or (when
-        // _MSC_VER is #defined) __FUNCSIG__, we need to check which format is in effect
-        // for GCC in order to protect against possible changes to the return type of
-        // "GetPrettyFunction()" itself. "GetTypeNameOffset()", which calculates the
-        // offset of "T" into the string (offset of "float" in the above examples),
-        // therefore takes this situation into account for GCC only (checking which of
-        // these two formats is in effect).
+        // ---
+        // Note that unlike the other compilers, two possible formats
+        // exist for GCC as seen above (the others have one), where the
+        // one used depends on the return type of "GetPrettyFunction()"
+        // itself. GCC format "1 of 2" above is the one currently in
+        // effect at this writing since "GetPrettyFunction()" currently
+        // returns "auto", which just resolves to
+        // "std::basic_string_view<TCHAR>" (unless someone changed the
+        // return type since this writing which is safely handled but
+        // read on). Because "GetPrettyFunction()" is *not* returning an
+        // alias for another type in this case (it's returning "auto"
+        // which is not treated as an alias by GCC), GCC uses format "1
+        // of 2". If the return type of "GetPrettyFunction()" is ever
+        // changed however so that it returns an alias instead, such as
+        // "tstring_view" seen in "2 of 2" above (which is an alias for
+        // "std::basic_string_view<TCHAR>" - note that TCHAR always
+        // resolves to "char" on GCC), then GCC uses format "2 of 2"
+        // above instead. In this case it includes (resolves) this alias
+        // at the end of __PRETTY_FUNCTION__ itself, as seen. This refers
+        // to the "tstring_view = std::basic_string_view<char>" portion
+        // of the "2 of 2" string above. It removes this portion of the
+        // string in "1 of 2" however since the return value of
+        // "GetPrettyFunction()" is not returning an alias in this case
+        // but "auto" (or you can change "auto" directly to
+        // "std::basic_string_view<TCHAR>" if you wish since it's still
+        // not an alias). The "tstring_view =
+        // std::basic_string_view<char>" portion of the "2 of 2" string
+        // is no longer required IOW since there's no "tstring_view"
+        // alias anymore so GCC removes it. The upshot is that the offset
+        // to the type we're trying to extract from __PRETTY_FUNCTION__,
+        // a "float" in the above example but whatever the type happens
+        // to be, can change depending on the return type of
+        // "GetPrettyFunction()" itself. Therefore, unlike the case for
+        // all other compilers we currently support, whose offset to the
+        // type is always at the same consistent location from the start
+        // of __PRETTY_FUNCTION__ or (when _MSC_VER is #defined)
+        // __FUNCSIG__, we need to check which format is in effect for
+        // GCC in order to protect against possible changes to the return
+        // type of "GetPrettyFunction()" itself. "GetTypeNameOffset()",
+        // which calculates the offset of "T" into the string (offset of
+        // "float" in the above examples), therefore takes this situation
+        // into account for GCC only (checking which of these two formats
+        // is in effect).
         //
-        // Reliance on "float"
-        // -------------------        
-        // Note that float isn't just used for the examples above, it's also used by
-        // members "GetTypeNameOffset()" and "GetTypeNameLen()" below to determine the
-        // offset into each string of the type to extract (i.e., template arg "T",
-        // whatever it resolves to), and the type's length, both of which are called by
-        // member "Get()" above to extract the type name from the string (for template
-        // arg "T"). Since type float always returns "float" for all compilers we
-        // support (which would likely be the case for any other compiler as well
-        // normally, though any type whose string is the same for all supported
-        // compilers would do - read on), we can leverage this knowledge to easily
-        // determine the offset of type "T" in the string and its length, regardless of
-        // what "T" is, without any complicated parsing of the above strings (in order
-        // to locate "T" within the string and determine its length). Note that parsing
-        // would be a much more complicated approach because type "T" itself can
-        // potentially contain any character including angled brackets, square brackets,
-        // equal signs, etc., each of which makes it harder to distinguish between those
-        // particular characters in "T" itself from their use as delimiters in the above
-        // strings (where they aren't part of "T"). It would usually be rare in practice
-        // but can happen. For instance, "T" might be a template type (class) called,
-        // say, "Bracket", with a non-type template arg of type "char" so "Bracket" can
-        // be instantiated (and therefore appear in __PRETTY_FUNCTION__ or __FUNCSIG__)
-        // like so (ignoring the class' namespace if any to keep things simple):
+        // Reliance on "float" to calculate the offset and length
+        // ------------------------------------------------------
+        // Note that float isn't just used for the examples above, it's
+        // also used by members "GetTypeNameOffset()" and
+        // "GetTypeNameLen()" below to determine the offset into each
+        // string of the type name to extract (whatever template arg "T",
+        // resolves to), and the type's length, both of which are called
+        // by member "ExtractTypeNameFromPrettyFunction()" below to
+        // extract the type name from the string. Since type float always
+        // returns "float" for all compilers we support (which will
+        // likely be the case for any future compiler as well normally,
+        // though any type whose string is the same for all supported
+        // compilers will do - read on), we can leverage this knowledge
+        // to easily determine the offset of type "T" in the string and
+        // its length, regardless of what "T" is, without any complicated
+        // parsing of the above strings (in order to locate "T" within
+        // the string and determine its length). Note that parsing would
+        // be a much more complicated approach because type "T" itself
+        // can potentially contain any character including angled
+        // brackets, square brackets, equal signs, etc., each of which
+        // makes it harder to distinguish between those particular
+        // characters in "T" itself from their use as delimiters in the
+        // actual "pretty" strings (when they aren't part of "T"). It
+        // would usually be rare in practice but can happen. For
+        // instance, "T" might be a template type (class) called, say,
+        // "Bracket", with a non-type template arg of type "char" so
+        // "Bracket" can be instantiated (and therefore appear in
+        // __PRETTY_FUNCTION__ or __FUNCSIG__) like so (ignoring the
+        // class' namespace if any to keep things simple):
         //
-        //      Bracket<']'>
-        //      Bracket<'>'>
-        //      Bracket<'='>
-        //      Bracket<';'>
+        //     Bracket<']'>
+        //     Bracket<'>'>
+        //     Bracket<'='>
+        //     Bracket<';'>
         //
-        // This makes it more difficult to parse __PRETTY_FUNCTION__ and __FUNCSIG__
-        // looking for the above type and determining its length because the above
-        // strings contain the same characters used as delimiters elsewhere in
-        // __PRETTY_FUNCTION__ and __FUNCSIG__ (when applicable), so any parsing code
-        // would have to deal with this where required, which is non-trivial. For
-        // example, determining if ']' is part of the type itself or an actual delimiter
-        // in __PRETTY_FUNCTION__ is less simple than it first seems (not rocket science
-        // but a pain).
+        // This makes it more difficult to parse __PRETTY_FUNCTION__ and
+        // __FUNCSIG__ looking for the above type and determining its
+        // length because the above strings contain the same characters
+        // (potentially) used as delimiters elsewhere in
+        // __PRETTY_FUNCTION__ and __FUNCSIG__ (where applicable), so any
+        // parsing code would have to deal with this as required (i.e.,
+        // distinguishing between these characters in "T" itself and
+        // delimiters elsewhere in the "pretty" string is non-trivial).
+        // For example, determining if ']' is part of the type itself or
+        // an actual delimiter in __PRETTY_FUNCTION__ is less simple than
+        // it first appears (not rocket science but a pain nevertheless).
         //
-        // To circumvent having to do this (parse the string to deal with this issue),
-        // there's a much easier alternative. For the offset of "T" itself, note that
-        // for each supported compiler it's always the same regardless of "T" (for that
-        // particular compiler). We can therefore simply rely on a known type like
-        // "float" to determine it, not "T" itself (since the offset to "T" will be the
-        // same as the offset to "float" or any other type for that matter, so we can
-        // arbitrarily just rely on "float" - more on why "float" was chosen later). For
-        // the length of "T" however, we know that for any two different types of "T",
-        // say "int" and "float" (any two types will do), the "pretty" string containing
-        // "int" will be identical to the "pretty" containing "float" except for the
-        // difference between "int" and "float" themselves. That's the only difference
-        // between these "pretty" strings, i.e., one contains "int" and one contains
-        // "float", but the remainder of the "pretty" strings are identical. Therefore,
-        // since the string "int" is 3 characters long and the string "float" is 5
-        // characters long (2 characters longer than "int"), then the length of the
-        // "pretty" string above containing "int" must be shorter than the "pretty"
-        // string containing "float" by 2 characters, since the strings themselves are
-        // identical except for the presence of "int" and "float" (within their
-        // respective strings). So by simply subtracting the length of the "pretty"
-        // string for a "float" from the length of the "pretty" string for any type "T"
-        // (i.e., by simply computing this delta), we know how much longer (positive
-        // delta) or shorter (negative delta) the length of "T" must be compared to a
-        // "float", since the latter is always 5 characters long. We therefore just add
-        // this (positive or negative) delta to 5 to arrive at the length of "T" itself.
-        // For an "int" for instance, the delta is -2 (the length of its "pretty" string
-        // minus the length of the "pretty" string for "float" is always -2), so 5 - 2 =
-        // 3 is the length of an "int". For a type longer than "T" it works the same way
-        // only the delta is positive in this case. If "T" is an "unsigned int" for
-        // instance then the delta is 7 (length of its "pretty" string minus the length
-        // of the "pretty" string for "float" is always 7) so 5 + 7 = 12 is the length
-        // of "unsigned int". We can do this for any arbitrary "T" of course to get its
-        // own length, by simply computing the delta for its "pretty" string in relation
-        // to the "pretty" string for a "float" as described.
+        // To circumvent having to do this (parse the string to deal with
+        // this issue), there's a much easier alternative. For the offset
+        // of "T" itself, note that it's always the same within each
+        // supported compiler regardless of "T" (i.e., the same within
+        // GCC, the same within Microsoft, the same within Clang, etc. -
+        // it will normally be different for each particular compiler of
+        // course but all that matters for our purposes is that it's the
+        // same within each one). Within each particular compiler we can
+        // therefore simply rely on a known type like "float" to
+        // determine it (for that compiler), not "T" itself (since the
+        // offset to "T" for any particular compiler will be the same as
+        // the offset to "float" or any other type for that matter
+        // (within that compiler), so we can arbitrarily just rely on
+        // "float" - more on why "float" was chosen later).
         //
-        // Note that float was chosen over other types we could have used instead since
-        // the name it generates in its own pretty string is always "float" for all our
-        // supported compilers. It's therefore consistent among all supported compilers
-        // and its length is always 5, both situations making it a reliable type to work
-        // with in the code below. In practice however all the fundamental types or even
-        // a particular user-defined type could have been used (each of which normally
-        // generates the same consistent string as well), but going forward "float"
-        // seemed (potentially) less vulnerable to issues like signedness among integral
-        // types, or other potential issues. If an integral type like "int" was chosen
-        // instead for instance (or "char", or "long", etc.), some future compiler (or
-        // compiler option) might display it as "int" within its pretty string as we
-        // would normally expect, but "signed int" or "unsigned int" might also be
-        // possible depending on the default signedness in effect (so not always
-        // consistent among all compilers or possibly even within a given compiler
-        // depending on which compiler options are in effect at the time). Or perhaps a
-        // "double" might be displayed as "double" as normally expected, but "long
-        // double" might also be possible based on some compiler option so potentially
-        // not consistent either. Or perhaps a "bool" might appear as an "unsigned char"
-        // if some backwards compatibility option is turned on for some future compiler
-        // (since bools may have been internally declared that way once-upon-a-time and
-        // someone may turn the option on for backwards compatibility reasons if
-        // required). In reality it doesn't seem likely this is actually going to happen
-        // for any of the fundamental types however, and even "float" itself could
-        // potentially become a "double" (or whatever) under some unknown circumstance
-        // but for now it seems to be potentially more stable than the other fundamental
-        // types so I chose it for that reason only (even if these reasons are a bit
-        // flimsy). It normally works.
+        // While the offset to "T" within the "pretty" string is always
+        // identical no matter what "T" is (within each compiler), the
+        // length of "T" itself will differ of course (depending on what
+        // "T" is). However, we know that for any two different types of
+        // "T", say "int" and "float" (any two types will do), the
+        // "pretty" string containing "int" will be identical to the
+        // "pretty" containing "float" except for the difference between
+        // "int" and "float" themselves. That's the only difference
+        // between these "pretty" strings, i.e., one contains "int" and
+        // one contains "float", but the remainder of the "pretty"
+        // strings are identical. Therefore, since the string "int" is 3
+        // characters long and the string "float" is 5 characters long (2
+        // characters longer than "int"), then the length of the "pretty"
+        // string containing "int" must be shorter than the "pretty"
+        // string containing "float" by 2 characters, since the strings
+        // themselves are identical except for the presence of "int" and
+        // "float" (within their respective strings). So by simply
+        // subtracting the length of the "pretty" string for a "float"
+        // from the length of the "pretty" string for any type "T" (i.e.,
+        // by simply computing this delta), we know how much longer
+        // (positive delta) or shorter (negative delta) the length of "T"
+        // must be compared to a "float", since the latter is always 5
+        // characters long. We therefore just add this (positive or
+        // negative) delta to 5 to arrive at the length of "T" itself.
+        // For an "int" for instance, the delta is -2 (the length of its
+        // "pretty" string minus the length of the "pretty" string for
+        // "float" is always -2), so 5 - 2 = 3 is the length of an "int".
+        // For a type longer than "float" it works the same way only the
+        // delta is positive in this case. If "T" is an "unsigned int"
+        // for instance then the delta is 7 (the length of its "pretty"
+        // string minus the length of the "pretty" string for "float" is
+        // always 7), so 5 + 7 = 12 is the length of "unsigned int". We
+        // can do this for any arbitrary "T" of course to get its own
+        // length. We simply compute the delta for its "pretty" string in
+        // relation to the "pretty" string for a "float" as described.
+        //
+        // Note that float was chosen over other types we could have used
+        // since the name it generates in its own pretty string is always
+        // "float" for all our supported compilers. It's therefore
+        // consistent among all supported compilers and its length is
+        // always 5, both situations making it a (normally) reliable type
+        // to work with in our code. In practice however all the
+        // fundamental types or (possibly) some user-defined type could
+        // have been used (each of which normally generates the same
+        // consistent string as well), but going forward "float" seemed
+        // (potentially) less vulnerable to issues like signedness among
+        // integral types for instance, or other possible issues. If an
+        // integral type like "int" was chosen instead for instance (or
+        // "char", or "long", etc.), some future compiler (or perahps
+        // some compiler option) might display it as "signed int" or
+        // "unsigned int" instead, depending on the default signedness in
+        // effect (and/or some compiler option but regardless, it might
+        // not result in a consistent string among all compilers we
+        // support or might support in the future).
+        //
+        // Similarly, if we chose "double" instead it might be displayed
+        // as "double" as you would normally expect, but "long double"
+        // might also be possible based on some compiler option (so the
+        // string "double" may not be consistent either).
+        //
+        // Or if "bool" were chosen it might normally appear as "bool"
+        // but "unsigned char" might be possible too if some backwards
+        // compatibility option is turned on for a given compiler (since
+        // bools may have been internally declared that as "unsigned
+        // char" once-upon-a-time and someone may turn the option on for
+        // backwards compatibility reasons if required).
+        //
+        // In reality it doesn't seem likely this is actually going to
+        // happen for any of the fundamental types however, and even
+        // "float" itself could potentially become a "double" (or
+        // whatever) under some unknown circumstance but for now it seems
+        // to be potentially more stable than the other fundamental types
+        // so I chose it for that reason only (even if these reasons are
+        // a bit flimsy). It normally works.
         //
         // Non-Microsoft compilers targeting Windows
         // -----------------------------------------
-        // Note that non-Microsoft compilers targeting Windows will #define _MSC_VER just
-        // like the Microsoft compiler does (VC++), indicating they're running in
-        // Microsoft VC++ compatibility mode (i.e., will compile VC++ Windows
-        // applications). For most intents and purposes we can therefore (usually) just
-        // test if _MSC_VER is #defined througout our code and if true it means that
-        // either VC++ is running or some other non-Microsoft compiler is but it's running
-        // as if it were VC++. We can therefore usually just ignore the fact that it's not
-        // the real VC++ itself since it's running as if it were (so we can just carry on
-        // as if the real VC++ is running). However, instead of checking _MSC_VER we can
-        // also explicitly check the actual (real) compiler that's running by using our
-        // own #defined constants MICROSOFT_COMPILER, CLANG_COMPILER and INTEL_COMPILER
-        // instead (the only compilers we currently support that might #define _MSC_VER -
-        // MICROSOFT_COMPILER itself refers to the real VC++ compiler so it always
-        // #defines it but the other two only #define it when running in Microsoft
-        // comptatibility mode). For many (actually most) purposes however we can just
-        // check _MSC_VER as described above when we don't care whether it's the real VC++
-        // compiler (MICROSOFT_COMPILER #defined) vs the Clang compiler (CLANG_COMPILER
-        // #defined) or the Intel compiler (INTEL_COMPILER #defined), where the latter two
-        // cases simply mean these non-Microsoft compilers are running in Microsoft VC++
-        // compatibility mode (since _MSC_VER is also #defined).
+        // Note that non-Microsoft compilers targeting Windows will
+        // #define _MSC_VER just like the Microsoft compiler does (VC++),
+        // indicating they're running in Microsoft VC++ compatibility
+        // mode (i.e., will compile VC++ Windows applications). For most
+        // intents and purposes we can therefore (usually) just test if
+        // _MSC_VER is #defined througout our code and if true it means
+        // that either VC++ is running or some other non-Microsoft
+        // compiler is but it's running as if it were VC++. We can
+        // therefore usually just ignore the fact that it's not the real
+        // VC++ itself since it's running as if it were (so we can just
+        // carry on as if the real VC++ is running). However, instead of
+        // checking _MSC_VER we can also explicitly check the actual
+        // (real) compiler that's running by using our own #defined
+        // constants MICROSOFT_COMPILER, CLANG_COMPILER and
+        // INTEL_COMPILER instead (the only compilers we currently
+        // support that might #define _MSC_VER - MICROSOFT_COMPILER
+        // itself refers to the real VC++ compiler so it always #defines
+        // it but the other two only #define it when running in Microsoft
+        // comptatibility mode). For many (actually most) purposes
+        // however we can just check _MSC_VER as described above when we
+        // don't care whether it's the real VC++ compiler
+        // (MICROSOFT_COMPILER #defined) vs the Clang compiler
+        // (CLANG_COMPILER #defined) or the Intel compiler
+        // (INTEL_COMPILER #defined), where the latter two cases simply
+        // mean these non-Microsoft compilers are running in Microsoft
+        // VC++ compatibility mode (since _MSC_VER is also #defined).
         //
-        // Unfortunately the behavior of these non-Microsoft compilers isn't always 100%
-        // compatible with the actual (real) Microsoft compiler itself however. In
-        // particular, for the purposes of the function you're now reading, note that the
-        // code relies on the predefined Microsoft macro __FUNCSIG__ instead of
-        // __PRETTY_FUNCTION__ whenever _MSC_VER is #defined, so the actual (real)
-        // compiler doesn't matter to us (since __FUNCSIG__ is also #defined for
-        // non-Microsoft compilers running in Microsoft VC++ compatibility mode). However,
-        // __FUNCSIG__ isn't a string literal or even a macro when using non-Microsoft
-        // compilers, unlike when using the actual Microsoft VC++ compiler itself. It
-        // normally should be a string literal even on non-Microsoft compilers (if they
-        // were 100% compatible with VC++) but unfortunately it's not. It's just an array
-        // of "const" char when using non-Microsoft compilers but not an actual string
-        // literal. We therefore normally shouldn't be able to apply the native Microsoft
-        // macro _T to it since _T is just the C++ string literal prefix "L" when
-        // compiling for UTF-16 in Windows (usually the case), and the "L" prefix can only
-        // be applied to string literals. See the following for details (also consult _T
-        // in the MSFT docs if you're not already familiar with it):
+        // Unfortunately the behavior of these non-Microsoft compilers
+        // isn't always 100% compatible with the actual (real) Microsoft
+        // compiler itself however. In particular, for the purposes of
+        // the function you're now reading, note that the code relies on
+        // the predefined Microsoft macro __FUNCSIG__ instead of
+        // __PRETTY_FUNCTION__ whenever _MSC_VER is #defined, so the
+        // actual (real) compiler doesn't matter to us (since __FUNCSIG__
+        // is also #defined for non-Microsoft compilers running in
+        // Microsoft VC++ compatibility mode). However, __FUNCSIG__ isn't
+        // a string literal or even a macro when using non-Microsoft
+        // compilers, unlike when using the actual Microsoft VC++
+        // compiler itself. It normally should be a string literal even
+        // on non-Microsoft compilers (if they were 100% compatible with
+        // VC++) but unfortunately it's not. It's just an array of
+        // "const" char when using non-Microsoft compilers but not an
+        // actual string literal. We therefore normally shouldn't be able
+        // to apply the native Microsoft macro _T to it since _T is just
+        // the C++ string literal prefix "L" when compiling for UTF-16 in
+        // Windows (usually the case), and the "L" prefix can only be
+        // applied to string literals. See the following for details
+        // (also consult _T in the MSFT docs if you're not already
+        // familiar with it):
         //
         //     Wide string literals
         //     https://learn.microsoft.com/en-us/cpp/cpp/string-and-character-literals-cpp?view=msvc-170#wide-string-literals
         //
-        // Since the "L" prefix can only be applied to string literals then it shouldn't
-        // work with __FUNCSIG__ when using non-Microsoft compilers, since the latter
-        // constant isn't a string literal in non-Microsoft compilers as described. It's
-        // only a string literal when using VC++ itself (as officially documented by
-        // MSFT), so "L" should only work when compiling with VC++. However, it turns
-        // out that "L" does work with __FUNCSIG__ in non-Microsoft compilers, at least
-        // the ones we support, even though it's not a string literal in those
-        // compilers. While I'm not sure why without further digging (read on), some
-        // type of special work-around was apparently introduced by these particular
-        // compiler vendors to handle __FUNCSIG__ as a string literal even though it's
-        // apparently not defined that way (and presumably applicable to other Microsoft
-        // predefined constants in these non-Microsoft compilers as well I assume,
-        // though it doesn't impact out situation here). See here for details about the
-        // situation but it requires reading through the details to better understand
+        // Since the "L" prefix can only be applied to string literals
+        // then it shouldn't work with __FUNCSIG__ when using
+        // non-Microsoft compilers, since the latter constant isn't a
+        // string literal in non-Microsoft compilers as described. It's
+        // only a string literal when using VC++ itself (as officially
+        // documented by MSFT), so "L" should only work when compiling
+        // with VC++. However, it turns out that "L" does work with
+        // __FUNCSIG__ in non-Microsoft compilers, at least the ones we
+        // support, even though it's not a string literal in those
+        // compilers. While I'm not sure why without further digging
+        // (read on), some type of special work-around was apparently
+        // introduced by these particular compiler vendors to handle
+        // __FUNCSIG__ as a string literal even though it's apparently
+        // not defined that way (and presumably applicable to other
+        // Microsoft predefined constants in these non-Microsoft
+        // compilers as well I assume, though it doesn't impact out
+        // situation here). See here for details about the situation but
+        // it requires reading through the details to better understand
         // the fix (I haven't myself):
         //
         //    Clang + -fms-extensions: __FUNCSIG__ is not a literal
@@ -573,100 +799,121 @@ namespace Private
         //     [clang] Make predefined expressions string literals under -fms-extensions
         //     https://reviews.llvm.org/rG856f384bf94513c89e754906b7d80fbe5377ab53
         //
-        // There's a comment in the "clang/docs/ReleaseNotes.rst" file itself that
-        // indicates:
+        // There's a comment in the "clang/docs/ReleaseNotes.rst" file
+        // itself that indicates:
         //
-        //     "Some predefined expressions are now treated as string literals in MSVC
-        //      compatibility mode."
+        //     "Some predefined expressions are now treated as string
+        //      literals in MSVC compatibility mode."
         //
-        // I haven't looked into the situation in detail but the upshot is that in the
-        // code just below we rely on __FUNCSIG__ whenever _MSC_VER is #defined
-        // regardless of the compiler, and then apply the _T macro to __FUNCSIG__ as
-        // seen, which works even when using non-Microsoft compilers whose __FUNCSIG__
-        // isn't a string literal (in the compilers we currently support). It's still
-        // unclear though if any compiler-specific options might impact the situation
-        // but we'll have to live with the uncertainty for now (though the above links
-        // would seem to suggest the issue is fixed - __FUNCSIG__ is apparently treated
-        // as a string literal again in all non-Microsoft compilers we support).
+        // I haven't looked into the situation in detail but the upshot
+        // is that in the code just below we rely on __FUNCSIG__ whenever
+        // _MSC_VER is #defined regardless of the compiler, and then
+        // apply the _T macro to __FUNCSIG__ as seen, which works even
+        // when using non-Microsoft compilers whose __FUNCSIG__ isn't a
+        // string literal (in the compilers we currently support). It's
+        // still unclear though if any compiler-specific options might
+        // impact the situation but we'll have to live with the
+        // uncertainty for now (though the above links would seem to
+        // suggest the issue is fixed - __FUNCSIG__ is apparently treated
+        // as a string literal again in all non-Microsoft compilers we
+        // support).
         //
-        // Note that relying on __PRETTY_FUNCTION__ instead when targeting non-Microsoft
-        // compilers can't be used as a (viable/practical) alternative to __FUNCSIG__,
-        // even though __PRETTY_FUNCTION__ is also defined on non-Microsoft compilers
-        // (in additon to __FUNCSIG__, though they each resolve to different formats
-        // however). That's because the _T macro can't be applied to __PRETTY_FUNCTION__
-        // since it won't compile because __PRETTY_FUNCTION__ isn't treated as a string
-        // literal like __FUNCSIG__ is. _T only works on __FUNCSIG__ itself, again,
-        // because a fix was specifically introduced to handle it as described above (to
-        // make it compatible with VC++). Without the _T macro we therefore can't
-        // (easily) convert __PRETTY_FUNCTION__ to UTF-16 when using non-Microsoft
-        // compilers, in particular since the following function (and all others in the
-        // class) is "constexpr" so the conversion to UTF-16 needs to be done at
-        // compile-time (which is harder to do than at runtime so more trouble than it's
-        // worth). __PRETTY_FUNCTION__ therefore can't be used unless we work around the
-        // _T situation. For more information on _T in general see here at this writing
-        // (for starters):
+        // Note that relying on __PRETTY_FUNCTION__ instead when
+        // targeting non-Microsoft compilers can't be used as a
+        // (viable/practical) alternative to __FUNCSIG__, even though
+        // __PRETTY_FUNCTION__ is also defined on non-Microsoft compilers
+        // (in additon to __FUNCSIG__, though they each resolve to
+        // different formats however). That's because the _T macro can't
+        // be applied to __PRETTY_FUNCTION__ since it won't compile
+        // because __PRETTY_FUNCTION__ isn't treated as a string literal
+        // like __FUNCSIG__ is. _T only works on __FUNCSIG__ itself,
+        // again, because a fix was specifically introduced to handle it
+        // as described above (to make it compatible with VC++). Without
+        // the _T macro we therefore can't (easily) convert
+        // __PRETTY_FUNCTION__ to UTF-16 when using non-Microsoft
+        // compilers, in particular since the following function (and all
+        // others in the class) is "constexpr" so the conversion to
+        // UTF-16 needs to be done at compile-time (which is harder to do
+        // than at runtime so more trouble than it's worth).
+        // __PRETTY_FUNCTION__ therefore can't be used unless we work
+        // around the _T situation. For more information on _T in general
+        // see here at this writing (for starters):
         //
         //     Unicode Programming Summary
-        //     https://learn.microsoft.com/en-us/cpp/text/unicode-programming-summary?view=msvc-170 
+        //     https://learn.microsoft.com/en-us/cpp/text/unicode-programming-summary?view=msvc-170
         //
-        // The bottom line is that when _MSC_VER is #defined, the following function
-        // assumes the build environment is compatible with VC++ even if a non-Microsoft
-        // compiler is actually being used (such as when the GCC, Clang or Intel
-        // compiler is explicitly installed as an optional component in Microsoft Visual
-        // Studio on Windows, and then selected as the compiler to use by going into
-        // your C++ project's properties, selecting "Configuation properties -> General"
-        // and choosing the applicable compiler from the "Platform toolset" dropdown).
-        // If "LLVM (clang-cl)" is selected for instance (the documented name of the
-        // Clang compiler at this writing - see
+        // The bottom line is that when _MSC_VER is #defined, the
+        // following function assumes the build environment is compatible
+        // with VC++ even if a non-Microsoft compiler is actually being
+        // used (such as when the GCC, Clang or Intel compiler is
+        // explicitly installed as an optional component in Microsoft
+        // Visual Studio on Windows, and then selected as the compiler to
+        // use by going into your C++ project's properties, selecting
+        // "Configuation properties -> General" and choosing the
+        // applicable compiler from the "Platform toolset" dropdown). If
+        // "LLVM (clang-cl)" is selected for instance (the documented
+        // name of the Clang compiler at this writing - see
         // https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170
-        // though the name is subject to change by MSFT of course), then the Clang
-        // compiler will be used instead of the native VC++ compiler. Although our own
-        // #defined constant CLANG_COMPILER will then be defined in this case (instead
-        // of the MICROSOFT_COMPILER since VC++ itself is no longer the chosen
-        // compiler), the native Microsoft constant _MSC_VER will still be #defined
-        // which we check for just below (instead of CLANG_COMPILER). __FUNCSIG__ will
-        // then be used as seen below (and _T applied to it as seen), since _T will
-        // still correctly work on it as described above, even though __FUNCSIG__ isn't
-        // a string literal (unlike when the actual Microsoft VC++ compiler is used).
-        // Again, we can't rely on __PRETTY_FUNCTION__ in this case even though it will
-        // also be #defined since _T can't be applied to it (since it's not a string
-        // literal and no work-around was made by the compiler vendors to treat it like
+        // though the name is subject to change by MSFT of course), then
+        // the Clang compiler will be used instead of the native VC++
+        // compiler. Although our own #defined constant CLANG_COMPILER
+        // will then be defined in this case (instead of the
+        // MICROSOFT_COMPILER since VC++ itself is no longer the chosen
+        // compiler), the native Microsoft constant _MSC_VER will still
+        // be #defined which we check for just below (instead of
+        // CLANG_COMPILER). __FUNCSIG__ will then be used as seen below
+        // (and _T applied to it as seen), since _T will still correctly
+        // work on it as described above, even though __FUNCSIG__ isn't a
+        // string literal (unlike when the actual Microsoft VC++ compiler
+        // is used). Again, we can't rely on __PRETTY_FUNCTION__ in this
+        // case even though it will also be #defined since _T can't be
+        // applied to it (since it's not a string literal and no
+        // work-around was made by the compiler vendors to treat it like
         // a string literal, unlike in the __FUNCSIG__ case).
         //
-        // Lastly, note that __FUNCSIG__ isn't formatted the same way for non-Microsoft
-        // compilers as it is for VC++ itself. In non-Microsoft compilers, __FUNCSIG__
-        // is formatted with the trailing "[T = float]" syntax (using the examples seen
-        // at the top of this comment block), so it follows the same basic format as
-        // __PRETTY_FUNCTION__ does in this regard (though the overall format of
-        // __FUNCSIG__ does differ slightly from __PRETTY_FUNCTION__ but the differences
-        // are cosmetic only so it doesn't affect our code in anyway - __FUNCSIG__
-        // includes the calling convention for instance and __PRETTY_FUNCTION__ doesn't
-        // but this has no impact on any of the code in this or any other function in
-        // this class).
-        ///////////////////////////////////////////////////////////////////////////////////
+        // Lastly, note that __FUNCSIG__ isn't formatted the same way for
+        // non-Microsoft compilers as it is for VC++ itself. In
+        // non-Microsoft compilers, __FUNCSIG__ is formatted with the
+        // trailing "[T = float]" syntax (using the examples seen at the
+        // top of this comment block), so it follows the same basic
+        // format as __PRETTY_FUNCTION__ does in this regard (though the
+        // overall format of __FUNCSIG__ does differ slightly from
+        // __PRETTY_FUNCTION__ but the differences are cosmetic only so
+        // it doesn't affect our code in anyway - __FUNCSIG__ includes
+        // the calling convention for instance and __PRETTY_FUNCTION__
+        // doesn't but this has no impact on any of the code in this or
+        // any other function in this class).
+        //////////////////////////////////////////////////////////////////
         template <typename T>
         static constexpr auto GetPrettyFunction() noexcept
         {
             ///////////////////////////////////////////////////////////////
-            // MSFT? Note the following (_MSC_VER) is also #defined in
+            // MSFT? Note the following (_MSC_VER) is also #defined by
             // non-Microsoft compilers when they're targeting Windows
             // (i.e., when they'e running in Microsoft VC++ compatibility
             // mode). We therefore use __FUNCSIG__ in those cases as well.
-            // See the section "Non-Microsoft compilers targeting Windows"
-            // in long comments above.
+            // even though those compilers also declare __PRETTY_FUNCTION__
+            // (but we don't rely on the latter when _MSC_VER is #defined
+            // since we just assume we're dealing with VC++ - the
+            // behaviour of other compilers running in Microsoft
+            // compatibility mode should normally be close enough for our
+            // purpose that any differences won't impact us - if they do
+            // then it's normally rare and we provide special handling to
+            // deal with it). See the section "Non-Microsoft compilers
+            // targeting Windows" in long comments above.
             ///////////////////////////////////////////////////////////////
             #if defined(_MSC_VER)
                 return tstring_view(_T(__FUNCSIG__));
             ////////////////////////////////////////////////////////////////
             // Just some useful info on the subject of __PRETTY_FUNCTION__
             // (mainly to do with GCC but provides additional insight):
-            // 
+            //
             //    https://gcc.gnu.org/onlinedocs/gcc/Function-Names.html
             //    https://gcc.gnu.org/onlinedocs/gcc-3.2.3/gcc/Function-Names.html // Earlier version of above but with a bit more info
             //    https://stackoverflow.com/questions/55850013/pretty-function-in-constant-expression
             //    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66639
             //    https://github.com/gcc-mirror/gcc/blob/41d6b10e96a1de98e90a7c0378437c3255814b16/gcc/cp/NEWS#L337
-            // 
+            //
             // Note that no official documentation seems to exist for Clang
             // or Intel but the latter effectively relies on the Clang
             // front-end anyway now (according to the Intel DPC++/C++ docs
@@ -680,10 +927,11 @@ namespace Private
                 return tstring_view(__PRETTY_FUNCTION__); // Can't use _T on __PRETTY_FUNCTION__ here
                                                           // as described in (long) function comments
                                                           // above. __PRETTY_FUNCTION__ and "tstring_view"
-                                                          // are both char-based" based strings at this
-                                                          // point however so we're ok (still potentially
+                                                          // are both char-based" strings at this point
+                                                          // however so we're ok (still potentially
                                                           // brittle though but we'll live with it for
-                                                          // now - should be safe unless this ever changes)
+                                                          // now - should be safe unless this ever
+                                                          // changes)
             #else
                 /////////////////////////////////////////////////////
                 // Note: Shouldn't be possible to come through here
@@ -696,71 +944,61 @@ namespace Private
             #endif
         }
 
+    private:
         //////////////////////////////////////////////////////////////////////
         // GetTypeNameOffset(). Returns the offset within __PRETTY_FUNCTION__
         // or (when _MSC_VER is #defined) __FUNCSIG__, to the start of the
-        // type "T" within the latter string. Note that as explained in the
-        // comments preceding "GetPrettyFunction()" (see this for details),
-        // the offset to the type's name within the latter strings is always
-        // identical regardless of the type so we can easily calculate it
-        // using any type. No need to do it for template arg "T" that is but
-        // we create the following function as a template anyway (with
-        // template arg "T"). We simply ignore "T" however and always rely on
-        // "float" instead, as described in the "GetPrettyFunction" comments
-        // (again, since the type doesn't matter - the result is always the
-        // same). We create the following function as a template anyway so we
-        // can make any "static_asserts" in the code below depend on template
-        // arg "T" when required (read on). That is, because of how
+        // type name within the latter string. Note that as explained in
+        // the comments preceding "GetPrettyFunction()" (see this for
+        // details), the offset to the type's name within the latter
+        // strings is always identical regardless of the type so we can
+        // calculate it using any type. No need to do it for any specific
+        // type that is but we create the following function as a template
+        // anyway, with template arg "T" supposedly representing the type
+        // we're targeting (but it's not actually used for that purpose -
+        // read on). IOW, we ignore "T" for purposes of calculating the
+        // type name's offset and always rely on "float" instead, as
+        // described in the "GetPrettyFunction" comments (again, since the
+        // type doesn't matter - the result is always the same). We create
+        // the following function as a template anyway not because we need
+        // to know the type to calculate its offset, but only so that we
+        // can make any "static_asserts" in the code below depend on
+        // template arg "T" when required. That is, because of how
         // "static_assert" works in C++, if it's used outside a
-        // template-based context it will always trigger if its first arg is
-        // false. For instance, see the "if constexpr" clause in the
+        // template-based context it will always trigger if its first arg
+        // is false. For instance, see the "if constexpr" clause in the
         // GCC_COMPILER code below. When that "if constexpr" condition is
-        // true, the "static_assert" seen in the corresponding "else" clause
-        // would trigger if this function wasn't a template because the arg
-        // being passed to that "static_assert" is false whenever the "if
-        // constexpr" condition itself is true. If not for the function's
-        // dependence on template arg "T" itself in the "static_assert" (the
-        // 1st arg of "static_assert" depends on "T" via a call to
-        // "AlwaysTrue<T>" - see this below for further details), the
-        // "static_assert" would always trigger even when the "else" clause
-        // isn't in effect (because the corresponding "if constexpr" is
-        // true). Because of the "static_assert" dependence on a template arg
-        // however (again, via the call seen to "AlwaysTrue<T>" in that
-        // "static_assert"), the "static_assert" in the "else" clause
-        // therefore won't trigger, which is what we require. The bottom line
-        // is that while it shouldn't be necessary to make the following
-        // function a template since we never use the "T" template arg (we
-        // always rely on "float" a described), in order to prevent the
+        // true, the "static_assert" seen in the corresponding "else"
+        // clause would trigger if this function wasn't a template because
+        // the arg being passed to that "static_assert" is false whenever
+        // the "if constexpr" condition itself is true. If not for the
+        // function's dependence on template arg "T" itself in the
+        // "static_assert" (the 1st arg of "static_assert" depends on "T"
+        // via a call to "AlwaysTrue<T>" - see the call to this below for
+        // details), the "static_assert" would always trigger even when
+        // the "else" clause isn't in effect (because the corresponding
+        // "if constexpr" is true). Because of the "static_assert"
+        // dependence on a template arg however (again, via the call seen
+        // to "AlwaysTrue<T>" in that "static_assert"), the
+        // "static_assert" in the "else" clause therefore won't trigger,
+        // which is what we require. The bottom line is that while it
+        // shouldn't be necessary to make the following function a
+        // template since we never use the "T" template arg (we always
+        // rely on "float" a described), in order to prevent the
         // "static_assert" from always triggering we make it depend on
-        // template arg "T" (so the function itself needs to be a template to
-        // accommodate this - yet another C++ joy).
+        // template arg "T" (so the function itself needs to be a template
+        // to accommodate this - yet another C++ joy).
         //////////////////////////////////////////////////////////////////////
-        template <typename T>
+        template <typename T = void>
         static constexpr tstring_view::size_type GetTypeNameOffset() noexcept
         {
-            /////////////////////////////////////////////////
+            //////////////////////////////////////////////////
             // Always passing a "float" here since any type
-            // will do. See comments above.
-            /////////////////////////////////////////////////
+            // will do (offset we'll be calculationg below
+            // is always the same regardless of the type).
+            // See comments above.
+            //////////////////////////////////////////////////
             constexpr tstring_view prettyFunctionFloat = GetPrettyFunction<float>();
-
-            // "basic_string_view::ends_with()" not available until C++20
-            #if CPP20_OR_LATER
-                #define PRETTY_FUNCTION_FLOAT_ENDS_WITH(END_STR) prettyFunctionFloat.ends_with(END_STR)
-            #else
-                ///////////////////////////////////////////////////////////////
-                // Quick and dirty equivalent of the C++20 code above but for
-                // our specific needs below only (so certain assumptions in
-                // effect, like the length of END_STR is always less than
-                // the length of "prettyFunctionFloat" so we don't safeguard
-                // against it being longer - it will always be shorter for our
-                // uses below unless something is seriously wrong, but this
-                // will result in a compiler error anyway - will never
-                // realistically happen though)
-                ///////////////////////////////////////////////////////////////
-                #define PRETTY_FUNCTION_FLOAT_ENDS_WITH(END_STR) IsEqualTo(prettyFunctionFloat.substr(prettyFunctionFloat.size() - tstring_view(END_STR).size()), \
-                                                                           END_STR)
-            #endif
 
             #if defined(GCC_COMPILER)
                 //////////////////////////////////////////////////////////////////
@@ -796,7 +1034,7 @@ namespace Private
                 //////////////////////////////////////////////////////////////////
 
                 // GCC format 1 of 2 (see "GetPrettyFunction()" for details)
-                if constexpr (PRETTY_FUNCTION_FLOAT_ENDS_WITH(_T("= float]")))
+                if constexpr (EndsWith(prettyFunctionFloat, _T("= float]")))
                 {
                     ///////////////////////////////////////////
                     // Offset to the "f" in "= float]" (i.e.,
@@ -861,7 +1099,7 @@ namespace Private
                 // matter what the type so we're good (i.e., we can just rely on
                 // the one for float and immediately return this).
                 ///////////////////////////////////////////////////////////////////
-                static_assert(PRETTY_FUNCTION_FLOAT_ENDS_WITH(_T("<float>(void) noexcept")));
+                static_assert(EndsWith(prettyFunctionFloat, _T("<float>(void) noexcept")));
 
                 //////////////////////////////////////////////////
                 // Offset to the "f" in "<float>(void) noexcept"
@@ -887,7 +1125,7 @@ namespace Private
                 // same no matter what the type so we can just rely on the one for
                 // float and immediately return this.
                 ///////////////////////////////////////////////////////////////////
-                static_assert(PRETTY_FUNCTION_FLOAT_ENDS_WITH(_T("= float]")));
+                static_assert(EndsWith(prettyFunctionFloat, _T("= float]")));
 
                 //////////////////////////////////////////////////////
                 // Offset to the "f" in "= float]" (i.e., the 1st
@@ -906,108 +1144,244 @@ namespace Private
                 /////////////////////////////////////////////////////
                 #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
             #endif
-
-            // Done with this (for internal use in this function only)
-            #undef PRETTY_FUNCTION_FLOAT_ENDS_WITH
         }
 
-        //////////////////////////////////////////////////////////////////////
-        // GetTypeNameLen(). Returns the length of template arg "T" within
-        // __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__. If
-        // "T" is an int for instance and it actually appears in the latter
-        // string as "int" (always the case at this writing for all supported
-        // compilers but not guaranteed - "signed int" or "unsigned int" is
-        // always possible for future compilers), then it returns 3 (if it is
-        // in fact "int" - if it resolves to "signed int" for some reason
-        // then 10 would be returned instead, or if "unsigned int" then 12
-        // would be returned). Note that as explained in the comments
-        // preceding function "GetPrettyFunction()" above, we leverage our
-        // knowledge of type float to help us calculate the length of "T".
-        // See "GetPrettyFunction()" for details.
-        //////////////////////////////////////////////////////////////////////
-        template <typename T>
-        static constexpr tstring_view::size_type GetTypeNameLen() noexcept
+        ////////////////////////////////////////////////////////////////
+        // *** IMPORTANT ***
+        //
+        // Must be declared before 1st use or compilation will fail in
+        // some compilers like Clang (declaration order of function
+        // templates matters).
+        //
+        // GetTypeNameLen(). Returns the length of the type name within
+        // "prettyFunction" where the latter string was returned via a
+        // call to "GetPrettyFunction()" (so it originates from
+        // __PRETTY_FUNCTION__ or (when _MSC_VER is #defined)
+        // __FUNCSIG__). If the type name within "prettyFunction" is
+        // (literally) "int" for instance then it returns 3. Note that
+        // as explained in the comments preceding function
+        // "GetPrettyFunction()", we leverage our knowledge of type
+        // float to calculate the length of the type name in
+        // "prettyFunction". See "GetPrettyFunction()" for details.
+        ////////////////////////////////////////////////////////////////
+        static constexpr tstring_view::size_type GetTypeNameLen(tstring_view prettyFunction) noexcept
         {
-            constexpr tstring_view prettyFunctionT = GetPrettyFunction<T>();
             constexpr tstring_view prettyFunctionFloat = GetPrettyFunction<float>();
 
             ///////////////////////////////////////////////////////////////
-            // See full explanation in "GetPrettyFunction()". The size of
-            // type "T" is determined by simply taking the difference in
-            // the length of the pretty function containing "float" and
-            // the length of the pretty function containg "T" itself
-            // (positive if length of "T" is greater than the length of
-            // "float" whose length is always 5 of course, negative if
-            // less, zero if equal), and adding this to the length of
-            // "float" (again, always 5). "float" was chosen for this
-            // purpose but any type with a consistent size among all
-            // supported compilers will do. Again, see comments in
-            // "GetPrettyFunction()" for details.
+            // See full explanation in "GetPrettyFunction()" comments.
+            // Consult section entitled:
+            //
+            //     Reliance on "float" to calculate the offset and length
+            //
+            // As descriebd there, the length of the type name in
+            // "prettyFunction" is determined by simply taking the
+            // difference (delta) in the length of "prettyFunction" and
+            // the length of the pretty function for a "float", and adding
+            // this delta to the length of "float" itself (5). "float" was
+            // chosen for this purpose but any type with a consistent
+            // length among all supported compilers will do. Again, see
+            // comments in "GetPrettyFunction()" for details.
             //
             // Lastly, note that since the following is dealing with
             // unsigned numbers, I've coded things to avoid the
             // possibility of a negative number when the length of the
-            // pretty strings are subtracted from each other (if we
-            // approached things that way - subtracting a potentially
-            // larger unsigned number from a smaller one obviously gets
-            // into the murky area of "negative" unsigned numbers which
-            // are never actually negative of course, but large unsigned
-            // numbers). It's a confusing area for many, gets into the
-            // possibility of undefined behavior (won't talk about that
-            // here), etc. Therefore much simpler to just code things as
-            // seen (whole situation avoided).
+            // pretty strings are subtracted from each other (if we simply
+            // did the subtraction without checking for a possible
+            // negative result). Subtracting a potentially larger unsigned
+            // number from a smaller one gets into the murky area of
+            // "negative" unsigned numbers which are never actually
+            // negative of course, but simply large unsigned numbers (due
+            // to a wrap-around). It's a confusing area and also gets into
+            // the possibility of undefined behavior (won't get into that
+            // here), so it's much simpler to just avoid this subtraction
+            // and code things as seen instead (checking to make sure we
+            // don't wind up with a "negative" result so the whole
+            // situation avoided).
             ///////////////////////////////////////////////////////////////
 
-            // Size of type "T" greater than "float" (i.e., > 5)
-            if constexpr (prettyFunctionT.size() > prettyFunctionFloat.size())
+            /////////////////////////////////////////////////////////////////
+            // If true then the length of the type name in "prettyFunction"
+            // is greater than the length of "float" itself (i.e., > 5)
+            /////////////////////////////////////////////////////////////////
+            if (prettyFunction.size() > prettyFunctionFloat.size())
             {
-                return 5 + (prettyFunctionT.size() - prettyFunctionFloat.size());
+                return 5 + (prettyFunction.size() - prettyFunctionFloat.size());
             }
-            // Size of type "T" less than or equal to "float" (i.e., <= 5)
+            ////////////////////////////////////////////////////////////
+            // Length of type name in "prettyFunction" is less than or
+            // equal to the length of "float" itself (i.e., <= 5)
+            ////////////////////////////////////////////////////////////
             else
             {
-                return 5 - (prettyFunctionFloat.size() - prettyFunctionT.size());
+                return 5 - (prettyFunctionFloat.size() - prettyFunction.size());
             }
         }
-    };
+
+    protected:
+        static constexpr tstring_view ExtractTypeNameFromPrettyFunction(tstring_view prettyFunction) noexcept
+        {
+            return prettyFunction.substr(GetTypeNameOffset(), // Offset of the type name in __PRETTY_FUNCTION__
+                                                              // or (when _MSC_VER is #defined) __FUNCSIG__
+                                         GetTypeNameLen(prettyFunction)); // Length of the type name in __PRETTY_FUNCTION__
+                                                                          // or (when _MSC_VER is #defined) __FUNCSIG__
+        }
+    }; // class TypeNameImplBase
 
     //////////////////////////////////////////////////////////////////////
-    // Sanity check only. The template, "TypeName_v" defined just after
-    // this namespace is brittle should any compiler vendor change the
-    // format of __PRETTY_FUNCTION__ or __FUNCSIG__ (MSFT) so that our
-    // assumption about its existing format no longer holds (or we ever
-    // encounter something different than what we expected given that its
-    // format is undocumented). "TypeName_v" could then potentially
-    // return an erroneous value, leading to potentially serious
-    // (hard-to-find) runtime bugs (including possible crashes). The
-    // following compile-time check therefore traps the situation by
-    // checking if the implementation function for "TypeName_v"
-    // ("TypeNameImpl::Get()") works for type "float". It does this by
-    // simply checking that it returns "float" which I'm arbitrarily
-    // choosing since any type whose name is consistent among all our
-    // supported compilers will do (such as "float"). It doesn't have to
-    // be "float" IOW since other types will also work (see
-    // "TypeNameImpl::GetPrettyFunction()" above for further details).
+    // Implementation class for variable template "TypeName_v" declared
+    // just after this class but outside of this "Private" namespace (so
+    // for public use). The latter variable just invokes static member
+    // "Get()" below which carries out all the work. See "TypeName_v" for
+    // complete details.
     //
-    // In any case, if "TypeNameImpl::Get()" (the implementation function
-    // for "TypeName_v<float>") doesn't return "float" then the following
-    // "static_assert" will trigger. It normally means that the compiler
-    // vendor changed the format of __PRETTY_FUNCTION__ or (when _MSC_VER
-    // is #defined) __FUNCSIG__, assuming no errors in our understanding
-    // of this string's undocumented format. Note that it's not a
-    // fullproof check though (longer story), and if there's an issue then
-    // the implementation code above will normally "static_assert" anyway
-    // (making the following one superfluous usually). The following is
-    // really just a hack, but in reality it will normally be reliable.
-    // The upshot is that if "TypeName_v" ever starts returning a
-    // different name for "float" than it did at the time "TypeName_v"
-    // was written, and our implementation above doesn't already
-    // "static_assert" as a result, then the following "static_assert"
-    // will almost certainly be triggered (by itself or in addition to
-    // those in the implementation above). You'll then have to review the
-    // implementation above to correct the situation.
+    // IMPORTANT:
+    // ---------
+    // Note that the implementation below relies on the predefined string
+    // __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__
+    // (Google these for details). All implementations you can find on
+    // the web normally rely on these as does our own "Get()" member
+    // below, but unlike most other implementations I've seen, ours
+    // doesn't require any changes should you modify any part of the
+    // latter function's fully-qualified name or signature (affecting the
+    // value of the above predefined strings). Most other implementations
+    // I've seen would require changes, even though they should normally
+    // be very simple changes (trivial usually but changes nevertheless).
+    // Our implementation doesn't require any so users can move the
+    // following code to another namespace if they wish, change the
+    // function's class name and/or any of its member functions without
+    // breaking anything (well, except for its "noexcept" specifier on
+    // MSFT platforms only, but nobody will ever need to change this
+    // anyway, regardless of platform). Note that the code is fairly
+    // small and clean notwithstanding first impressions, lengthy only
+    // because of the many comments (the code itself is fairly short and
+    // digestible however). It will only break normally if a compiler
+    // vendor makes a breaking change to __PRETTY_FUNCTION__ or (when
+    // _MSC_VER is #defined) __FUNCSIG__, but this will normally be
+    // caught by judicious use of "static_asserts" in the implementation
+    // and just after the following class itself (where we arbitrarily
+    // test it with a float to make sure it returns "float", a quick and
+    // dirty test but normally reliable).
     //////////////////////////////////////////////////////////////////////
-    static_assert(IsEqualTo(TypeNameImpl::Get<float>(), _T("float")),
+    template <typename T>
+    class TypeNameImpl : public TypeNameImplBase
+    {
+    public:
+        ////////////////////////////////////////////////////////
+        // Implementation function called by variable template
+        // "TypeName_v" just after the "Private" namespace this
+        // class is declared in. The following function does
+        // all the work. See "TypeName_v" for details.
+        ////////////////////////////////////////////////////////
+        static constexpr tstring_view Get() noexcept
+        {
+            ///////////////////////////////////////////////////////
+            // TYPENAME_V_DONT_MINIMIZE_REQD_SPACE isn't #defined
+            // by default so the following normally tests true. If
+            // so then the type's name is extracted from
+            // __PRETTY_FUNCTION__ or (on MSFT platforms)
+            // __FUNCSIG__ and statically stored in "m_TypeName"
+            // (a "std::array" just big enough to store the
+            // extracted type name). We then simply return a
+            // "tstring_view" that wraps "m_TypeName".
+            // __PRETTY_FUNCTION__ or __FUNCSIG__ is therefore
+            // *not* stored in the compiled binary as they
+            // normally would be since they're compile time
+            // strings. "m_TypeName" is stored instead which only
+            // takes up the minimum space required to store the
+            // type name so we make it the default behaviour
+            // (savings is usually negligible however but no point
+            // storing all of __PRETTY_FUNCTION__ or __FUNCSIG__
+            // when we only ever target that portion of it
+            // containing the type name itself - "m_TypeName"
+            // contains a copy of it so there's zero overhead).
+            // However, should it ever become necessary for some
+            // reason on a given compiler (it fails to compile the
+            // existing code for some reason - unlikely but no
+            // other reason to apply the following usually), users
+            // can simply #define TYPENAME_V_DONT_MINIMIZE_REQD_SPACE
+            // which removes "m_TypeName" (preprocesses it out),
+            // and resorts to storing __PRETTY_FUNCTION__ or
+            // __FUNCSIG__ again (as static strings in the
+            // compiled binary). We then return a "tstring_view"
+            // into these strings targeting the type name within
+            // the string (though the unused remainder of
+            // __PRETTY_FUNCTION__ or __FUNCSIG__ becomes a waste
+            // of space), opposed to the usual default behaviour
+            // described above (where the only string stored in
+            // the binary is "m_TypeName" so it consumes only the
+            // actual (minimal) required space to store the name,
+            // and the returned "tstring_view" targets that
+            // instead).
+            //////////////////////////////////////////////////
+            #if !defined(TYPENAME_V_DONT_MINIMIZE_REQD_SPACE)
+                //////////////////////////////////////////////////////
+                // Return static member "m_TypeName" (a "std::array"
+                // storing the type name) as a "tstring_view" (latter
+                // more convenient for end-users to work with than a
+                // "std::array"). Note that current C++ rules don't
+                // allow static objects to be defined in constexpr
+                // functions so we can't define it here (within this
+                // function). Static class members *are* allowed
+                // however so we do that instead.
+                //////////////////////////////////////////////////////
+                return TypeNameArrayToStringView();
+            #else
+                /////////////////////////////////////////////////
+                // Extract template arg "T" (whatever string it
+                // resolves to) from __PRETTY_FUNCTION__ or (for
+                // MSFT only) __FUNCSIG__. Returns it as a
+                // "tstring_view" which is safe to return since
+                // the above strings remain alive for the life
+                // of the app (since they're always statically
+                // defined).
+                /////////////////////////////////////////////////
+                return ExtractTypeNameFromPrettyFunction();
+            #endif // !defined(TYPENAME_V_DONT_MINIMIZE_REQD_SPACE)
+        }
+
+    private:
+        using BaseClass = TypeNameImplBase;
+
+        static constexpr tstring_view ExtractTypeNameFromPrettyFunction() noexcept
+        {
+            return BaseClass::ExtractTypeNameFromPrettyFunction(GetPrettyFunction<T>());
+        }
+
+        //////////////////////////////////////////////////
+        // Normally tests true (constant not #defined
+        // by default). See comments in "Get()" function
+        // above for details.
+        //////////////////////////////////////////////////
+        #if !defined(TYPENAME_V_DONT_MINIMIZE_REQD_SPACE)
+            static constexpr tstring_view TypeNameArrayToStringView() noexcept
+            {
+                return tstring_view(m_TypeName.data(), m_TypeName.size());
+            }
+
+            static constexpr auto InitTypeName() noexcept
+            {
+                constexpr tstring_view typeName = ExtractTypeNameFromPrettyFunction();
+
+                ////////////////////////////////////////////////
+                // Create a "std::array" from "typeName" (same
+                // size as "typeName" and stores a copy of it).
+                // Note that having to pass "typeName.size()"
+                // as a template arg is ugly given that the
+                // function can just call this itself but not
+                // in a "constexpr" context which we require
+                // (since language doesn't support "constexpr"
+                // function parameters at this writing - see
+                // function for details).
+                ////////////////////////////////////////////////
+                return StrToArray<typeName.size()>(typeName);
+            }
+
+            static inline constexpr auto m_TypeName = InitTypeName();
+        #endif // #if !defined(TYPENAME_V_DONT_MINIMIZE_REQD_SPACE)
+    }; // class TypeNameImpl
+
+    static_assert(IsEqualTo(TypeNameImpl<float>::Get(), _T("float")),
                   "A breaking change was detected in template \"TypeNameImpl::Get()\". The format of the "
                   "predefined string __PRETTY_FUNCTION__ or (when _MSC_VER is #defined) __FUNCSIG__ was "
                   "likely changed by the compiler vendor (though would be very rare). \"TypeNameImpl::Get()\" "
@@ -1050,12 +1424,11 @@ namespace Private
 //
 //     EXAMPLE 2
 //     ---------
-//     ////////////////////////////////////////////////////
-//     // A type like "std::wstring" produces a more
-//     // complicated name than the "float" example above
-//     // of course. For example (for all 4 compilers we
-//     // currently support shown - note that the surrounding
-//     // quotes below are just for legibility and not
+//     ////////////////////////////////////////////////////////////////
+//     // A type like "std::wstring" produces a far more complicated
+//     // name than the "float" example above of course. For example
+//     // (for all 4 compilers we currently support shown - note that
+//     // the surrounding quotes below are just for legibility and not
 //     // actually returned):
 //     //
 //     //   GCC
@@ -1070,90 +1443,118 @@ namespace Private
 //     //   Clang and Intel
 //     //   ---------------
 //     //   "std::basic_string<wchar_t>"
-//     ////////////////////////////////////////////////////
+//     ////////////////////////////////////////////////////////////////
 //     constexpr tstring_view typeName = TypeName_v<std::wstring>;
 //
-// Note that this template simply extracts the type from the predefined
-// strings __PRETTY_FUNCTION__ (for non-MSFT compilers), or __FUNCSIG__
-// (when _MSC_VER is #defined), noting that these may or may not be
-// defined as a macro or even a string literal depending on the
-// compiler (__FUNCSIG__ is always officially a string literal in VC++
-// however or specifically treated like one by Clang and Intel even
-// though it's not (a special fix to treat it like a string literal was
-// implemented in those compilers  however), but __PRETTY_FUNCTION__ is
-// not a string literal, see here for GCC for instance
-// https://gcc.gnu.org/onlinedocs/gcc/Function-Names.html). It doesn't
-// matter for our purposes however since we correctly extract the type
-// name portion from the string regardless (corresponding to template
-// arg "T"), returning this as a "tstring_view". Note that there are
-// also no lifetime worries since these predefined strings are always
-// statically defined (i.e., available for the life of the app), so the
-// "tstring_view" returned is just a view into this static string.
+// Note that this template simply extracts the type name from the
+// predefined strings __PRETTY_FUNCTION__ (for non-MSFT compilers), or
+// __FUNCSIG__ (when _MSC_VER is #defined), noting that these may or
+// may not be defined as a macro or even a string literal depending on
+// the compiler. __FUNCSIG__ is always officially a string literal in
+// VC++ however or specifically treated like one by Clang and Intel,
+// even though it's not a string literal in those compilers (a special
+// fix to treat it like one was implemented in those compilers
+// however). __PRETTY_FUNCTION__ however is not a string literal on
+// all compilers we currently support. See here for GCC for instance
+// https://gcc.gnu.org/onlinedocs/gcc/Function-Names.html).
+//
+// Whether it's a string literal or not doesn't matter for our
+// purposes however since we correctly extract the type name portion
+// from the string regardless (corresponding to template arg "T"),
+// returning this as a "tstring_view". Note that there are no lifetime
+// worries with the returned "tstring_view" since by default we store
+// the name of the type in a static string just big enough to hold it
+// (so it remains alive for the life of the app). This behaviour can
+// be disabled however by #defining
+// TYPENAME_V_DONT_MINIMIZE_REQD_SPACE but there's no normally no
+// reason to do so unless a compiler error prevents the current code
+// from compiling for some reason (which should never happen on
+// currently supported compilers normally but we support this constant
+// for future use). If #defined then the returned "tstring_view" will
+// point directly into __PRETTY_FUNCTION__ instead (or __FUNCSIG__
+// when _MSC_VER is #defined), but these strings are also statically
+// defined so there are still no lifetime issues. The "tstring_view"
+// returned is just a view into these static strings which remain
+// alive for the life of the app. Note TYPENAME_V_DONT_MINIMIZE_REQD_SPACE
+//
+// isn't #defined by default since it's more space efficient not to.
+// When #defined it means that all of __PRETTY_FUNCTION__ or
+// __FUNCSIG__ will be included in the compiled binary even though we
+// only access the name portion of it ("TypeName_v" just returns a
+// "tstring_view" pointing to the type name withing these strings).
+// Since TYPENAME_V_DONT_MINIMIZE_REQD_SPACE isn't #defined by default
+// it means that __PRETTY_FUNCTION__ or __FUNCSIG__ will no longer be
+// stored in the compiled binary, only a copy of the type name itself
+// in its own static buffer (normally reducing the space of your
+// compiled binary though unless you call "TypeName_v" with a lot of
+// different types, the savings in space is usually negligible).
 //
 // Lastly, note that the techniques used to extract the type are based
 // on the undocumented format of __PRETTY__FUNCTION and __FUNCSIG__ so
-// there's always the potential they may fail one day (if either a
-// compiler vendor ever changes the format or we encounter some
-// previously unknown situation with the format, again, since they're
-// not officially documented). However, in practice they're stable, and
-// the techniques we rely on are generally used by many others as well,
-// using similar approaches (though unlike many other implementations,
-// our own implementation isn't vulnerable to changes in the name of
-// the implementation function the following variable relies on - it
-// can be changed to anything without breaking things but read on).
-// Moreover, a "static_assert" just after the implementation class
-// itself ("Private::TypeNameImpl") checks if it actually works for
-// type float as a quick and dirty (but normally reliable) test, i.e.,
-// the function should return "float" if passed float as its template
-// arg (arbitrarily chosen for testing but any type whose name is the
-// same on all supported compilers will do - see comments preceding
-// "Private::TypeNameImpl::GetPrettyFunction" above for further
-// details). If not then the "static_assert" kicks in with an
-// appropriate message (and likely other "static_asserts" in the
-// implementation code itself). Note that I've also coded things not to
-// rely on anything in the fully-qualified name (or return type) of
-// __PRETTY_FUNCTION__ and __FUNCSIG___ themselves (beyond what's
-// necessary), as some implementations of this (general) technique do.
-// Doing so is brittle should user change anything in the function's
-// signature, such as its name and/or return type (as some users might
-// do). This would break many implementations even though most will
-// (hopefully) be easy to fix. Ours isn't sensitive to the function's
-// signature however, again, beyond the minimal requirements necessary
-// for the code to work (given that we're dealing with undocumented
-// strings). Changing the function's fully-qualified name for instance
-// (the actual function name, its member class name, or namespace),
-// and/or its return type (to "tstring_view" or
-// "std::basic_string<TCHAR>" for instance) won't break the function.
-// Some users may not like the "auto" return type for example and may
-// want to change it to "tstring_view" (declared in
-// "CompilerVersions.h" though this is a more MSFT-centric technique
-// due to their historical use of TCHAR which you can read up on if not
-// familiar), or "std::basic_string_view<char>" (or when replacing
-// "char" with TCHAR or on MSFT platforms, hence resolving to "wchar_t"
-// usually), or "std::string_view" or "std::wstring_view" (the latter
-// only on MSFT platforms at this writing)
+// there's always the potential they may fail one day (if a compiler
+// vendor ever changes the format or we encounter some previously
+// unknown situation with the existing format, again, since they're
+// not officially documented). However, in practice they're stable,
+// and the techniques we rely on are generally used by many others as
+// well, using similar approaches (though unlike many other
+// implementations, our own implementation isn't vulnerable to changes
+// in the name of the implementation function the following variable
+// relies on - it can be changed to anything without breaking things
+// but read on). Moreover, a "static_assert" just after the
+// implementation class itself ("Private::TypeNameImpl") checks if it
+// actually works for type float as a quick and dirty (but normally
+// reliable) test, i.e., the function should return "float" if passed
+// float as its template arg (arbitrarily chosen for testing but any
+// type whose name is the same on all supported compilers will do -
+// see comments preceding "Private::TypeNameImplBase::GetPrettyFunction"
+// above for further details). If not then the "static_assert" kicks
+// in with an appropriate message (and likely other "static_asserts"
+// in the implementation code itself). Note that I've also coded
+// things not to rely on anything in the fully-qualified name (or
+// return type) of __PRETTY_FUNCTION__ and __FUNCSIG___ themselves
+// (beyond what's necessary), as many implementations of this
+// (general) technique do. Doing so is brittle should a user change
+// anything in the function's signature, such as its name and/or
+// return type (as some users might do). This would break many
+// implementations even though most will (hopefully) be easy to fix.
+// Ours isn't sensitive to the function's signature by design however,
+// again, beyond the minimal requirements necessary for the code to
+// work (given that we're dealing with undocumented strings). Changing
+// the function's fully-qualified name for instance (the actual
+// function name, its member class name, or namespace), and/or its
+// return type (to "tstring_view" or "std::basic_string<TCHAR>" for
+// instance) won't break the function. Some users may not like the
+// "auto" return type for example and may want to change it to
+// "tstring_view" (declared in "CompilerVersions.h" though this is a
+// more MSFT-centric technique due to their historical use of TCHAR
+// which you can read up on if you're not familiar), or
+// "std::basic_string_view<char>" (or when replacing "char" with TCHAR
+// or on MSFT platforms, hence resolving to "wchar_t" usually), or
+// "std::string_view" or "std::wstring_view" (the latter only on MSFT
+// platforms at this writing)
 //
-// The bottom line is that you can change our implementation function's
-// signature if you wish and it will (normally) still work correctly.
-// Note that if a given compiler vendor ever changes the format of
-// __PRETTY_FUNCTION__ itself however (or __FUNCSIG__ when _MSC_VER is
-// #defined), then that could potentially break the function as noted
-// but again, the "static_asserts" in the implementation will normally
-// trigger if this occurs, and you'll then have to fix the
-// implementation function for this template to deal with it
-// ("Private::TypeNameImpl::Get()" as it's currently called at this
-// writing). It seems very unlikely a compiler vendor will ever change
-// the format however, let alone in a way that will break this
-// function, unless it's done to deal with some new C++ feature perhaps
-// but who knows.
+// The bottom line is that you can change our implementation
+// function's signature if you wish and it will (normally) still work
+// correctly. Note that if a given compiler vendor ever changes the
+// format of __PRETTY_FUNCTION__ itself however (or __FUNCSIG__ when
+// _MSC_VER is #defined), then that could potentially break the
+// function as noted but again, the "static_asserts" in the
+// implementation will normally trigger if this occurs, and you'll
+// then have to fix the implementation function for this template to
+// deal with it ("Private::TypeNameImpl::Get()" as it's currently
+// called at this writing). It seems very unlikely a compiler vendor
+// will ever change the format however, let alone in a way that will
+// break this function, unless it's done to deal with some new C++
+// feature perhaps but who knows.
 //
 // Long story short, our implementation function should normally be
-// very stable but compilation will (normally) fail with an appropriate
-// error if something goes wrong (again, via the the "static_asserts"
-// in the private implementation function called by this template).
+// very stable but compilation will (normally) fail with an
+// appropriate error if something goes wrong (again, via the the
+// "static_asserts" in the private implementation function called by
+// this template).
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline constexpr tstring_view TypeName_v = Private::TypeNameImpl::Get<T>();
+inline constexpr tstring_view TypeName_v = Private::TypeNameImpl<T>::Get();
 
 // See this #defined constant for details
 #if CONCEPTS_SUPPORTED
@@ -1204,11 +1605,11 @@ struct IsSpecialization : public std::false_type
 //       static_assert(IsSpecialization<T, std::vector>::value,
 //                     "Invalid template arg T. Must be a \"std::vector\"");
 //    };
-// 
+//
 //    Whatever<std::vector<int>> whatever1; // "static_assert" above succeeds (2nd template arg is a "std::vector")
 //    Whatever<std::list<int>> whatever2; // "static_assert" above fails (2nd template arg is *not* a "std::vector")
 /////////////////////////////////////////////////////////////////////////////
-template <template<typename...> class Template, 
+template <template<typename...> class Template,
           typename... TemplateArgs>
 struct IsSpecialization<Template<TemplateArgs...>, Template> : public std::true_type
 {
@@ -1265,7 +1666,7 @@ using RemovePtrRef = std::remove_pointer_t<std::remove_reference_t<T>>;
 //     //    double
 //     //    char
 //     //    std::string
-//     //  
+//     //
 //     // We pass the (zero-based) index of the type to be replaced via the
 //     // "N" template arg (so passing 2 here to target the "char"), the type
 //     // to replace it with via the "NewT" template arg (an "int"), and the
@@ -1580,11 +1981,11 @@ namespace Private
     //
     //     using F = int (float) const;
     //     constexpr bool isFunction = std::is_function_v<F>; // true
-    //    
+    //
     // However, the above likely appears to many (maybe most) that it's
     // a free function but it can't be since a free function can't be
     // "const". However, if you remove the "const":
-    //    
+    //
     //     using F = int (float);
     //     constexpr bool isFunction = std::is_function_v<F>; // true
     //
@@ -1613,7 +2014,7 @@ namespace Private
     // of "IsFreeFunction" we're creating here, we want to return "true"
     // when template arg "T" refers to a "free" function but not a
     // non-static member function. Since there's no way to distinguish
-    // between the two however when targeting a function like so:        
+    // between the two however when targeting a function like so:
     //
     //     using F = int (float);
     //
@@ -1640,7 +2041,7 @@ namespace Private
     // came from one or not is immaterial since the origin of "T"
     // doesn't matter.
     //
-    // One might therefore ask, why not just rely on "std::is_function"    
+    // One might therefore ask, why not just rely on "std::is_function"
     // instead. The difference is that "std::is_function" will return
     // true for *any* function type, even if the type you pass has a
     // cv-qualifier and/or reference-qualifier (again, see the general
@@ -1774,7 +2175,7 @@ namespace Private
     // function (since free functions can't have these qualifiers), then
     // the attempt to add a pointer to "T", resulting in "T *", will
     // always fail because it's illegal to do so. See section 2.2 here:
-    // 
+    //
     //     Abominable Function Types (by Alisdair Meredith)
     //     https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
     //
@@ -1877,7 +2278,7 @@ namespace Private
     /////////////////////////////////////////////////////////////////
     // IsTraitsFreeFunction_v. Variable template set to true if "T"
     // is any of the following or false otherwise:
-    // 
+    //
     //   1) A free function including static member functions (but
     //      abominable function types always return false by design -
     //      see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
@@ -1905,7 +2306,7 @@ namespace Private
     ///////////////////////////////////////////////////////////////////
     // IsTraitsMemberFunction_v. Variable template set to true if "T"
     // is either of the following or false otherwise:
-    // 
+    //
     //   1) An (optionally cv-qualified) pointer to a non-static member
     //      function
     //   2) An reference to an (optionally cv-qualified) pointer to a
@@ -1931,7 +2332,7 @@ namespace Private
     ///////////////////////////////////////////////////////////////////
     // IsTraitsFreeOrMemberFunction_v. Variable template set to "true"
     // if "T" is any of the following or false otherwise:
-    // 
+    //
     //   1) A free function including static member functions (but
     //      abominable function types always return false by design -
     //      see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html
@@ -2145,7 +2546,7 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
     #endif
 #elif defined(GCC_COMPILER) || \
       defined(CLANG_COMPILER) || \
-      defined(INTEL_COMPILER) 
+      defined(INTEL_COMPILER)
 
     /////////////////////////////////////////////////////////////////////////////
     // For GCC: https://gcc.gnu.org/onlinedocs/gcc/x86-Function-Attributes.html
@@ -2208,19 +2609,19 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
 
     /////////////////////////////////////////////////
     // According to the Intel DPC++/C++ docs here:
-    // 
+    //
     //   Error Handling
     //   https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2023-0/error-handling.html
     //
     // It says:
-    // 
+    //
     //    For a summary of warning and error options,
     //    see the Clang documentation.
     //
     // Where "Clang documentation" is this link:
-    // 
+    //
     //   https://clang.llvm.org/docs/UsersManual.html#options-to-control-error-and-warning-messages
-    // 
+    //
     // Hence the following works for Intel as well
     // (for the DPC++/C++ compiler which is what we
     // support, not the "Classic" Intel compiler
@@ -2230,7 +2631,7 @@ inline constexpr bool IsTraitsFunction_v = Private::IsTraitsFreeFunction_v<T> ||
     /////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////
-    // See GCC_COMPILER call to its own "diagnostic push" 
+    // See GCC_COMPILER call to its own "diagnostic push"
     // above (comments there apply here as well )
     //////////////////////////////////////////////////////
     #pragma clang diagnostic push
@@ -2286,7 +2687,7 @@ enum class CallingConvention
     // (normally shouldn't do this but we have unique
     // requirements)
     /////////////////////////////////////////////////////////
-    Cdecl, 
+    Cdecl,
     Stdcall,
     Fastcall,
     Vectorcall,
@@ -2393,7 +2794,7 @@ inline constexpr bool CallingConventionReplacedWithCdecl() noexcept
         #undef IS_REPLACED_WITH_CDECL // Done with this
     }
     // Non-static member function ...
-    else   
+    else
     {
         if constexpr (CallingConventionT == CallingConvention::Cdecl)
         {
@@ -2591,7 +2992,7 @@ namespace Private
             // out its work. The following primary template never kicks in however, only
             // the partial specialization just below whenever template arg "T" is a
             // "std::tuple" and it always is by design (or the "static_assert" seen below
-            // kicks in).        
+            // kicks in).
             //
             // Given the following (contrived) example for instance (end-user code):
             //
@@ -2603,14 +3004,14 @@ namespace Private
             // users will rely on), ultimately defers to the following struct with the
             // following template args (and because template arg "T" is always a
             // "std::tuple", the partial specialization just below will always kick in to
-            // handle it):        
+            // handle it):
             //
             //     ReplaceArgsT = StdExt::Private::MemberFunctionTraits<int (Whatever::* const volatile &&)(float, double),
             //                                                          int (Whatever::*)(float, double),
             //                                                          void
             //                                                         >::ReplaceArgs,
             //     T = std::tuple<char>
-            // 
+            //
             // The partial specialization below simply invokes "ReplaceArgsT" seen just
             // above, passing it the types that tuple "T" is specialized on.
             //////////////////////////////////////////////////////////////////////////////
@@ -2757,7 +3158,7 @@ namespace Private
                       (std::is_void_v<ClassT> &&
                        !IsConstT &&
                        !IsVolatileT &&
-                       RefQualifierT == StdExt::RefQualifier::None)); 
+                       RefQualifierT == StdExt::RefQualifier::None));
 
         ///////////////////////////////////////////////////////////////////////
         // Function's full type. Same as template arg "F" used to instantiate
@@ -2794,7 +3195,7 @@ namespace Private
         // instead (and you may or may not receive a compiler warning that this
         // occurred depending on your platform and compiler options). Note that
         // "cdecl" itself is always (realisitically) supported by all compilers
-        // AFAIK (those we support at least but very likely all others as well) 
+        // AFAIK (those we support at least but very likely all others as well)
         /////////////////////////////////////////////////////////////////////////
         static constexpr enum CallingConvention CallingConvention = CallingConventionT; // Note: Leave the "enum" in place since Clang flags it as an error otherwise
                                                                                         // (since we've named the variable "CallingConvention" which is the same as
@@ -2879,7 +3280,7 @@ namespace Private
         //       int MyFunction(int, double, float *, const std::string &)
         //       {
         //       }
-        //    
+        //
         //       ///////////////////////////////////////////////////////////////////
         //       // Type of the 3rd arg of above function ("float *"). Passing 2
         //       // here since template arg I is zero-based. Note that the syntax
@@ -2888,7 +3289,7 @@ namespace Private
         //       // normally rely on it instead).
         //       ///////////////////////////////////////////////////////////////////
         //       using TypeOf3rdArg = typename FunctionTraits<decltype(MyFunction)>::template Args<2>::Type;
-        // 
+        //
         // IMPORTANT:
         // ---------
         //
@@ -2900,28 +3301,28 @@ namespace Private
         // aliases wrap it all up for you). See these templates for details. In
         // the above example for instance, you can replace it with this (using
         // the helper aliases):
-        // 
+        //
         //       //////////////////////////////////////////////////////////
         //       // Still verbose but better than the original call above
         //       // (but read on - it gets even easier)
         //       //////////////////////////////////////////////////////////
         //       using TypeOf3rdArg = FunctionTraitsArgType_t<FunctionTraits<decltype(MyFunction)>, 2>;
-        // 
+        //
         // or simplifying the above a bit (by breaking it into 2 lines, making
         // it longer but still arguably more digestible):
-        // 
+        //
         //       using MyFunctionTraits = FunctionTraits<decltype(MyFunction)>;
         //       using TypeOf3rdArg = FunctionTraitsArgType_t<MyFunctionTraits, 2>;
-        // 
+        //
         // or better yet, you can rely on the following helper instead (so the
         // syntax is now about as clean as we can get it):
-        // 
+        //
         //       using TypeOf3rdArg = ArgType_t<decltype(MyFunction), 2>;
-        // 
+        //
         // or lastly, you can break the line above into the following two lines
         // instead if you wish (though the above line isn't that verbose IMHO so
         // still arguably better):
-        // 
+        //
         //       using MyFunctionType = decltype(MyFunction);
         //       using TypeOf3rdArg = ArgType_t<MyFunctionType, 2>;
         ////////////////////////////////////////////////////////////////////////
@@ -3314,7 +3715,7 @@ namespace Private
         #if !CONCEPTS_SUPPORTED
             ///////////////////////////////////////////////////
             // Kicks in if concepts not supported, otherwise
-            // TRAITS_MEMBER_FUNCTION_C and 
+            // TRAITS_MEMBER_FUNCTION_C and
             // MEMBER_FUNCTION_NON_CV_POINTER_C concepts kick
             // in just above instead (both simply resolve to
             // the "typename" keyword when concepts aren't
@@ -3522,7 +3923,7 @@ namespace Private
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) const noexcept
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) const
     //    R (STDEXT_CC_CDECL C::*)(ArgsT...) noexcept
-    //    R (STDEXT_CC_CDECL C::*)(ArgsT...) 
+    //    R (STDEXT_CC_CDECL C::*)(ArgsT...)
     //
     // In practice these are by far the most likely functions users will be passing on
     // non-Microsoft platforms (read on for Microsoft). There are just 4 of them as seen so
@@ -3730,7 +4131,7 @@ namespace Private
 //    5) Pointer to non-static member function
 //    6) Reference to pointer to non-static member function (references
 //       to non-static member functions not supported by C++ itself,
-//       only references to pointer are). 
+//       only references to pointer are).
 //    7) Functor (or reference to functor) including lambdas
 //
 // IMPORTANT:
@@ -3860,7 +4261,7 @@ struct FunctionTraits<F,
 /////////////////////////////////////////////////////////////////////////////
 // "FunctionTraits" partial specialization for handling non-static member
 // functions. "F" can be either of the following:
-// 
+//
 //   1) An (optionally cv-qualified) pointer to a non-static member function
 //   2) A reference to an (optionally cv-qualified) pointer to a non-static
 //      member function
@@ -3870,7 +4271,7 @@ struct FunctionTraits<F,
                       std::enable_if_t<Private::IsTraitsMemberFunction_v<F>>> : // True if "F" is a pointer to a
                                                                                 // non-static member function or
                                                                                 // a reference to such a pointer
-    Private::MemberFunctionTraits<F> 
+    Private::MemberFunctionTraits<F>
 {
 };
 
@@ -4062,7 +4463,7 @@ struct FunctionTraits<F,
                       std::enable_if_t<Private::IsTraitsFunctor_v<F>>> : // True if "F" is a functor
                                                                          // or a reference to one
     Private::FunctorTraits<F>
-{   
+{
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -4082,24 +4483,24 @@ struct FunctionTraits<F,
 //            STATIC_ASSERT_IS_FUNCTION_TRAITS(F);
 //       #endif
 //     };
-// 
+//
 //    ///////////////////////////////////////////////////////////////
 //    // "static_assert" (C++17 or earlier) or concept (C++20 or
 //    // later) succeeds above (template arg is a "FunctionTraits")
 //    ///////////////////////////////////////////////////////////////
-//    Whatever<FunctionTraits<int ()> whatever1; 
-// 
+//    Whatever<FunctionTraits<int ()> whatever1;
+//
 //    //////////////////////////////////////////////////////////////////
 //    // "static_assert" (C++17 or earlier) or concept (C++20 or later)
 //    //  fails above (template arg is *not* a "FunctionTraits")
 //    //////////////////////////////////////////////////////////////////
-//    Whatever<int> whatever2; 
+//    Whatever<int> whatever2;
 //////////////////////////////////////////////////////////////////////////
 template <typename>
 struct IsFunctionTraits : public std::false_type
 {
 };
-    
+
 //////////////////////////////////////////////////////////////////
 // Specialization of "IsFunctionTraits" (primary) template just
 // above. This specialization does all the work. See primary
@@ -4244,19 +4645,19 @@ inline constexpr tstring_view FunctionTraitsArgTypeName_v = TypeName_v<FunctionT
 // story but since C++20 or later is fast becoming the norm we won't
 // worry about it - pass the expected "FunctionTraits" template arg and
 // everything will be fine).
-// 
+//
 // E.g.,
-// 
+//
 //       void MyFunction(const std::string &str, int val)
 //       {
 //       }
-// 
+//
 //       using MyFunctionTraits = FunctionTraits<decltype(MyFunction)>;
 //       // using MyFunctionTraits = FunctionTraits<void (const std::string &, int)>; // This will also work (same as above but passing function's type on-the-fly)
 //       // using MyFunctionTraits = FunctionTraits<void (*)(const std::string &, int)>; // ... and this too (but now using a pointer to the function so the type
 //                                                                                       // will now reflect that - references to the function will also work, and
 //                                                                                       // references to pointers to the function as well)
-// 
+//
 //       ////////////////////////////////////////////////////////////////
 //       // "ArgTypes" for "MyFunction" above. A std::tuple" containing
 //       // all args in the function so its size will be 2 in this case
@@ -4330,21 +4731,21 @@ inline constexpr tstring_view FunctionTraitsCallingConventionName_v = CallingCon
 // however there is no guarantee compilation will fail but usually will
 // for other reasons - longer story but since C++20 or later is fast
 // becoming the norm we won't worry about it - pass the expected
-// "FunctionTraits" template arg and everything will be fine).    
-// 
+// "FunctionTraits" template arg and everything will be fine).
+//
 // E.g.,
-// 
+//
 //       void MyFunction(const std::string &str, int val)
 //       {
 //       }
-// 
+//
 //       // "FunctionTraits" for above function
 //       using MyFunctionTraits = FunctionTraits<decltype(MyFunction)>;
 //       // using MyFunctionTraits = FunctionTraits<void (const std::string &, int)>; // This will also work (same as above but passing function's type on-the-fly)
 //       // using MyFunctionTraits = FunctionTraits<void (*)(const std::string &, int)>; // ... and this too (but now using a pointer to the function so the type
 //                                                                                       // will now reflect that - references to the function will also work, and
 //                                                                                       // references to pointers to the function as well)
-// 
+//
 //       //////////////////////////////////////////////////////////////
 //       // Type of "MyFunction" above. Yields the following (though
 //       // it might include the calling convention as well depending
@@ -4457,7 +4858,7 @@ inline constexpr bool FunctionTraitsIsMemberFunction_v = FunctionTraitsT::IsMemb
 // FunctionTraitsIsMemberFunctionConst_v. Helper template yielding
 // "FunctionTraitsT::IsConst" (storing true or false to indicate if the
 // non-static function repesented by "FunctionTraitsT" is declared with
-// the "const" qualifier), where "FunctionTraitsT" is a "FunctionTraits"    
+// the "const" qualifier), where "FunctionTraitsT" is a "FunctionTraits"
 // specialization. Note that there's usually no benefit to this
 // particular helper template however compared to calling
 // "FunctionTraitsT::IsConst" directly (there's no reduction in
@@ -4675,20 +5076,20 @@ inline constexpr tstring_view FunctionTraitsMemberFunctionRefQualifierName_v = R
 // for other reasons - longer story but since C++20 or later is fast
 // becoming the norm we won't worry about it - pass the expected
 // "FunctionTraits" template arg and everything will be fine).
-// 
+//
 // E.g.,
-// 
+//
 //       int MyFunction(const std::string &str, int val)
 //       {
 //       }
-// 
+//
 //       // "FunctionTraits" for above function
 //       using MyFunctionTraits = FunctionTraits<decltype(MyFunction)>;
 //       // using MyFunctionTraits = FunctionTraits<int (const std::string &, int)>; // This will also work (same as above but passing function's type on-the-fly)
 //       // using MyFunctionTraits = FunctionTraits<int (*)(const std::string &, int)>; // ... and this too (but now using a pointer to the function so the type
 //                                                                                      // will now reflect that - references to the function will also work, and
 //                                                                                      // references to pointers to the function as well)
-// 
+//
 //       // Return type for "MyFunction" above (int)
 //       using MyFunctionReturnType = FunctionTraitsReturnType_t<MyFunctionTraits>;
 /////////////////////////////////////////////////////////////////////////
@@ -5080,14 +5481,14 @@ inline constexpr std::size_t ArgCount_v = FunctionTraitsArgCount_v<FunctionTrait
 // "ArgCount_v" for this and if zero then it's not legal to use
 // "ArgType_t". Note that variadic args are never included so "I" can't be
 // used to target them (they're effectively ignored as far as "I" is
-// concerned).    
-// 
+// concerned).
+//
 // E.g.,
-// 
+//
 //       void MyFunction(const std::string &str, int val)
 //       {
 //       }
-// 
+//
 //       ////////////////////////////////////////////////////////
 //       // Type of second arg of "MyFunction" above (an "int").
 //       // Passing 1 here since index is zero-based.
@@ -5178,13 +5579,13 @@ inline constexpr tstring_view CallingConventionName_v = FunctionTraitsCallingCon
 // yields the type of function "F" but less verbose than creating a
 // "FunctionTraits" directly and accessing its "Type" alias. The
 // following provides a convenient wrappper.
-// 
+//
 // E.g.,
-// 
+//
 //       void MyFunction(const std::string &str, int val)
 //       {
 //       }
-// 
+//
 //       //////////////////////////////////////////////////////////////
 //       // Type of "MyFunction" above. Yields the following (though
 //       // it might include the calling convention as well depending
@@ -5394,13 +5795,13 @@ inline constexpr tstring_view MemberFunctionRefQualifierName_v = FunctionTraitsM
 // yields the return type of function "F" but less verbose than creating
 // a "FunctionTraits" directly from "F" and accessing its "ReturnType"
 // alias. The following provides a convenient wrappper.
-// 
+//
 // E.g.,
-// 
+//
 //       void MyFunction(const std::string &str, int val)
 //       {
 //       }
-// 
+//
 //       // Return type for "MyFunction" above (void)
 //       using MyFunctionReturnType = ReturnType_t<decltype(MyFunction)>;
 //       // using MyFunctionReturnType = ReturnType_t<void (const std::string &, int)>; // This will also work (same as above but passing function's type on-the-fly)
@@ -5851,7 +6252,7 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
                 {
                     //////////////////////////////////////////////////////////
                     // Note: Call to "std::forward()" here required to:
-                    // 
+                    //
                     //    1) Perfect forward "m_Functor" back to "&" or "&&"
                     //       accordingly
                     //    2) In the "&&" case, invoke "operator()" in the
@@ -5899,7 +6300,7 @@ inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 // a "for" loop but used at compile time to execute the given
 // "functor" "N" times (unless the "functor" arg returns false on
 // any of those iterations in which case processing immediately
-// stops and "false" is immediately returned - read on).    
+// stops and "false" is immediately returned - read on).
 //
 // Note that "operator()" in your functor must be declared as
 // follows (and will typically be "const" as seen though it can be
@@ -6003,7 +6404,7 @@ inline constexpr bool ForEach(ForEachFunctorT&& functor)
         // Lambda template we'll be calling "N" times for the given
         // template arg "N" in "ForEach()" (the function you're now
         // reading). Each iteration invokes "functor", where
-        // processing stops after "N" calls to "functor" or 
+        // processing stops after "N" calls to "functor" or
         // "functor" returns false, whichever comes first (false only
         // returned if "functor" wants to break like a normal "for"
         // loop, which rarely happens in practice so we usually
@@ -6308,7 +6709,7 @@ inline constexpr bool IsForEachTupleFunctor_v = IsForEachTupleFunctor<T>::value;
 
                 //////////////////////////////////////////////////////////
                 // Note: Call to "std::forward()" here required to:
-                // 
+                //
                 //    1) Perfect forward "m_Functor" back to "&" or "&&"
                 //       accordingly
                 //    2) In the "&&" case, invoke "operator()" in the
@@ -6787,7 +7188,7 @@ inline constexpr bool ForEachFunctionTraitsArg(ForEachTupleFunctorT&& functor)
 // (non-variadic) arg in function "F" (or none if "F" has no
 // non-variadic args) and invokes "functor" for each. See above
 // function for further details.
-// 
+//
 // Note that you should normally rely on the following function
 // instead of "ForEachFunctionTraitsArg()" above since it's easier
 // (though you're free to use the latter function if you've already
