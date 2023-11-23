@@ -128,8 +128,8 @@ void OutputArgI() // "Ith" arg (zero-based)
 //
 //       int (const std::string &, const char *, short, ...) noexcept;
 //
-// Then displays (note that actual strings below are compiler-dependent but
-// are usually identical or very similar):
+// Then displays the following (note that actual strings below are
+// compiler-dependent but are usually identical or very similar):
 //
 //    	 1) const std::basic_string<char> &
 //       2) const char *
@@ -160,7 +160,7 @@ void DisplayArgTypes()
                                         // (until all function args are processed).
                                         // Note that returning false would stop
                                         // iterating, equivalent to a "break"
-                                        // statement in a regular"for" loop.
+                                        // statement in a regular "for" loop.
                                         //////////////////////////////////////////////
                                         return true;
                                     };
@@ -209,7 +209,7 @@ void DisplayArgTypes()
 // functors (for functors "F" will be the functor's class name noting that
 // overloads of "operator()" aren't supported since it will cause
 // ambiguity errors - you can always pass the address of the specfic
-// overload however as a normal member' function pointer)
+// overload however as a normal member function pointer)
 ///////////////////////////////////////////////////////////////////////////
 template <typename F>
 void DisplayFunctionTraits()
@@ -266,11 +266,12 @@ void DisplayFunctionTraits()
                          (IsVariadic_v<F> ? _T(" + variadic") : _T("")) <<
                          _T("):");
 
-    ///////////////////////////////////////////////////
-    // Function's arg list not "(void)" (so has at
-    // least 1 (non-variadic) arg and/or is variadic)
-    ///////////////////////////////////////////////////
-    if (ArgCount_v<F> != 0 || IsVariadic_v<F>)
+    /////////////////////////////////////////////
+    // Function's arg list not empty, i.e. not
+    // "(void)"? (so has at least 1 non-variadic
+    // arg and/or is variadic)
+    /////////////////////////////////////////////
+    if (!IsEmptyArgList_v<F>)
     {
         tcout << _T("\n");
 
@@ -473,7 +474,7 @@ void DisplayFunctorTraits()
 // main()
 /////////////////////////////////////////////////////////////////////////////
 int main()
-{ 
+{
     tcout << _T("FunctionTraits demo (detected compiler: ") << GetCompilerName() << _T("). See top of \"Demo.cpp\" for details.\n");
     tcout << _T("For complete details on \"FunctionTraits\" see https://github.com/HexadigmSystems/FunctionTraits\n\n");
 
