@@ -301,13 +301,15 @@ namespace Private
     // Converts "str" to a "std::array" consisting of all chars
     // in "str" at the indexes specified by the 2nd arg (a
     // collection of indexes in "str" indicating which chars in
-    // "str" will be copied into the array). The size of the
-    // returned "std::array" is therefore the number of indexes
-    // in the 2nd arg, and the array itself is populated with
-    // all chars in "str" at these particular indexes. The type
-    // of the returned array is therefore this:
+    // "str" will be copied into the array). A NULL terminator
+    // is also added at the end. The size of the returned
+    // "std::array" is therefore the number of indexes in the
+    // 2nd arg plus 1 for the NULL terminator. The array itself
+    // is populated with all chars in "str" at these particular
+    // indexes (again, with a NULL terminator added). The type
+    // of the returned array is therefore:
     //
-    //    std::array<TCHAR, sizeof...(I)>
+    //     std::array<TCHAR, sizeof...(I) + 1>
     //
     // Note that in practice this function is usually called to
     // convert an entire constexpr string to a "std::array" so
@@ -319,10 +321,10 @@ namespace Private
     //     ///////////////////////////////////////////////////////
     //     // Convert above to a "std::array". The 2nd arg is
     //     // just the sequential sequence {0, 1, 2, ..., N - 1}
-    //     // where "N" is "str.size()" so all chars in "str" are
-    //     // copied over (in the expected order 0 to N - 1).
+    //     // where "N" is "str.size()", so all chars in "str"
+    //     // are copied over (in the expected order 0 to N - 1).
     //     ///////////////////////////////////////////////////////
-    //     constexpr auto array = StrToArray(str, std::make_index_sequence<str.size()>());
+    //     constexpr auto strAsArray = StrToNullTerminatedArray(str, std::make_index_sequence<str.size()>());
     //
     // The 2nd arg above is therefore just the sequence of
     // (std::size_t) integers in the range 0 to the number of
@@ -330,40 +332,47 @@ namespace Private
     // a "std::array" containing a copy of "str" itself since
     // the 2nd arg specifies every index in "str" (so each
     // character at these indexes is copied to the array). The
-    // returned type in the above example is therefore this:
+    // returned type in the above example is therefore the
+    // following (7 characters in the above string plus 1 for
+    // the NULL terminator which we always manually add):
     //
-    //     std::array<TCHAR, 7>;
+    //     std::array<TCHAR, 8>;
     //
-    // Having to pass "std::make_index_sequence" as seen above
-    // is syntactically ugly however. It's therefore cleaner to
-    // call the other "StrToArray" overload just below instead,
-    // which is designed for this purpose (when copying all of
-    // "str" - see this overload for details). It simply defers
-    // to the overload you're now reading but it's a bit cleaner.
+    // Note that having to pass "std::make_index_sequence" as
+    // seen in the above example is syntactically ugly however.
+    // It's therefore cleaner to call the other
+    // "StrToNullTerminatedArray" overload just below instead,
+    // which is designed for this purpose (to copy all of "str"
+    // which most will usually be doing - see overload below
+    // for details). It simply defers to the overload you're
+    // now reading but it's a bit cleaner.
     //
-    // Even this cleaner overload is still syntactically ugly
-    // however (both overloads are), but unfortunately C++
-    // doesn't support "constexpr" parameters at this writing
+    // Even the cleaner overload below is still syntactically
+    // ugly however (both overloads are), but unfortunately C++
+    // doesn't support "constexpr" parameters at this writing,
     // which would eliminate the issue. The issue is that the
     // 2nd template arg of "std::array" is the size of the
     // array itself and this arg must be known at compile-time
     // of course (since it's a template arg). Since the "str"
     // parameter of both overloads isn't "constexpr" however
-    // (since the language doesn't currently support
-    // "constexpr" parameters), neither function can pass
+    // (since C++ doesn't currently support "constexpr"
+    // parameters), neither function can directly pass
     // "str.size()" as the 2nd template parameter to
-    // "std::array" even though "str" itself may be "constexpr"
-    // at the point of call. It means that when "str" is
-    // "constexpr" at the point of call, the user is forced to
-    // pass "str.size()" as a template parameter at the point
-    // of call since the function itself can't legally do it
-    // (it can't pass it as the 2nd template arg of
-    // "std::array" - it must therefore be passed at the point
-    // of call instead which makes the syntax of these
-    // functions unnatural). The situation is ugly and unwieldy
-    // since it would be much cleaner and more natural to just
-    // grab the size from "str.size()" inside the function
-    // itself but the language doesn't allow it.
+    // "std::array", even though "str" itself may be
+    // "constexpr" at the point of call. It means that even
+    // when "str" is "constexpr" at the point of call, the user
+    // is still forced to pass "str.size()" as a template
+    // parameter at the point of call since the function itself
+    // can't legally do it (it can't pass it as the 2nd
+    // template arg of "std::array" since "str" isn't
+    // "constexpr" inside the function - it must therefore be
+    // passed as a template parameter at the point of call
+    // instead, which makes the syntax of these functions
+    // unnatural). The situation is ugly and unwieldy since it
+    // would be much cleaner and more natural to just grab the
+    // size from "str.size()" inside the function itself, but
+    // the language doesn't support it in a "constexpr" context
+    // at this writing (maybe one day).
     //
     // The upshot is that the following overload is designed to
     // circumvent this C++ deficiency but will rarely be called
@@ -371,103 +380,146 @@ namespace Private
     // different sequence of characters from "str" to the
     // returned array other than all of them). If you need to
     // copy all of "str" to the returned array (usually the
-    // case) then it's cleaner to call the other overload just
+    // case), then it's cleaner to call the other overload just
     // below instead. See this for details.
     ////////////////////////////////////////////////////////////
     template <std::size_t... I>
-    inline constexpr auto StrToArray(tstring_view str, std::index_sequence<I...>) noexcept
+    inline constexpr auto StrToNullTerminatedArray(tstring_view str, std::index_sequence<I...>) noexcept
     {
         ///////////////////////////////////////////////////////////
-        // Create a "std::array" and initialize to all chars in
-        // "str" (so effectively copied). Note BTW that we can't
-        // rely on CTAD (Class Template Argument Deduction) to
-        // determine the type of the returned "std::array" since
-        // it will fail if "I" is an empty parameter pack (but it
-        // works otherwise). If we simply returned the following
-        // for instance (i.e., rely on CTAD by not explicitly
-        // passing the "std::array" template args):
+        // Creates a "std::array" and initializes it to all chars
+        // in "str" (just a fancy way to copy it but in the same
+        // order given by "I" - usually sequential), but also
+        // adding a NULL terminator as seen, guaranteeing the
+        // array is NULL terminated (so callers can safely depend
+        // on this if required - note that whether "str" itself is
+        // already NULL terminated is therefore irrelevant to us -
+        // harmless if it is but we just ignore it).
         //
-        //     return std::array{str[I]...};  
+        // Note BTW that we could rely on CTAD (Class Template
+        // Argument Deduction) in the following call if we wish,
+        // and therefore avoid explicitly passing the "std::array"
+        // template args in the return value as we're now doing
+        // (since it's more clear what's being returned IMHO). If
+        // we relied on CTAD instead then we could just return the
+        // following instead (less verbose than manually passing
+        // the "std::array" template args as we're now doing but
+        // again, it's not as clear what's being returned IMHO):
         //
-        // Then the type of "std:array" would resolve to this
-        // (where "N" is the number of (std::size_t) integers in
-        // parameter pack "I"):
-        //  
-        //     std::array<TCHAR, N>;
+        //     return std::array{str[I]..., _T('\0')};
         //
-        // We fill the array in using pack expansion so if "I" is
-        // {0, 1, 2} for instance (though it doesn't have to be
-        // in sequential order but most will call it that way),
-        // then it resolves to the following:
+        // The type of "std:array" would then resolve to the
+        // following, where "N" is the number of (std::size_t)
+        // integers in parameter pack "I", and there's one extra
+        // TCHAR for the NULL terminator we're manually adding
+        // (hence the "+ 1"):
         //
-        //     return std::array<TCHAR, 3>{str[0], str[1], str[2]};
+        //     std::array<TCHAR, N + 1>;
         //
-        // However if "I" is empty then compiler errors result
-        // indicting that the template args for "std::array" can't
-        // be deduced. We're therefore forced to explicitly pass
-        // them even though for our purposes we never call this
-        // (internal) function with an empty "I" (but to make
-        // things clean we'll handle it anyway - no big deal to
-        // explicitly pass them noting that if "I" were in fact
-        // empty then an empty array would be returned as
-        // expected).
+        // In either case, whether we explicitly pass the
+        // "std::array" template args or rely on CTAD, parameter
+        // pack expansion of "I" occurs as always so if "I" is
+        // {0, 1, 2} for instance (though it doesn't have to be in
+        // sequential order if a caller requires a different order
+        // but usually not), then it resolves to the following
+        // (again, note that we manually pass the NULL terminator
+        // as seen):
+        //
+        //     return std::array<TCHAR, 4>{str[0], str[1], str[2], _T('\0')};
+        //
+        // Note that things also work if "I" is empty (so its size
+        // is zero), normally because "str" is empty so there's
+        // nothing to copy. In this case the call simply resolves
+        // to the following:
+        //
+        //     return std::array<TCHAR, 1>{_T('\0')};
+        //
+        // The above array therefore stores the NULL terminator
+        // only (as would be expected).
         ///////////////////////////////////////////////////////////
-        return std::array<TCHAR, sizeof...(I)>{str[I]...};
+        return std::array<TCHAR, sizeof...(I) + 1>{str[I]..., _T('\0')};
     }
 
     ////////////////////////////////////////////////////////////
     // See other overload just above. The following overload
     // just defers to it in order to convert "str" to a
-    // "std::array" which it then returns. This overload exists
-    // to clean up the syntax of the above overload a bit when
-    // you need to convert the entire "str" to a "std::array"
-    // as most will usually be doing (though to copy any other
+    // "std::array" which it then returns (with a NULL
+    // terminator always added - see overload above). Note
+    // that the following overload exists to clean up the
+    // syntax of the above overload a bit when you need to
+    // convert the entire "str" arg to a "std::array", as
+    // most will usually be doing (though to copy any other
     // sequence of characters from "str" to a "std::array"
-    // you'll need to call the above overload directly instead,
-    // passing the specific indexes in "str" you wish to copy).
+    // you'll need to call the above overload directly
+    // instead, passing the specific indexes in "str" you
+    // wish to copy - very rare though).
     //
-    // Note that as explained in the other overload above, the
+    // Note that as explained in the overload above, the
     // syntax for both overloads is ugly due to "constexpr"
     // shortcomings in current versions of C++. The following
-    // overload is nevertheless a cleaner version than the one
-    // above when you simply need to convert "str" to a
-    // "std::array".
+    // overload is nevertheless a cleaner version than the
+    // one above when you simply need to convert "str" to a
+    // "std::array" (again, as most will usually be doing).
     //
     //     Example
     //     -------
     //     // Any "constexpr" string
     //     constexpr tstring_view str = _T("Testing");
     //
-    //     /////////////////////////////////////////////////
-    //     // The type of "array" returned by this example
-    //     // is therefore:
+    //     //////////////////////////////////////////////////
+    //     // The type of "array" returned by the following
+    //     // call is therefore the following:
     //     //
-    //     //      std::array<TCHAR, 7>
+    //     //     std::array<TCHAR, 8>
     //     //
-    //     // Note that "str.size()" should always be
-    //     // passed as the 1st template arg but having to
-    //     // do this is ugly and even potentially brittle
-    //     // if a different value is passed. Until C++
-    //     // supports "constexpr" parameters however (if
-    //     // ever), we'll have to live with it for now
-    //     // (since the function can't pass this on its
-    //     // own - it must be passed as a template arg
-    //     // at the point of call)
-    //     /////////////////////////////////////////////////
-    //     constexpr auto array = StrToArray<str.size()>(str);
+    //     // Note that its size, 8, is the length of
+    //     // "Testing" above, 7, plus 1 for the NULL
+    //     // terminator, but the NULL terminator doesn't
+    //     // originate from the one in the "Testing" string
+    //     // literal above. Instead we always manually add
+    //     // our own. "str" above therefore need not be NULL
+    //     // terminated even though it is in this case
+    //     // (since it's initialized from a string literal
+    //     // above which does include one - if initialized
+    //     // from another source that's not NULL terminated
+    //     // however then it doesn't matter since we always
+    //     // manually add our own).
+    //     //
+    //     // Note that as seen in the following call,
+    //     // "str.size()" should always be passed as the 1st
+    //     // template parameter to "StrToNullTerminatedArray()",
+    //     // but having to do this is ugly. That is,
+    //     // "StrToNullTerminatedArray()" can simply get
+    //     // hold of this by invoking "size()" on the same
+    //     // "str" parameter we're passing it, so having to
+    //     // separately pass it as a template parameter is
+    //     // really unnecessary. However, since the "size()"
+    //     // member is required in a "constexpr" context and
+    //     // C++ doesn't support "constexpr" function
+    //     // arguments at this writing, the function can't
+    //     // call "size()" on its "str" arg in a "constexpr"
+    //     // context so we're forced to pass it as a
+    //     // template parameter instead (for now - maybe C++
+    //     // will support "constexpr" function parameters
+    //     // one day)
+    //     //////////////////////////////////////////////////
+    //     constexpr auto strAsArray = StrToNullTerminatedArray<str.size()>(str);
     ////////////////////////////////////////////////////////////
     template <std::size_t Size> // Always pass "str.size()"
-    inline constexpr auto StrToArray(tstring_view str) noexcept
+    inline constexpr auto StrToNullTerminatedArray(tstring_view str) noexcept
     {
         ////////////////////////////////////////////////
         // Defer to overload just above, passing all
-        // indexes in the array via the 2nd arg (so zero
-        // to the number of indexes in "str" - 1). Note
-        // that the "Size" template arg must always be
-        // "str.size()" (callers should always call us
-        // this way - see function comments above)
-        ////////////////////////////////////////////////
-        return StrToArray(str, std::make_index_sequence<Size>());
+        // indexes that need to be copied from "str"
+        // into the resulting array (via the 2nd arg,
+        // i.e., zero to the number of indexes in "str"
+        // - 1). Note that the "Size" template arg
+        // we're passing to "std::make_index_sequence"
+        // must always be "str.size()" itself (callers
+        // should always call us this way - see
+        // function comments above)
+        //////////////////////////////////////////////////
+        return StrToNullTerminatedArray(str, std::make_index_sequence<Size>());
     }
 
     ///////////////////////////////////////////////////////////////
@@ -1574,38 +1626,60 @@ namespace Private
             // __PRETTY_FUNCTION__ or (on MSFT platforms)
             // __FUNCSIG__ and statically stored in "m_TypeName"
             // (a "std::array" just big enough to store the
-            // extracted type name). We then simply return a
-            // "tstring_view" that wraps "m_TypeName".
-            // __PRETTY_FUNCTION__ or __FUNCSIG__ is therefore
-            // *not* stored in the compiled binary as they
-            // normally would be since they're compile time
-            // strings. "m_TypeName" is stored instead which only
+            // extracted type name plus 1 extra character for a
+            // NULL terminator - we always add one in case callers
+            // require it). We then simply return a "tstring_view"
+            // that wraps "m_TypeName" though its "size()" member
+            // doesn't include the NULL terminator itself, as
+            // would normally be expected (but the NULL terminator
+            // is still safely present in case someone invokes the
+            // "data()" member for instance - the string is
+            // therefore always safely NULL terminated). The
+            // upshot is that __PRETTY_FUNCTION__ or __FUNCSIG__
+            // is therefore *not* stored in the compiled binary as
+            // they normally would be as compile time (static)
+            // strings. They're removed by all supported compilers
+            // entirely since they're not being used at runtime
+            // and "m_TypeName" is stored instead, which only
             // takes up the minimum space required to store the
-            // type name so we make it the default behaviour
-            // (savings is usually negligible however but no point
-            // storing all of __PRETTY_FUNCTION__ or __FUNCSIG__
-            // when we only ever target that portion of it
-            // containing the type name itself - "m_TypeName"
-            // contains a copy of it so there's zero overhead).
-            // However, should it ever become necessary for some
-            // reason on a given compiler (it fails to compile the
-            // existing code for some reason - unlikely but no
-            // other reason to apply the following usually), users
-            // can simply #define TYPENAME_V_DONT_MINIMIZE_REQD_SPACE
-            // which removes "m_TypeName" (preprocesses it out),
-            // and resorts to storing __PRETTY_FUNCTION__ or
-            // __FUNCSIG__ again (as static strings in the
-            // compiled binary). We then return a "tstring_view"
-            // into these strings targeting the type name within
-            // the string (though the unused remainder of
-            // __PRETTY_FUNCTION__ or __FUNCSIG__ becomes a waste
-            // of space), opposed to the usual default behaviour
-            // described above (where the only string stored in
-            // the binary is "m_TypeName" so it consumes only the
-            // actual (minimal) required space to store the name,
-            // and the returned "tstring_view" targets that
-            // instead).
-            //////////////////////////////////////////////////
+            // type name (plus a NULL terminator). We therefore
+            // make this the default behaviour though the savings
+            // is usually negligible (but no point storing all of
+            // __PRETTY_FUNCTION__ or __FUNCSIG__ when we only
+            // ever target that portion of it containing the type
+            // name itself - "m_TypeName" contains a copy of it so
+            // there's zero overhead). However, should it ever
+            // become necessary for some reason (not normally),
+            // users can simply #define
+            // TYPENAME_V_DONT_MINIMIZE_REQD_SPACE which removes
+            // "m_TypeName" (preprocesses it out), and resorts to
+            // storing __PRETTY_FUNCTION__ or __FUNCSIG__ again
+            // (as static strings in the compiled binary). We then
+            // return a "tstring_view" into these strings instead,
+            // targeting the type name within the string. Caution
+            // advised however (!!) since it's no longer NULL
+            // terminated as a result (because it's just a
+            // substring view of the type name within
+            // __PRETTY_FUNCTION__ or __FUNCSIG__ so no NULL
+            // terminator will be present in the latter strings at
+            // the character following the substring). Note that
+            // the unused remainder of __PRETTY_FUNCTION__ or
+            // __FUNCSIG__ within the compiled binary also becomes
+            // a waste of space (since the caller is only ever
+            // targeting the type name within these strings).            
+            // Contrast this behaviour with the usual default
+            // behaviour described above, where the only string
+            // stored in the binary is "m_TypeName" (always NULL
+            // terminated), and this only consumes the actual
+            // (minimal) required space to store the type name
+            // (plus a NULL terminator). The returned
+            // "tstring_view" targets that instead so most users
+            // should stick with this behaviour and not #define
+            // TYPENAME_V_DONT_MINIMIZE_REQD_SPACE unless there's
+            // a compelling reason to (but if you do, it's no
+            // longer a null-terminated string as noted so
+            // exercise caution).
+            ///////////////////////////////////////////////////////
             #if !defined(TYPENAME_V_DONT_MINIMIZE_REQD_SPACE)
                 //////////////////////////////////////////////////////
                 // Return static member "m_TypeName" (a "std::array"
@@ -1640,15 +1714,34 @@ namespace Private
             return BaseClass::ExtractTypeNameFromPrettyFunction(GetPrettyFunction<T>());
         }
 
-        //////////////////////////////////////////////////
+        ///////////////////////////////////////////////
         // Normally tests true (constant not #defined
-        // by default). See comments in "Get()" function
-        // above for details.
-        //////////////////////////////////////////////////
+        // by default). See the same call in "Get()"
+        // function above for details (the comments
+        // there)
+        ///////////////////////////////////////////////
         #if !defined(TYPENAME_V_DONT_MINIMIZE_REQD_SPACE)
             static constexpr tstring_view TypeNameArrayToStringView() noexcept
             {
-                return tstring_view(m_TypeName.data(), m_TypeName.size());
+                ////////////////////////////////////////////
+                // Return a "tstring_view" wrapping our
+                // "m_TypeName" array member but
+                // subtracting 1 from the array's size so
+                // the NULL terminator isn't included in
+                // the returned "tstring_view" (i.e., its
+                // "size()" member doesn't include it).
+                // However, it's still always present so
+                // users can safely depend on the "data()"
+                // member of the returned "tstring_view"
+                // always pointing to a NULL terminated
+                // string (should they require this). The
+                // "size()" member of the returned
+                // "tstring_view doeesn't include the NULL
+                // terminator however, as would normally be
+                // expected (it returns the length of the
+                // actual string only).
+                ////////////////////////////////////////////
+                return tstring_view(m_TypeName.data(), m_TypeName.size() - 1);
             }
 
             static constexpr auto InitTypeName() noexcept
@@ -1657,22 +1750,29 @@ namespace Private
 
                 ////////////////////////////////////////////////
                 // Create a "std::array" from "typeName" (same
-                // size as "typeName" and stores a copy of it).
-                // Note that having to pass "typeName.size()"
-                // as a template arg is ugly given that the
-                // function can just call this itself but not
-                // in a "constexpr" context which we require
-                // (since language doesn't support "constexpr"
-                // function parameters at this writing - see
-                // function for details).
+                // size as "typeName" plus 1 for the NULL
+                // terminator the following function always
+                // manually adds - "typeName" itself is copied
+                // into the array and it's then NULL
+                // terminated). Note that having to pass
+                // "typeName.size()" as a template arg is ugly
+                // given that the function can just call this
+                // itself, but not in a "constexpr" context
+                // which we require (since C++ doesn't support
+                // "constexpr" function parameters at this
+                // writing - see function for details).
                 ////////////////////////////////////////////////
-                return StrToArray<typeName.size()>(typeName);
+                return StrToNullTerminatedArray<typeName.size()>(typeName);
             }
 
             ////////////////////////////////////////////////////////////
             // "auto" resolves to a "std::array" of TCHAR that stores
             // the type name, where the array's size is just large
-            // enough to hold it (no NULL terminator present).
+            // enough to hold it (but we also add a NULL terminator
+            // since some users might require it). If template parameter
+            // "T" is an "int" for instance so its length is 3, then
+            // "m_TypeName" will be "std::array<TCHAR, 4>" (one extra
+            // character added for the NULL terminator).
             // 
             // Note: This member is implicitly "inline". Standard
             // currently states:
