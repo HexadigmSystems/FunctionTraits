@@ -16,11 +16,27 @@
 // its return type, argument types, and other information - write traits
 // also fully supported but not demo'd in this program - see link below for
 // examples). Just run the program to display all available information
-// about the 3 sample functions seen in namespace "TestFuncs" further below
-// (traits displayed to the stdout). You can update these three functions
-// with any signature whose traits you want to display, and re-run the app.
-// No other changes are required.
-// 
+// about the 3 sample functions seen in namespace "TestFuncs" later in this
+// file (traits displayed to the stdout). You can update these three
+// functions with any signature whose traits you want to display, and re-run
+// the app. No other changes are required. Note however that all three
+// functions are ultimately passed to function template
+// "DisplayFunctionTraits<F>()". You can therefore just call this directly
+// if you wish, passing any function type you want for template arg "F"
+// (free functions which includes static member functions, non-static member
+// functions, pointers and references to functions, references to pointers
+// to functions, and functors (including lambdas).
+//
+// Lastly, note that the program defaults to C++20. If you wish to change
+// this then add -DCMAKE_CXX_STANDARD=?? to the CMake command line options,
+// setting "??" to the target version (which must be 17 or any later version
+// of C++ - "FunctionTraits" doesn't support earlier versions). In Compiler
+// Explorer, the CMake command line options are normally located near the
+// top-left corner of the source code window on the left, just above the
+// project name "FunctionTraitsDemo". For further details on the CMake
+// command line options for this demo, see the top of the "CMakeLists.txt"
+// file in the source code window.
+//
 // For complete details on "FunctionTraits" (fully documented), see
 // https://github.com/HexadigmSystems/FunctionTraits
 /////////////////////////////////////////////////////////////////////////////
@@ -31,16 +47,19 @@
 // We only support C++17 or later (stop compiling otherwise)
 #if CPP17_OR_LATER
 
-// Standard C/C++ headers
-#include <cstddef>
-#include <iostream>
-#include <string_view>
+// "import std" not currently in effect? (C++23 or later)
+#if !defined(STDEXT_IMPORTED_STD) 
+    // Standard C/C++ headers
+    #include <cstddef>
+    #include <iostream>
+    #include <string_view>
+#endif
 
 // Our headers
 #include "TypeTraits.h"
 
 ////////////////////////////////////////
-// Everything in our own headers just
+// Everything in "TypeTraits.h" just
 // above is declared in this namespace
 ////////////////////////////////////////
 using namespace StdExt;
@@ -49,10 +68,10 @@ using namespace StdExt;
 // OutputArgI(). Displays the "Ith" arg to the stdout (formatted as required
 // for this app). Note that "I" refers to the (zero-based) "Ith" arg in the
 // function we're being called for (in left-to-right order) and "argTypeAsStr"
-// is its type (converted to a WYSIWYG string)
+// is its type (converted to a WYSIWYG string).
 ///////////////////////////////////////////////////////////////////////////////
 void OutputArgI(const std::size_t i, // "Ith" arg (zero-based)
-                std::basic_string_view<TCHAR> argTypeAsStr) // Type of the "Ith" arg just above (as a string)
+                tstring_view argTypeAsStr) // Type of the "Ith" arg just above (as a string)
 {
     tcout << _T("\t") <<
              (i + 1) << // "Ith" arg ("i" is zero-based so we add 1 to display
@@ -62,13 +81,13 @@ void OutputArgI(const std::size_t i, // "Ith" arg (zero-based)
              _T("\n");
 }
 
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // OutputArgI(). Converts "ArgTypeT" template arg to a "pretty" (WYSIWYG)
-// string and pass it to above (non-template) overload where it's displayed
+// string and passes it to above (non-template) overload where it's displayed
 // to the "stdout" (formatted as required for this app). Note that "I" refers
 // to the (zero-based) "Ith" arg in the function we're being called for (in
 // left-to-right order) and "ArgTypeT" is its type.
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 template <std::size_t I, typename ArgTypeT>
 void OutputArgI() // "Ith" arg (zero-based)
 {
@@ -139,7 +158,7 @@ void OutputArgI() // "Ith" arg (zero-based)
 template <typename F>
 void DisplayArgTypes()
 {    
-    // Lamba templates available starting in C++20
+    // Lambda templates available starting in C++20
     #if CPP20_OR_LATER
         ///////////////////////////////////////////////////
         // Lambda we'll be invoking once for each arg in
@@ -208,7 +227,7 @@ void DisplayArgTypes()
 // supported in C++ however), references to pointers to functions, and
 // functors (for functors "F" will be the functor's class name noting that
 // overloads of "operator()" aren't supported since it will cause
-// ambiguity errors - you can always pass the address of the specfic
+// ambiguity errors - you can always pass the address of the specific
 // overload however as a normal member function pointer)
 ///////////////////////////////////////////////////////////////////////////
 template <typename F>
@@ -321,7 +340,7 @@ void DisplayFunctionTraits()
 // "DisplayFunctionTraits()" overload (2 of 2)
 /////////////////////////////////////////////////////////////////////////////
 template <typename F>
-void DisplayFunctionTraits(std::basic_string_view<TCHAR> caption)
+void DisplayFunctionTraits(tstring_view caption)
 {
     // Display the caption for this function to the stdout
     tcout << _T("************************************\n");
@@ -375,7 +394,7 @@ namespace TestFuncs
         // Adding this to make the class a functor (which
         // are also supported)
         ///////////////////////////////////////////////////        
-        std::basic_string<TCHAR> operator()(std::size_t) const;
+        std::basic_string<tchar> operator()(std::size_t) const;
     };
 }
 
@@ -487,4 +506,4 @@ int main()
 
 #else
     #error "This program is only supported in C++17 or later (an earlier version was detected). Please set the appropriate compiler option to target C++17 or later and try again (minimum of "-std=c++17" in GCC, Clang and Intel, or "/std:c++17" in Microsoft)"
-#endif // CPP17_OR_LATER
+#endif // #if CPP17_OR_LATER
