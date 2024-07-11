@@ -22,7 +22,7 @@
 // (read on for what "public" means), and while they can also be used by end
 // users, they're not documented at the above link (but are largely
 // documented in this header). Only declarations directly related to
-// "FunctionTraits" are (fully documented at the above link.
+// "FunctionTraits" are (fully) documented at the above link.
 //
 // Note that this header is supported by GCC, Microsoft, Clang and Intel
 // compilers only at this writing (C++17 and later - the check for
@@ -294,6 +294,7 @@
     // Standard C/C++ headers
     #include <array>
     #include <cstddef>
+    #include <iostream>
     #include <string_view>
     #include <tuple>
     #include <type_traits>
@@ -2328,7 +2329,7 @@ namespace StdExt
     // functions, lvalue and rvalue references declared on non-static member
     // functions (though these are rarely used in practice), and variadic
     // functions (those whose last arg is "..."). A specialization therefore
-    // exists for every permutation of the above, noting that the if primary
+    // exists for every permutation of the above, noting that if the primary
     // template itself kicks in then no specialization exists for template
     // argument "F". It means that "F" is not a function type so a compiler
     // error will occur (our own concept will trigger in C++20 or greater, or
@@ -5248,25 +5249,24 @@ namespace StdExt
 
     ////////////////////////////////////////////////////////////////////////////
     // FunctionTraitsArgTypes_t. Helper alias yielding
-    // "FunctionTraitsT::ArgTypes" (a "std::tuple" storing all arg types
-    // for the function represented by "FunctionTraits"), where
-    // "FunctionTraitsT" is a "FunctionTraits" specialization. Note that
-    // it's less verbose than accessing "FunctionTraits::ArgTypes" directly
-    // so you should normally rely on the following instead (or preferably
-    // the "ArgTypes_t" helper alias instead, which just defers to
-    // "FunctionTraitsArgTypes_t" and is even easier to use). Note that using
-    // this alias is rarely ever required in practice however since arg
-    // types can be individually accessed using the "FunctionTraitsArgType_t"
-    // helper instead (see this for details). Normally "FunctionTraitsArgTypes_t"
-    // only needs to be accessed if you need to iterate all the arg types
-    // for some reason but if so then you can just invoke helper function
-    // (template) "ForEachArg()" which exists for this purpose. See this
-    // for details. Lastly, note that the "FunctionTraitsT" template arg
-    // must be a "FunctionTraits" specialization or compilation will
-    // normally fail (concept kicks in in C++20 or later so failure is
-    // guaranteed - in C++17 or earlier however there is no guarantee
-    // compilation will fail but usually will for other reasons - longer
-    // story but since C++20 or later is fast becoming the norm we won't
+    // "FunctionTraitsT::ArgTypes" (a "std::tuple" storing all arg types for
+    // the function represented by "FunctionTraits"), where "FunctionTraitsT"
+    // is a "FunctionTraits" specialization. Note that it's less verbose than
+    // accessing "FunctionTraits::ArgTypes" directly so you should normally
+    // rely on the following instead (or preferably the "ArgTypes_t" helper
+    // alias instead, which just defers to "FunctionTraitsArgTypes_t" and is
+    // even easier to use). Note that using this alias is rarely ever required
+    // in practice however since arg types can be individually accessed using
+    // the "FunctionTraitsArgType_t" helper instead (see this for details).
+    // Normally "FunctionTraitsArgTypes_t" only needs to be accessed if you
+    // need to iterate all the arg types for some reason but if so then you can
+    // just invoke helper function (template) "ForEachArg()" which exists for
+    // this purpose. See this for details. Lastly, note that the
+    // "FunctionTraitsT" template arg must be a "FunctionTraits" specialization
+    // or compilation will normally fail (concept kicks in C++20 or later so
+    // failure is guaranteed - in C++17 or earlier however there is no
+    // guarantee compilation will fail but usually will for other reasons -
+    // longer story but since C++20 or later is fast becoming the norm we won't
     // worry about it - pass the expected "FunctionTraits" template arg and
     // everything will be fine).
     //
@@ -5389,6 +5389,33 @@ namespace StdExt
     ////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr tstring_view FunctionTraitsTypeName_v = TypeName_v<FunctionTraitsFunctionType_t<FunctionTraitsT>>;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgTypeSame_v. Helper template yielding "true" if the
+    // (zero-based) "Ith" arg of the function represented by "FunctionTraitsT"
+    // is the same as the given type "T" or false otherwise. The function is
+    // just a thin wrapper around "std::is_same_v", where the latter template
+    // is passed the type of the "Ith" arg in function "FunctionTraitsT" as
+    // its 1st template arg, and "T" as its 2nd template arg. IOW, it simply
+    // compares the type of the "Ith" arg in function "FunctionTraitsT" with
+    // type "T". This is a common requirement for many users so this template
+    // provides a convenient wrapper.
+    // 
+    //    using F = int SomeFunc(int, float, double);
+    //    using SomeFuncTraits = FunctionTraits<F>;
+    // 
+    //    //////////////////////////////////////////////////////////////////
+    //    // Identical to the following but more convenient (and less
+    //    // verbose):
+    //    //
+    //    // using Arg2_t = FunctionTraitsArgType_t<SomeFuncTraits, 1>;
+    //    // constexpr bool Is2ndArgAFloat = std::is_same_v<Arg2_t, float // true
+    //    //////////////////////////////////////////////////////////////////
+    //    constexpr bool Is2ndArgAFloat = FunctionTraitsIsArgTypeSame_v<SomeFuncTraits, 1, float>;
+    //    
+    ///////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, typename T>
+    inline constexpr bool FunctionTraitsIsArgTypeSame_v = std::is_same_v<FunctionTraitsArgType_t<FunctionTraitsT, I>, T>;
 
     ///////////////////////////////////////////////////////////////////////////
     // FunctionTraitsIsFreeFunction_v. Helper template yielding
@@ -6232,6 +6259,31 @@ namespace StdExt
     /////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr tstring_view FunctionTypeName_v = FunctionTraitsTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+    ///////////////////////////////////////////////////////////////////////////
+    // IsArgTypeSame_v. Helper template yielding "true" if the (zero-based)
+    // "Ith" arg of function "F" is the same as the given type "T" or false
+    // otherwise. The function is just a thin wrapper around "std::is_same_v",
+    // where the latter template is passed the type of the "Ith" arg in
+    // function "F" as its 1st template arg, and "T" as its 2nd template arg.
+    // IOW, it simply compares the type of the "Ith" arg in function "F" with
+    // type "T". This is a common requirement for many users so this template
+    // provides a convenient wrapper.
+    // 
+    //    using F = int SomeFunc(int, float, double);
+    // 
+    //    //////////////////////////////////////////////////////////////////
+    //    // Identical to the following but more convenient (and less
+    //    // verbose):
+    //    //
+    //    // using Arg2_t = ArgType_t<F, 1>;
+    //    // constexpr bool Is2ndArgAFloat = std::is_same_v<Arg2_t, float>;
+    //    //////////////////////////////////////////////////////////////////
+    //    constexpr bool Is2ndArgAFloat = IsArgTypeSame_v<F, 1, float>; // true
+    //    
+    ///////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, typename T>
+    inline constexpr bool IsArgTypeSame_v = FunctionTraitsIsArgTypeSame_v<FunctionTraits<F>, I, T>;
 
     ///////////////////////////////////////////////////////////////////////////
     // IsEmptyArgList_v. Helper template yielding "true" if the function
@@ -7914,6 +7966,406 @@ namespace StdExt
         return ForEachFunctionTraitsArg<FunctionTraits<F>>(std::forward<ForEachTupleFunctorT>(functor));
     }
 
+    ///////////////////////////////////////////////////////////////////////
+    // Private namespace (for internal use only) used to implement
+    // function template "DisplayAllFunctionTraits()" declared just after
+    // this namespace. Allows you to display (stream) all traits for a
+    // given function to any stream. See "DisplayAllFunctionTraits()"
+    // just after this namespace for full details (it just defers to
+    // "DisplayAllFunctionTraitsImpl::Process()" in the following
+    // namespace).
+    ///////////////////////////////////////////////////////////////////////
+    namespace Private
+    {
+        namespace DisplayAllFunctionTraitsImpl
+        {
+            /////////////////////////////////////////////////////////////////////////
+            // OutputArgI(). Streams the "Ith" arg to the given "stream" (formatted
+            // as required for this app). Note that "I" refers to the (zero-based)
+            // "Ith" arg in the function we're being called for (in left-to-right
+            // order) and "argTypeAsStr" is its type (converted to a WYSIWYG
+            // string).
+            /////////////////////////////////////////////////////////////////////////
+            template <typename CharT, typename CharTraitsT = std::char_traits<CharT>>
+            inline void OutputArgI(const std::size_t i, // "Ith" arg (zero-based)
+                                   tstring_view argTypeAsStr, // Type of the "Ith" arg just above (as a string)
+                                   std::basic_ostream<CharT, CharTraitsT>& stream)
+            {
+                ///////////////////////
+                // E.g.,
+                //   "\t3) double\n"
+                ///////////////////////
+                stream << _T("\t") <<
+                          (i + 1) << // "Ith" arg ("i" is zero-based so we add 1 to display
+                                     // it as 1-based - more natural for display purposes)
+                          _T(") ") <<
+                          argTypeAsStr <<
+                          _T("\n");
+            }
+
+            //////////////////////////////////////////////////////////////////////////////
+            // OutputArgI(). Converts "ArgTypeT" template arg to a "pretty" (WYSIWYG)
+            // string and passes it to above (non-template) overload where it's streamed
+            // to the given "stream" (formatted as required for this app). Note that "I"
+            // refers to the (zero-based) "Ith" arg in the function we're being called
+            // for (in left-to-right order) and "ArgTypeT" is its type.
+            //////////////////////////////////////////////////////////////////////////////
+            template <std::size_t I, typename ArgTypeT, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
+            inline void OutputArgI(std::basic_ostream<CharT, CharTraitsT>& stream) // "Ith" arg (zero-based)
+            {
+                ////////////////////////////////////////
+                // Convert "ArgTypeT" to a string (its
+                // user-friendly name) and pass it to
+                // the overload just above
+                ////////////////////////////////////////
+                OutputArgI(I, TypeName_v<ArgTypeT>, stream);
+            }
+
+            //////////////////////////////////////////////////////////////
+            // C++17? Note that we don't support earlier versions and
+            // everything would have already been preprocessed out if
+            // compiling for versions prior to C++17 (see check for
+            // CPP17_OR_LATER near to top of file). For C++20 or later
+            // however we replace "class StreamArgType" just below with
+            // its lambda template equivalent at point of use later on.
+            // Both just invoke "OutputArgI()" above so are identical but
+            // the lambda is more convenient.
+            //////////////////////////////////////////////////////////////
+             #if CPP17
+                template <typename CharT, typename CharTraitsT = std::char_traits<CharT>>
+                class StreamArgType
+                {
+                public:
+                    StreamArgType(std::basic_ostream<CharT, CharTraitsT> &stream) noexcept
+                        : m_Stream(stream)
+                    {
+                    }
+
+                    ///////////////////////////////////////////////////
+                    // Functor we'll be invoking once for each arg in
+                    // the function whose traits we're displaying
+                    // (where "I" is the zero-based number of the arg,
+                    // and "ArgTypeT" is its type). Following is a
+                    // template so it effectively gets stamped out
+                    // once for each argument in the target function.
+                    // See call to "ForEachArg()" later on (which
+                    // processes this class in C++ 17 only).
+                    ///////////////////////////////////////////////////
+                    template <std::size_t I, typename ArgTypeT>
+                    bool operator()() const
+                    {
+                        // Defer to this function (template)
+                        OutputArgI<I, ArgTypeT>(m_Stream);
+
+                        //////////////////////////////////////////////
+                        // Return true to continue iterating so this
+                        // function gets called again with "I + 1"
+                        // (until all function args are processed).
+                        // Note that returning false would stop
+                        // iterating, equivalent to a "break"
+                        // statement in a regular"for" loop.
+                        //////////////////////////////////////////////
+                        return true;
+                    }
+
+                private:
+                    std::basic_ostream<CharT, CharTraitsT> &m_Stream;
+                };
+            #endif
+
+            ///////////////////////////////////////////////////////////////////////////
+            // "StreamArgTypes()". Displays all arguments for function "F" to the
+            // given "stream" as per the following example:
+            //
+            // If "F" is a function of the following type:
+            //
+            //       int (const std::string &, const char *, short, ...) noexcept;
+            //
+            // Then displays (outputs to "stream") the following (note that actual
+            // strings below are compiler-dependent but are usually identical or
+            // very similar):
+            //
+            //    	 1) const std::basic_string<char> &
+            //       2) const char *
+            //	     3) short
+            //	     4) ...
+            ///////////////////////////////////////////////////////////////////////////
+            template <TRAITS_FUNCTION_C F, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
+            void StreamArgTypes(std::basic_ostream<CharT, CharTraitsT> &stream)
+            {
+                // Lambda templates available starting in C++20
+                #if CPP20_OR_LATER
+                    ///////////////////////////////////////////////////
+                    // Lambda we'll be invoking once for each arg in
+                    // the function whose traits we're displaying
+                    // (where "I" is the zero-based number of the arg,
+                    // and "ArgTypeT" is its type). Following is a
+                    // template so it effectively gets stamped out
+                    // once for each argument in function "F".
+                    ///////////////////////////////////////////////////
+                    const auto streamArgType = [&]<std::size_t I, typename ArgTypeT>()
+                                               {
+                                                   // Defer to this function (template)
+                                                   OutputArgI<I, ArgTypeT>(stream);
+
+                                                   //////////////////////////////////////////////
+                                                   // Return true to continue iterating so this
+                                                   // function gets called again with "I + 1"
+                                                   // (until all function args are processed).
+                                                   // Note that returning false would stop
+                                                   // iterating, equivalent to a "break"
+                                                   // statement in a regular "for" loop.
+                                                   //////////////////////////////////////////////
+                                                   return true;
+                                               };
+
+                ////////////////////////////////////////////////////
+                // Roll our own functor for C++17 (identical to
+                // lambda above). Note that we don't support C++
+                // versions < C++17 so if we drop through here we
+                // must be targeting C++17 (since CPP17_OR_LATER
+                // was checked at top of file and is now in effect)
+                ////////////////////////////////////////////////////
+                #else
+                    const StreamArgType<CharT, CharTraitsT> streamArgType(stream);
+                #endif
+
+                ////////////////////////////////////////////////////////
+                // Invoke the above functor ("streamArgType") once
+                // for each arg in the function whose traits we're
+                // processing ("F"). Note that the following generic
+                // function (template) "ForEachArg()" will effectively
+                // stamp out one copy of member function (template)
+                // "operator()<I, ArgTypeT>" in "streamArgType" above
+                // (for each argument in function "F" we're now
+                // processing). IOW, we wind up with "N" versions of
+                // "operator()" for "N" in the range zero to the number
+                // of non-variadic args in function "F" minus 1 (where
+                // the template args of each "operator()" reflect the
+                // "Ith" arg in function "F")
+                ////////////////////////////////////////////////////////
+                ForEachArg<F>(streamArgType);
+
+                // Is function variadic? (i.e., last arg is "...")
+                if (IsVariadic_v<F>)
+                {
+                    OutputArgI(ArgCount_v<F>, // i
+                               _T("..."), // argTypeAsStr
+                               stream);
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////
+            // Implementation function for "StdExt::DisplayAllFunctionTraits()"
+            // declared just after the following function. See that function
+            // for details (it just defers to us).
+            ////////////////////////////////////////////////////////////////////
+            template <TRAITS_FUNCTION_C F, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
+            std::basic_ostream<CharT, CharTraitsT>& Process(std::basic_ostream<CharT, CharTraitsT> &stream)
+            {
+                /////////////////////////////////////////////////////////////
+                // Lambda for displaying the "#)" seen at the start of each
+                // output line (where "#" is the argument # starting at 1)
+                // but not the "#)" seen for each arg in the "Arguments"
+                // section of the output, which are later handled by
+                // "StreamArgTypes()" above.
+                /////////////////////////////////////////////////////////////
+                auto streamNumBracket = [&stream, num = 1]() mutable -> auto&
+                                        {
+                                            return stream << num++ << _T(") ");
+                                        };
+
+                ///////////////////////////////
+                // #) Type
+                ///////////////////////////////
+                streamNumBracket() << _T("Type: ") << FunctionTypeName_v<F> << _T("\n");
+
+                ///////////////////////////////
+                // #) Classification
+                ///////////////////////////////
+                streamNumBracket() << _T("Classification: ");
+
+                // Non-static member function? (includes functors)
+                if (IsMemberFunction_v<F>)
+                {
+                    stream << (IsFunctor_v<F> ? _T("Functor") : _T("Non-static member"));
+                    stream << _T(" (class/struct=\"") << MemberFunctionClassName_v<F> << _T("\")\n");
+                }
+                // Free function (which includes static member functions)
+                else
+                {
+                    stream << _T("Free or static member\n");
+                }
+
+                ///////////////////////////////
+                // #) Calling convention
+                ///////////////////////////////
+                streamNumBracket() << _T("Calling convention: ") << CallingConventionName_v<F> << _T("\n");
+
+                ///////////////////////////////
+                // #) Return
+                ///////////////////////////////
+                streamNumBracket() << _T("Return: ") << ReturnTypeName_v<F> << _T("\n");
+
+                ///////////////////////////////
+                // #) Arguments
+                ///////////////////////////////
+                streamNumBracket() << _T("Arguments (") <<
+                                      ArgCount_v<F> <<
+                                      (IsVariadic_v<F> ? _T(" + variadic") : _T("")) <<
+                                      _T("):");
+
+                /////////////////////////////////////////////
+                // Function's arg list not empty, i.e. not
+                // "(void)"? (so has at least 1 non-variadic
+                // arg and/or is variadic)
+                /////////////////////////////////////////////
+                if (!IsEmptyArgList_v<F>)
+                {
+                    stream << _T("\n");
+
+                    StreamArgTypes<F>(stream);
+                }
+                else
+                {
+                    ////////////////////////////////////////
+                    // Function's arg list is "(void)" (it
+                    // has no args and is not variadic)
+                    ////////////////////////////////////////
+                    stream << _T(" None\n");
+                }
+
+                ///////////////////////////////////////////////////
+                // Is a non-static member function which includes
+                // functors. If so then display traits applicable
+                // to those only (i.e., cv and ref qualifiers
+                // which aren't applicable to free functions or
+                // static member functions)
+                ///////////////////////////////////////////////////
+                if (IsMemberFunction_v<F>)
+                {
+                    ///////////////////////////////
+                    // #) const
+                    ///////////////////////////////
+                    streamNumBracket() << _T("const: ") << std::boolalpha << IsMemberFunctionConst_v<F> << _T("\n");
+
+                    ///////////////////////////////
+                    // #) volatile
+                    ///////////////////////////////
+                    streamNumBracket() << _T("volatile: ") << std::boolalpha << IsMemberFunctionVolatile_v<F> << _T("\n");
+
+                    ///////////////////////////////
+                    // #) Ref-qualifier
+                    ///////////////////////////////
+                    streamNumBracket() << _T("Ref-qualifier: ") << MemberFunctionRefQualifierName_v<F> << _T("\n");
+                }
+
+                ///////////////////////////////
+                // #) noexcept
+                ///////////////////////////////
+                streamNumBracket() << _T("noexcept: ") << std::boolalpha << IsNoexcept_v<F>;
+
+                return stream;
+            }
+        }; // namespace DisplayAllFunctionTraitsImpl
+    } // namespace Private
+
+    /////////////////////////////////////////////////////////////////////////
+    // DisplayAllFunctionTraits(). Displays (streams) all function traits
+    // for function "F" to the given "stream" and returns "stream". The
+    // format of the streamed traits is shown in the examples below. Please
+    // note however that the format of the displayed types in these examples
+    // can vary slightly depending on the target compiler (since the
+    // compiler itself is responsible for them). Other trivial changes to
+    // the format not shown below might also occur depending on the function
+    // but the general format shown below remains the same.    
+    //
+    //      // Standard C++ headers
+    //      #include <iostream>
+    //      #include <string>
+    //      
+    //      ////////////////////////////////////////////////////////
+    //      // Only file in this repository you need to explicitly
+    //      // #include
+    //      ////////////////////////////////////////////////////////
+    //      #include "TypeTraits.h"
+    //
+    //      /////////////////////////////////////////////////////////
+    //      // Namespace with sample function whose traits you wish
+    //      // to display (all of them)
+    //      /////////////////////////////////////////////////////////
+    //      namespace Test
+    //      {
+    //          class SomeClass
+    //          {
+    //          public:
+    //              int DoSomething(const std::basic_string<wchar_t>&,
+    //                              const char*,
+    //                              short int,
+    //                              int,
+    //                              float,
+    //                              long int,
+    //                              double,
+    //                              ...) const volatile && noexcept;
+    //          };
+    //      }
+    //      
+    //      int main()
+    //      {
+    //          // Everything in the library declared in this namespace
+    //          using namespace StdExt;
+    //      
+    //          // Above member function whose traits you wish to display
+    //          using F = decltype(&Test::SomeClass::DoSomething);
+    //      
+    //          //////////////////////////////////////////
+    //          // Display all traits for "F" to "tcout"
+    //          // (or pass any other required stream)
+    //          //////////////////////////////////////////
+    //          DisplayAllFunctionTraits<F>(tcout);
+    //      
+    //          return 0;
+    //      }
+    //
+    // This will stream the traits for function "Test::SomeClass::DoSomething()"
+    // above to "tcout" in the following format (note that the format may vary
+    // slightly depending on the function and the target compiler):
+    //
+    //      1) Type: int (Test::SomeClass::*)(const std::basic_string<wchar_t>&, const char*, short int, int, float, long int, double, ...) const volatile && noexcept
+    //      2) Classification: Non-static member (class/struct="Test::SomeClass")
+    //      3) Calling convention: cdecl
+    //      4) Return: int
+    //      5) Arguments (7 + variadic):
+    //              1) const std::basic_string<wchar_t> &
+    //              2) const char*
+    //              3) short int
+    //              4) int
+    //              5) float
+    //              6) long int
+    //              7) double
+    //              8) ...
+    //      6) const: true
+    //      7) volatile: true
+    //      8) Ref-qualifier: &&
+    //      9) noexcept: true
+    //
+    // Note that for free functions (including static member functions),
+    // which don't support "const", "volatile" or ref-qualifiers, items 6, 7
+    // and 8 above will therefore be removed. Instead, item 9 above,
+    // "noexcept", will simply be renumbered. The "Classification" above
+    // will also indicate "Free or static member".
+    //
+    // Lastly, note that if "F" is a functor type (including a lambda type),
+    // then the format will be identical to the above except that the
+    // "Classification" will now indicate "Functor" instead of "Non-static
+    // member", and the type itself in item 1 above will reflect the
+    // function type of "F::operator()"
+    /////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
+    std::basic_ostream<CharT, CharTraitsT>& DisplayAllFunctionTraits(std::basic_ostream<CharT, CharTraitsT> &stream)
+    {
+        return Private::DisplayAllFunctionTraitsImpl::Process<F>(stream);
+    }
 } // namespace StdExt
 #else
     // Done with this

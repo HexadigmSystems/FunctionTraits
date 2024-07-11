@@ -1,7 +1,7 @@
 # FunctionTraits
 ## C++ function traits library (single header-only) for retrieving info about any function (arg types, arg count, return type, etc.). Clean and easy-to-use, the most "complete" implementation on the web.
 
-See [here](https://godbolt.org/z/obfGfozrb) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
+See [here](https://godbolt.org/z/777hs4WYo) for a complete working example (demo that displays all available traits for various sample functions - for those who want to get right to the code). Also see usage examples further below.
 
 "FunctionTraits" is a lightweight C++ traits struct (template) that allows you to quickly and easily determine the traits of any function at compile-time, such as argument types, number of arguments, return type, etc. (for C++17 and later). It's a natural extension to the C++ standard itself, whose [<type_traits>](https://en.cppreference.com/w/cpp/header/type_traits) header offers almost no support for handling function traits, save for [std::is_function](https://en.cppreference.com/w/cpp/types/is_function) and [std::is_member_function_pointer](https://en.cppreference.com/w/cpp/types/is_member_function_pointer) (and one or two other borderline cases). It's also a "complete" implementation in the sense that it handles (detects) all mainstream function syntax unlike any other implementation you'll normally find at this writing, which usually fail to address one or more issues (including the Boost implementation - read on). Many (actually most) of these implementations are just hacks or solutions quickly developed on-the-fly to answer someone's question on [stackoverflow.com](https://stackoverflow.com/) for instance. Only a small handful are more complete and far fewer are reasonably complete, though still missing at least one or two features, in particular calling convention support (again, read on).
 
@@ -26,7 +26,7 @@ The above covers almost all traits most programmers will ever be interested in. 
 
 <a name="Usage"></a>
 ## Usage (C++17 and later: GCC[^1], Microsoft[^2], Clang[^3] and Intel[^4] compilers only)
-To use "*FunctionTraits*", simply add both "*TypeTraits.h*" and "*CompilerVersions.h*" to your code and then *#include "TypeTraits.h"* wherever you require it (an experimental module version is also now available - see [Module support in C++ 20 or later](#moduleusage)). All code is declared in namespace "*StdExt*". Note that you need not explicitly *#include "CompilerVersions.h"* unless you wish to use it independently of "*TypeTraits.h*", since "*TypeTraits.h*" itself #includes it as a dependency ("*CompilerVersions.h*" simply declares various #defined constants used to identify the version of C++ you're using, and a few other compiler-related declarations - you're free to use these in your own code as well if you wish). The struct (template) "*FunctionTraits*" is then immediately available for use (see [Technique 1 of 2](#technique1of2) below), though you'll normally rely on its [Helper templates](#helpertemplates) instead (see [Technique 2 of 2](#technique2of2) below). Note that both files above have no platform-specific dependencies, except when targeting Microsoft, where the native Microsoft header *<tchar.h>* is expected to be in the usual #include search path (and it normally will be on Microsoft platforms). Otherwise they rely on the C++ standard headers only which are therefore (also) expected to be in the usual search path on your platform.
+To use "*FunctionTraits*", simply add both "*TypeTraits.h*" and "*CompilerVersions.h*" to your code and then *#include "TypeTraits.h"* wherever you require it (an experimental module version is also now available - see [Module support in C++20 or later](#moduleusage)). All code is declared in namespace "*StdExt*". Note that you need not explicitly *#include "CompilerVersions.h"* unless you wish to use it independently of "*TypeTraits.h*", since "*TypeTraits.h*" itself #includes it as a dependency ("*CompilerVersions.h*" simply declares various #defined constants used to identify the version of C++ you're using, and a few other compiler-related declarations - you're free to use these in your own code as well if you wish). The struct (template) "*FunctionTraits*" is then immediately available for use (see [Technique 1 of 2](#technique1of2) below), though you'll normally rely on its [Helper templates](#helpertemplates) instead (see [Technique 2 of 2](#technique2of2) below). Note that both files above have no platform-specific dependencies except when targeting Microsoft, where the native Microsoft header *<tchar.h>* is expected to be in the usual #include search path (and it normally will be on Microsoft platforms). Otherwise they rely on the C++ standard headers only which are therefore (also) expected to be in the usual search path on your platform.
 
 <a name="TemplateArgF"></a>
 #### Template arg "F"
@@ -37,7 +37,7 @@ Note that template arg "*F*" is the first (and usually only) template arg of "*F
 3. References to pointers to free functions
 4. Pointers to non-static member functions
 5. References to pointers to non-static member functions (note that C++ doesn't support references to non-static member functions, only pointers)
-6. Non-overloaded functors (i.e., functors or references to functors with a single "*operator()*" member only, otherwise which overload to target becomes ambiguous - if present then you'll need to target the specific overload you're interested in using 4 or 5 above instead). Includes lambdas as well (just syntactic sugar for creating functors on-the-fly). Simply apply "*decltype*" to your lambda to retrieve its compiler-generated class type (officially known as its "closure type"), which you can then pass to "*FunctionTraits*" or any of its [Helper templates](#helpertemplates). Please note however that generic lambdas are _not_ supported using this technique for technical reasons beyond the scope of this documentation (their class type can't be passed for "*F*"). They can still be accessed via 4 and 5 above however using some unconventional syntax described in "*TypeTraits.h*" itself. Search the latter file for "_Example 3 (generic lambda)_" (quotes not included), which you'll find in the comments preceding the "*FunctionTraits*" specialization for functors (the comments for this example also provides additional technical details on this issue).
+6. Non-overloaded functors (i.e., functors or references to functors with a single "*operator()*" member only, otherwise which overload to target becomes ambiguous - if present then you'll need to target the specific overload you're interested in using 4 or 5 above instead). Includes lambdas as well (just syntactic sugar for creating functors on-the-fly). Simply apply "*decltype*" to your lambda to retrieve its compiler-generated class type (officially known as its "*closure type*"), which you can then pass to "*FunctionTraits*" or any of its [Helper templates](#helpertemplates). Please note however that generic lambdas are _not_ supported using this technique for technical reasons beyond the scope of this documentation (their class type can't be passed for "*F*"). They can still be accessed via 4 and 5 above however using some unconventional syntax described in "*TypeTraits.h*" itself. Search the latter file for "_Example 3 (generic lambda)_" (quotes not included), which you'll find in the comments preceding the "*FunctionTraits*" specialization for functors (the comments for this example also provides additional technical details on this issue).
 
 Note that the code also incorporates [concepts](https://en.cppreference.com/w/cpp/language/constraints) when targeting C++20 or later or "*static_assert*" for C++17 (again, earlier versions aren't supported). In either case this will trap invalid function types with cleaner error messages at compile-time (if anything other than the above is passed for "*F*").
 
@@ -448,13 +448,99 @@ inline constexpr tstring_view CallingConventionName_v;
 ```
 Same as [CallingConvention_v](#callingconvention_v) just above but returns this as a (WYSIWYG) string (of type "*tstring_view*" - see [TypeName_v](#typename_v) for details). Note that unlike [CallingConvention_v](#callingconvention_v) itself however, these strings are always returned in lowercase ("*cdecl*", "*stdcall*", "*fastcall*", "*vectorcall*", "*thiscall*" or "*regcall*"). </details>
 
+<a name="DisplayAllFunctionTraits"></a><details><summary>DisplayAllFunctionTraits</summary>
+```C++
+template <TRAITS_FUNCTION_C F,
+          typename CharT,
+          typename CharTraitsT = std::char_traits<CharT>>
+std::basic_ostream<CharT, CharTraitsT>& DisplayAllFunctionTraits(std::basic_ostream<CharT, CharTraitsT> &stream);
+```
+Not a traits template (unlike most others), but a helper function template you can use to display all function traits for function "*F*" to the given "*stream*". The traits are displayed in a user-friendly format seen in the example below (all traits in the library that apply to "*F*" are displayed). Note that the function is typically used in a debug or test environment if you wish to inspect all traits for a given function in a user-friendly (human readable) format. This can be useful for different purposes, such as when you simply want to test the library by dumping all traits for a given function at once. Or perhaps you may have a function with a complicated declaration you're having trouble understanding (some can be notoriously complex in C++), since the function's output might make it easier to decipher. Note that the function's output is in English only (the labels seen in the example below are not localized based on the current [std::locale](https://en.cppreference.com/w/cpp/locale/locale)), and the function itself isn't designed to override the format seen below (with your own customized format). This was a design decision since the format will normally serve the needs of most users. If you require a different format then you'll need to roll your own but this would be very rare.
+
+Note that the format of the displayed traits is best demonstrated using an example:
+```
+// Standard C++ headers
+#include <iostream>
+#include <string>
+
+////////////////////////////////////////////////////////
+// Only file in this repository you need to explicitly
+// #include (see "Usage" section earlier)
+////////////////////////////////////////////////////////
+#include "TypeTraits.h"
+
+/////////////////////////////////////////////////////////
+// Namespace with sample function whose traits you wish
+// to display (all of them)
+/////////////////////////////////////////////////////////
+namespace Test
+{
+    class SomeClass
+    {
+    public:
+        int DoSomething(const std::basic_string<wchar_t>&,
+                        const char*,
+                        short int,
+                        int,
+                        float,
+                        long int,
+                        double,
+                        ...) const volatile && noexcept;
+    };
+}
+
+int main()
+{
+    // Everything in the library declared in this namespace
+    using namespace StdExt;
+
+    // Above member function whose traits we wish to display
+    using F = decltype(&Test::SomeClass::DoSomething);
+
+    //////////////////////////////////////////
+    // Display all traits for "F" to "tcout"
+    // (or pass any other required stream)
+    //////////////////////////////////////////
+    DisplayAllFunctionTraits<F>(tcout);
+
+    return 0;
+}
+```    
+This will stream the traits for the non-static member function "*Test::SomeClass::DoSomething()*" above to "*tcout*" in the following format (note that the format may vary slightly depending on the function and the target compiler):
+
+      1) Type: int (Test::SomeClass::*)(const std::basic_string<wchar_t>&, const char*, short int, int, float, long int, double, ...) const volatile && noexcept
+      2) Classification: Non-static member (class/struct="Test::SomeClass")
+      3) Calling convention: cdecl
+      4) Return: int
+      5) Arguments (7 + variadic):
+              1) const std::basic_string<wchar_t>&
+              2) const char*
+              3) short int
+              4) int
+              5) float
+              6) long int
+              7) double
+              8) ...
+      6) const: true
+      7) volatile: true
+      8) Ref-qualifier: &&
+      9) noexcept: true
+      
+Each trait is sequentially numbered as seen (the numbers aren't relevant otherwise), and the "*Arguments*" section is also independently numbered but in argument order (so the numbers *are* relevant - each indicates the 1-based "Nth" arg).
+
+Note that for free functions (including static member functions), which don't support "*const*", "*volatile*" or ref-qualifiers, items 6, 7 and 8 above will therefore be removed. Instead, item 9 above, "*noexcept*", will simply be renumbered. The "*Classification*" above will also indicate "*Free or static member*".      
+      
+Lastly, note that if "*F*" is a functor type (including a lambda type), then the format will be identical to the above except that the "*Classification*" will now indicate "*Functor*" instead of "*Non-static member*", and the type itself in item 1 above will reflect the function type of "*F::operator()*"
+
+</details>
+
 <a name="ForEachArg"></a><details><summary>ForEachArg</summary>
 ```C++
 template <TRAITS_FUNCTION_C F,>
           FOR_EACH_TUPLE_FUNCTOR_C ForEachTupleFunctorT>
 inline constexpr bool ForEachArg(ForEachTupleFunctorT &&);
 ```
-Not a traits template (unlike all other read traits), but a helper function template you can use to iterate all arguments for function "*F*" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "*ForEachArg()*" in "*TypeTraits.h*" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/obfGfozrb) program, also available in the repository itself).</details>
+Not a traits template (unlike most others), but a helper function template you can use to iterate all arguments for function "*F*" if required (though rare in practice since you'll usually rely on [ArgType_t](#argtype_t) or [ArgTypeName_v](#argtypename_v) to retrieve the type of a specific argument - see these above). See [Looping through all function arguments](#loopingthroughallfunctionarguments) earlier for an example, as well as the declaration of "*ForEachArg()*" in "*TypeTraits.h*" for full details (or for a complete program that also uses it, see the [demo](https://godbolt.org/z/777hs4WYo) program, also available in the repository itself).</details>
 
 <a name="FunctionType_t"></a><details><summary>FunctionType_t</summary>
 ```C++
@@ -469,6 +555,15 @@ template <TRAITS_FUNCTION_C F>
 inline constexpr bool FunctionTypeName_v;
 ```
 Same as [FunctionType_t](#functiontype_t) just above but returns this as a (WYSIWYG) string (of type "*tstring_view*" - see [TypeName_v](#typename_v) for details).</details>
+
+<a name="IsArgTypeSame_v"></a><details><summary>IsArgTypeSame_v</summary>
+```C++
+template <TRAITS_FUNCTION_C F,
+          std::size_t I,
+          typename T>
+inline constexpr bool IsArgTypeSame_v;
+```
+"*bool*" variable set to "*true*" if the (zero-based) "*Ith*" arg of function "*F*" is the same as the given type "*T*" or false otherwise. This template is just a thin wrapper around [std::is_same_v](https://en.cppreference.com/w/cpp/types/is_same), where the latter template is passed the type of the "*Ith*" arg in function "*F*" and type "*T*". It therefore simply compares the type of the "*Ith*" arg in function "*F*" with type "*T*". This is a common requirement for many users so this template provides a convenient wrapper. Note that if "*I*" is greater than or equal to the number of args in "*F*" (see [ArgCount_v](#argcount_v)), then a "*static_assert*" will trigger (so if "*F*" has no non-variadic args whatsoever, a "*static_assert*" will always trigger, even if passing zero).</details>
 
 <a name="IsEmptyArgList_v"></a><details><summary>IsEmptyArgList_v</summary>
 ```C++
@@ -731,7 +826,7 @@ Type alias for "*F*" after replacing its return type with "*NewReturnTypeT*".
 </details>
 
 <a name="ModuleUsage"></a>
-## Module support in C++ 20 or later (experimental)
+## Module support in C++20 or later (experimental)
 
 Note that you can also optionally use the module version of "*FunctionTraits*" if you're targeting C++20 or later (modules aren't available in C++ before that). Module support is still experimental however since C++ modules are still relatively new at this writing and not all compilers support them yet (or fully support them). GCC for instance has a compiler [bug](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109679) at this writing that until fixed, results in a compiler error (note that this bug has now been flagged as fixed but no release has been made available by GCC at this writing). The Intel compiler may also fail to compile depending on the platform (informally confirmed by Intel [here](https://community.intel.com/t5/Intel-oneAPI-Data-Parallel-C/Moving-existing-code-with-modules-to-Intel-c/m-p/1550610/thread-id/3448)), even though its documentation states that modules are partially supported at this writing. Only Microsoft and Clang therefore support the module version of "*FunctionTraits*" for now though GCC and Intel may be fixed before too long (and this documentation will be updated as soon as they are).
 
@@ -739,7 +834,7 @@ In addition to supporting modules in C++20, the "*std*" library is also availabl
 
 As a result of all these issues, module support for "*FunctionTraits*" is therefore considered experimental until all compilers fully support both C++ modules (a C++20 feature), and (though less critically), the importing of the standard library in C++23 (again, via "*import std*" and "*import std.compat*"). The instructions below therefore reflect the incomplete state of module support in all compilers at this writing, and are therefore (unavoidably) longer they should be (for now). Don't be discouraged however, as they're much simpler than they first appear.
 
-Note that the following instructions will be condensed and simplified in a future release however, once all compilers are fully compliant with the C++20 and C++23 standard (in their support of modules). For now, because they're not fully compliant, the instructions below need to deal with the situation accordingly, such as the *STDEXT_IMPORT_STD_EXPERIMENTAL* constant in 3 below, which is a transitional constant only. It will be removed in a future release.
+Note that the following instructions will be condensed and simplified in a future release however, once all compilers are fully compliant with the C++20 and C++23 standard (in their support of modules). For now, because they're not fully compliant, the instructions below need to deal with the situation accordingly, such as the *STDEXT_IMPORT_STD_EXPERIMENTAL* constant in 4 below, which is a transitional constant only. It will be removed in a future release.
 
 To use the module version of "TypeTraits":
 
@@ -749,7 +844,7 @@ To use the module version of "TypeTraits":
     3. [Microsoft](https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp?view=msvc-170)
     4. [Clang](https://clang.llvm.org/docs/StandardCPlusPlusModules.html)
     5. [Intel](https://www.intel.com/content/www/us/en/developer/articles/technical/c20-features-supported-by-intel-cpp-compiler.html) (search page for [P1103R3](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1103r3.pdf) - no other Intel docs on modules can be found at this writing)
-    5. [CMake](https://www.kitware.com/import-cmake-the-experiment-is-over/)
+    6. [CMake](https://www.kitware.com/import-cmake-the-experiment-is-over/)
 2. Add the primary module interface files "*TypeTraits.cppm*" and "*CompilerVersions.cppm*" from this repository to your project, which builds the modules "*TypeTraits*" and "*CompilerVersions*" respectively (corresponding to "*TypeTraits.h*" and "*CompilerVersions.h*" described in the [Usage](#usage) section earlier - both ".h" files are still required however as each module simply defers to its ".h" file to implement the module). Ensure your build environment is set up to process these "*.cppm*" files as C++ modules if it doesn't handle it by default (based on the extension for instance). Consult the docs for your specific platform (such as changing the extension to "*.ixx*" on Microsoft platforms - more on this later). Note that you're free to change the "*.cppm*" extension to whatever you require, assuming "*.cppm*" doesn't suffice (again, more on this later). You can then import each module wherever you need it (read up on C++ modules for details), either using an "*import*" statement as would normally be expected (normally just "*import TypeTraits*" - this is how modules are normally imported in C++), or by continuing to #include the header itself, normally just *#include "TypeTraits.h"* (again, as described in the [Usage](#usage) section earlier). In the latter case (when you *#include "TypeTraits.h"*), this will not only import "*TypeTraits*" for you as described in 3 below, but also has the benefit of making all public macros in "*TypeTraits.h*" available as well (should you require any of them), the reason you would choose to *#include "TypeTraits.h*" in the module version instead of "*import TypeTraits*" directly (more on this shortly).
 3. #define the constant *STDEXT_USE_MODULES* when you build your project (add this to your project's build settings). Doing so changes the behavior of both "*TypeTraits.h*" and "*CompilerVersions.h*" (again, "*TypeTraits.h*" automatically #includes "*CompilerVersions.h*" - see [Usage](#usage) section), so that instead of declaring all C++ declarations as each header normally would (when *STDEXT_USE_MODULES* isn't #defined), each header simply imports the module instead (e.g., *#include "TypeTraits.h"* simply issues an "*import TypeTraits*" statement). All other C++ declarations in the file are then preprocessed out except for (public) macros, since they're not exported by C++ modules (so when required, the files that #define them must still be #included in the usual C++ way). Therefore, by #including "*TypeTraits.h*", you're effectively just creating an "*import TypeTraits*" statement (as well as "*import CompilerVersions*"), but also #defining all public macros in the header as well (including those in "*CompilerVersions.h*" - more on these macros shortly). All other declarations in the file are preprocessed out as noted (they're not needed because the "*import TypeTraits*" statement itself makes them available). Note that if *STDEXT_USE_MODULES* isn't #defined however (though you normally should #define it), then each header is #included in the usual C++ way (no "*import*" statement will exist and all declarations in the header are declared normally), which effectively defeats the purpose of using modules (unless you manually code your own "*import TypeTraits*" statement which can safely coexist with *#include "TypeTraits.h"* if you use both but there's no reason to normally). Note that if you don't use any of the macros in "*TypeTraits.h*" or "*CompilerVersions.h*" in your code however (again, more on these macros shortly), then you can simply apply your own "*import*" statement as usual, which is normally the natural way to do it (and #including the header instead is even arguably misleading since it will appear to the casual reader of your code that it's just a traditional header when it's actually applying an "*import*" statement instead, as just described). #including either ".h" file however to pick up the "*import*" statement instead of directly applying "*import*" yourself has the benefit of #defining all macros as well should you ever need any of them (though you're still free to directly import the module yourself at your discretion - redundant "*import*" statements are harmless if you directly code your own "*import TypeTraits*" statement _**and**_ *#include "TypeTraits.h"* as well, since the latter also applies its own "*import TypeTraits*" statement as described). Note that macros aren't documented in this README file however since the focus of this documentation is on "*FunctionTraits*" itself (the subject of this GitHub repository). Both "*TypeTraits.h*" and "*CompilerVersions.h*" contain various support macros however, such as the *TRAITS_FUNCTION_C* macro in "*TypeTraits.h*" (see this in the [Helper templates](#helpertemplates) section earlier), and the "*Compiler Identification Macros*" and "*C++ Version Macros*" in "*CompilerVersions.h*" (a complete set of macros allowing you to determine which compiler and version of C++ is running - see these in "*CompilerVersions.h*" for details). "*FunctionTraits*" itself utilizes these macros for its own internal needs as required but end-users may wish to use them as well (for their own purposes). Lastly, note that as described in the [Usage](#usage) section earlier, #including "*TypeTraits.h*" automatically picks up everything in "*CompilerVersions.h*" as well since the latter is a dependency, and this behavior is also extended to the module version (though if you directly "*import TypeTraits*" instead of #include "*TypeTraits.h*", it automatically imports module "*CompilerVersions*" as well but none of the macros in "*CompilersVersions.h*" will be available, again, since macros aren't exported by C++ modules - if you require any of the macros in "*CompilersVersions.h*" then you must *#include "TypeTraits.h"* instead, or alternatively just *#include "CompilersVersions.h"* directly).
 4. If targeting C++23 or later (the following constant is ignored otherwise), *and* the C++23 [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) feature is supported by your compiler (read on), optionally #define the constant *STDEXT_IMPORT_STD_EXPERIMENTAL* when you build your project (add this to your project's build settings). This constant is transitional only as a temporary substitute for the C++23 feature macro [__cpp_lib_modules](https://en.cppreference.com/w/cpp/feature_test#cpp_lib_modules) (used to indicate that "*import std*" and "*import std.compat*" are supported). If *STDEXT_IMPORT_STD_EXPERIMENTAL* is #defined (in C++23 or later), then the "*FunctionTraits*" library will use an [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) statement to pick up all its internal dependencies from the "*std*" library instead of #including each individual "*std*" header it depends on. This is normally recommended in C++23 or later since it's much faster to rely on [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) than to #include each required header from the "*std*" library (the days of doing so will likely become a thing of the past). Note that if you #define *STDEXT_IMPORT_STD_EXPERIMENTAL* then it's assumed that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) is in fact supported on your platform or cryptic compilers errors will likely occur (if targeting C++23 or later - again, the constant is ignored otherwise). Also note that as described earlier, if targeting Microsoft platforms then your own project must also currently rely on it everywhere since you can't (currently) mix headers from the "*std*" library and "*import std*" (until Microsoft corrects this). In any case, please see [Footnotes](#footnotes) for module versioning information for each supported compiler (which includes version support information for "*import std*" and "*import std.compat*"). Note that *STDEXT_IMPORT_STD_EXPERIMENTAL* will be removed in a future release however once all supported compilers fully support the [__cpp_lib_modules](https://en.cppreference.com/w/cpp/feature_test#cpp_lib_modules) feature macro (which will then be used instead). For now the latter macro either isn't #defined on all supported platforms at this writing (most don't support "*import std*" and "*import std.compat*" yet), or if it is #defined such as in recent versions of MSVC, "*FunctionTraits*" doesn't rely on it yet (for the reasons described but see the comments preceding the check for *STDEXT_IMPORT_STD_EXPERIMENTAL* in "*TypeTraits.h*" for complete details). Instead, if you wish for "*FunctionTraits*" to rely on [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) then you must grant explicit permission by #defining *STDEXT_IMPORT_STD_EXPERIMENTAL*. The C++ feature macro [__cpp_lib_modules](https://en.cppreference.com/w/cpp/feature_test#cpp_lib_modules) itself is completely ignored by the "*FunctionTraits*" library in this release.
@@ -780,25 +875,25 @@ Lastly, note that "*FunctionTraits*" doesn't support the so-called [abominable f
 ### Footnotes
 [^1]: **_GCC minimum required version:_**
     1. Non-module (*\*.h*) version of FunctionTraits: GCC V10.2 or later
-    2. Module (*\*.cppm*) version  of FunctionTraits (see [Module support in C++ 20 or later](#moduleusage)): Not currently compiling at this writing due to a GCC [bug](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109679) (flagged as fixed in the latter link but not yet released at this writing).
+    2. Module (*\*.cppm*) version  of FunctionTraits (see [Module support in C++20 or later](#moduleusage)): Not currently compiling at this writing due to a GCC [bug](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109679) (flagged as fixed in the latter link but not yet released at this writing).
 
      Note that GCC compatible compilers are also supported based on the presence of the #defined constant \_\_GNUC\_\_
 [^2]: **_Microsoft Visual C++ minimum required version:_**
     1. Non-module (*\*.h*) version of FunctionTraits: Microsoft Visual C++ V19.16 or later for [Read traits](#readtraits) (normally installed with Visual Studio 2017 V15.9 or later), or V19.20 or later for [Write traits](#writetraits) (normally installed with Visual Studio 2019 or later). Note that [Write traits](#writetraits) are unavailable in Visual Studio 2017 releases of VC++ due to compiler bugs in those versions.
-    2. Module (*\*.cppm*) version of FunctionTraits (see [Module support in C++ 20 or later](#moduleusage)): Microsoft Visual C++ V19.31 or later (normally installed with Visual Studio 2022 V17.1 or later - see [here](https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp?view=msvc-170#enable-modules-in-the-microsoft-c-compiler)). Note that if using CMake then it has its own requirements (toolset 14.34 or later provided with Visual Studio 2022 V17.4 or later - see [here](https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#compiler-support)).
+    2. Module (*\*.cppm*) version of FunctionTraits (see [Module support in C++20 or later](#moduleusage)): Microsoft Visual C++ V19.31 or later (normally installed with Visual Studio 2022 V17.1 or later - see [here](https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp?view=msvc-170#enable-modules-in-the-microsoft-c-compiler)). Note that if using CMake then it has its own requirements (toolset 14.34 or later provided with Visual Studio 2022 V17.4 or later - see [here](https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#compiler-support)).
 
-    Note that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) in C++23 is supported by Microsoft Visual C++ V19.35 or later (normally installed with Visual Studio 2022 V17.5 or later - see [here](https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp?view=msvc-170#enable-modules-in-the-microsoft-c-compiler)), so the transitional *STDEXT_IMPORT_STD_EXPERIMENTAL* macro described in [Module support in C++ 20 or later](#moduleusage) is ignored in earlier versions
+    Note that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) in C++23 is supported by Microsoft Visual C++ V19.35 or later (normally installed with Visual Studio 2022 V17.5 or later - see [here](https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp?view=msvc-170#enable-modules-in-the-microsoft-c-compiler)), so the transitional *STDEXT_IMPORT_STD_EXPERIMENTAL* macro described in [Module support in C++20 or later](#moduleusage) is ignored in earlier versions
 [^3]: **_Clang minimum required version:_**
     1. Non-module (*\*.h*) version of FunctionTraits: Clang V11.0 or later
-    2. Module (*\*.cppm*) version of FunctionTraits (see [Module support in C++ 20 or later](#moduleusage)): Clang V16.0 or later
+    2. Module (*\*.cppm*) version of FunctionTraits (see [Module support in C++20 or later](#moduleusage)): Clang V16.0 or later
 
-     Note that [Microsoft Visual C++ compatibility mode](https://clang.llvm.org/docs/MSVCCompatibility.html) is also supported. Please note that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) in C++23 is not supported by Clang yet (at this writing), so the *STDEXT_IMPORT_STD_EXPERIMENTAL* macro described in [Module support in C++ 20 or later](#moduleusage) shouldn't be #defined until it is (until then a compiler error will occur if targeting C++23 or later).
+     Note that [Microsoft Visual C++ compatibility mode](https://clang.llvm.org/docs/MSVCCompatibility.html) is also supported. Please note that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) in C++23 is not supported by Clang yet (at this writing), so the *STDEXT_IMPORT_STD_EXPERIMENTAL* macro described in [Module support in C++20 or later](#moduleusage) shouldn't be #defined until it is (until then a compiler error will occur if targeting C++23 or later).
 
 [^4]: **_Intel oneAPI DPC++/C++ minimum required version:_**
     1. Non-module (*\*.h*) version of FunctionTraits: Intel oneAPI DPC++/C++ V2021.4.0 or later
-    2. Module (*\*.cppm*) version of FunctionTraits (see [Module support in C++ 20 or later](#moduleusage)): Listed as partially supported by Intel [here](https://www.intel.com/content/www/us/en/developer/articles/technical/c20-features-supported-by-intel-cpp-compiler.html) (search for "*Modules: Merging Modules*"), but not yet working for unknown reasons (informally confirmed by Intel [here](https://community.intel.com/t5/Intel-oneAPI-Data-Parallel-C/Moving-existing-code-with-modules-to-Intel-c/m-p/1550610/thread-id/3448)). Note that even when it is finally working, if using CMake then note that it doesn't natively support module dependency scanning for Intel at this writing (see CMake [Compiler Support](https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#compiler-support) for modules).
+    2. Module (*\*.cppm*) version of FunctionTraits (see [Module support in C++20 or later](#moduleusage)): Listed as partially supported by Intel [here](https://www.intel.com/content/www/us/en/developer/articles/technical/c20-features-supported-by-intel-cpp-compiler.html) (search for "*Modules: Merging Modules*"), but not yet working for unknown reasons (informally confirmed by Intel [here](https://community.intel.com/t5/Intel-oneAPI-Data-Parallel-C/Moving-existing-code-with-modules-to-Intel-c/m-p/1550610/thread-id/3448)). Note that even when it is finally working, if using CMake then note that it doesn't natively support module dependency scanning for Intel at this writing (see CMake [Compiler Support](https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#compiler-support) for modules).
 
-     Note that [Microsoft Visual C++ compatibility mode](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-0/microsoft-compatibility.html) is also supported. Please note that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) in C++23 is not supported by Intel yet (at this writing), so the *STDEXT_IMPORT_STD_EXPERIMENTAL* macro described in [Module support in C++ 20 or later](#moduleusage) shouldn't be #defined until it is (until then a compiler error will occur if targeting C++23 or later).
+     Note that [Microsoft Visual C++ compatibility mode](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-0/microsoft-compatibility.html) is also supported. Please note that [import std](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2465r3.pdf) in C++23 is not supported by Intel yet (at this writing), so the *STDEXT_IMPORT_STD_EXPERIMENTAL* macro described in [Module support in C++20 or later](#moduleusage) shouldn't be #defined until it is (until then a compiler error will occur if targeting C++23 or later).
 
 [^5]: **_"TypeName_v" null termination:_**
     1. Note that the string returned by [TypeName_v](#typename_v) is guaranteed to be null-terminated only if the internal constant *TYPENAME_V_DONT_MINIMIZE_REQD_SPACE* isn't #defined. It's not #defined by default so null-termination is guaranteed by default. See this constant in "*TypeTraits.h*" for full details (not documented in this README file since few users will ever need to #define it).

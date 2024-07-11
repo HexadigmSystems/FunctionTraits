@@ -96,12 +96,12 @@
     #define INTEL_COMPILER __INTEL_LLVM_COMPILER
 #elif defined(__clang__) // See https://clang.llvm.org/docs/LanguageExtensions.html#builtin-macros
     #define CLANG_COMPILER __clang__
-#elif defined(__GNUC__) // See https://gcc.gnu.org/onlinedocs/cpp/macros/predefined-macros.html#c.__GNUC__
-                        //     https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros
-                        //     https://stackoverflow.com/a/55926503
+#elif defined(__GNUC__) // See: https://gcc.gnu.org/onlinedocs/cpp/macros/predefined-macros.html#c.__GNUC__
+                        //      https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros
+                        //      https://stackoverflow.com/a/55926503
     #define GCC_COMPILER __GNUC__
-#elif defined(_MSC_VER) // See https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
-                        //     https://devblogs.microsoft.com/cppblog/visual-c-compiler-version/
+#elif defined(_MSC_VER) // See: https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
+                        //      https://devblogs.microsoft.com/cppblog/visual-c-compiler-version/
                         // Note: __INTEL_COMPILER identifies the classic Intel compiler which
                         //       is now deprecated by Intel (so we longer support it)
     #define MICROSOFT_COMPILER _MSC_VER
@@ -277,7 +277,7 @@
     #define CPP17_OR_LATER 1
     #define CPP14_OR_LATER 1
 
- // C++20 (testing for > C++17 here so if true then we must be dealing with C++20 at this point)
+// C++20 (testing for > C++17 here so if true then we must be dealing with C++20 at this point)
 #elif CPP_VERSION > 201703L
     //#define CPP?? 0 // TBD (set "??" to the next version after C++26)
     #define CPP26 0
@@ -440,7 +440,7 @@
     //      https://www.youtube.com/watch?v=Dk_C_E8AtRs&t=2181s // This specific issue (at 36:21 in the video)
     //      https://www.youtube.com/watch?v=Dk_C_E8AtRs&t=1331s // Full description of "import std" and "import std.compat" in general (at 22:11 in the video)
     //      https://www.youtube.com/watch?v=Dk_C_E8AtRs // Start of video (describes C++23 features in general)
-    
+    //
     // He indicates (in the 1st link) that mixing "import std"
     // and "std" headers from the "std" library is not yet
     // supported, but confirms it eventually will be (since the
@@ -973,6 +973,9 @@
     #define MSC_VER_2022_V17_5          1935
     #define MSC_VER_2022_V17_6          1936
     #define MSC_VER_2022_V17_7          1937
+    #define MSC_VER_2022_V17_8          1938
+    #define MSC_VER_2022_V17_9          1939
+    #define MSC_VER_2022_V17_10         1940
 #else
     ///////////////////////////////////////////////////////
     // Native (very ancient and ugly) MSFT specific macro
@@ -1015,7 +1018,7 @@
             // TCHAR declared in <tchar.h> #included
             // further above (Microsoft only)
             //////////////////////////////////////////
-            using tchar = TCHAR; 
+            using tchar = TCHAR;
 
             //////////////////////////////////////////////////////
             // _UNICODE or UNICODE #defined in caller's build
