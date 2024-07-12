@@ -7977,203 +7977,35 @@ namespace StdExt
     ///////////////////////////////////////////////////////////////////////
     namespace Private
     {
-        namespace DisplayAllFunctionTraitsImpl
+        template <typename CharT, typename CharTraitsT>
+        class DisplayAllFunctionTraitsImpl
         {
-            /////////////////////////////////////////////////////////////////////////
-            // OutputArgI(). Streams the "Ith" arg to the given "stream" (formatted
-            // as required for this app). Note that "I" refers to the (zero-based)
-            // "Ith" arg in the function we're being called for (in left-to-right
-            // order) and "argTypeAsStr" is its type (converted to a WYSIWYG
-            // string).
-            /////////////////////////////////////////////////////////////////////////
-            template <typename CharT, typename CharTraitsT = std::char_traits<CharT>>
-            inline void OutputArgI(const std::size_t i, // "Ith" arg (zero-based)
-                                   tstring_view argTypeAsStr, // Type of the "Ith" arg just above (as a string)
-                                   std::basic_ostream<CharT, CharTraitsT>& stream)
+        public:
+            // Constructor
+            DisplayAllFunctionTraitsImpl(std::basic_ostream<CharT, CharTraitsT>& stream) noexcept
+                : m_Stream(stream)
             {
-                ///////////////////////
-                // E.g.,
-                //   "\t3) double\n"
-                ///////////////////////
-                stream << _T("\t") <<
-                          (i + 1) << // "Ith" arg ("i" is zero-based so we add 1 to display
-                                     // it as 1-based - more natural for display purposes)
-                          _T(") ") <<
-                          argTypeAsStr <<
-                          _T("\n");
-            }
-
-            //////////////////////////////////////////////////////////////////////////////
-            // OutputArgI(). Converts "ArgTypeT" template arg to a "pretty" (WYSIWYG)
-            // string and passes it to above (non-template) overload where it's streamed
-            // to the given "stream" (formatted as required for this app). Note that "I"
-            // refers to the (zero-based) "Ith" arg in the function we're being called
-            // for (in left-to-right order) and "ArgTypeT" is its type.
-            //////////////////////////////////////////////////////////////////////////////
-            template <std::size_t I, typename ArgTypeT, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
-            inline void OutputArgI(std::basic_ostream<CharT, CharTraitsT>& stream) // "Ith" arg (zero-based)
-            {
-                ////////////////////////////////////////
-                // Convert "ArgTypeT" to a string (its
-                // user-friendly name) and pass it to
-                // the overload just above
-                ////////////////////////////////////////
-                OutputArgI(I, TypeName_v<ArgTypeT>, stream);
-            }
-
-            //////////////////////////////////////////////////////////////
-            // C++17? Note that we don't support earlier versions and
-            // everything would have already been preprocessed out if
-            // compiling for versions prior to C++17 (see check for
-            // CPP17_OR_LATER near to top of file). For C++20 or later
-            // however we replace "class StreamArgType" just below with
-            // its lambda template equivalent at point of use later on.
-            // Both just invoke "OutputArgI()" above so are identical but
-            // the lambda is more convenient.
-            //////////////////////////////////////////////////////////////
-             #if CPP17
-                template <typename CharT, typename CharTraitsT = std::char_traits<CharT>>
-                class StreamArgType
-                {
-                public:
-                    StreamArgType(std::basic_ostream<CharT, CharTraitsT> &stream) noexcept
-                        : m_Stream(stream)
-                    {
-                    }
-
-                    ///////////////////////////////////////////////////
-                    // Functor we'll be invoking once for each arg in
-                    // the function whose traits we're displaying
-                    // (where "I" is the zero-based number of the arg,
-                    // and "ArgTypeT" is its type). Following is a
-                    // template so it effectively gets stamped out
-                    // once for each argument in the target function.
-                    // See call to "ForEachArg()" later on (which
-                    // processes this class in C++ 17 only).
-                    ///////////////////////////////////////////////////
-                    template <std::size_t I, typename ArgTypeT>
-                    bool operator()() const
-                    {
-                        // Defer to this function (template)
-                        OutputArgI<I, ArgTypeT>(m_Stream);
-
-                        //////////////////////////////////////////////
-                        // Return true to continue iterating so this
-                        // function gets called again with "I + 1"
-                        // (until all function args are processed).
-                        // Note that returning false would stop
-                        // iterating, equivalent to a "break"
-                        // statement in a regular"for" loop.
-                        //////////////////////////////////////////////
-                        return true;
-                    }
-
-                private:
-                    std::basic_ostream<CharT, CharTraitsT> &m_Stream;
-                };
-            #endif
-
-            ///////////////////////////////////////////////////////////////////////////
-            // "StreamArgTypes()". Displays all arguments for function "F" to the
-            // given "stream" as per the following example:
-            //
-            // If "F" is a function of the following type:
-            //
-            //       int (const std::string &, const char *, short, ...) noexcept;
-            //
-            // Then displays (outputs to "stream") the following (note that actual
-            // strings below are compiler-dependent but are usually identical or
-            // very similar):
-            //
-            //    	 1) const std::basic_string<char> &
-            //       2) const char *
-            //	     3) short
-            //	     4) ...
-            ///////////////////////////////////////////////////////////////////////////
-            template <TRAITS_FUNCTION_C F, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
-            void StreamArgTypes(std::basic_ostream<CharT, CharTraitsT> &stream)
-            {
-                // Lambda templates available starting in C++20
-                #if CPP20_OR_LATER
-                    ///////////////////////////////////////////////////
-                    // Lambda we'll be invoking once for each arg in
-                    // the function whose traits we're displaying
-                    // (where "I" is the zero-based number of the arg,
-                    // and "ArgTypeT" is its type). Following is a
-                    // template so it effectively gets stamped out
-                    // once for each argument in function "F".
-                    ///////////////////////////////////////////////////
-                    const auto streamArgType = [&]<std::size_t I, typename ArgTypeT>()
-                                               {
-                                                   // Defer to this function (template)
-                                                   OutputArgI<I, ArgTypeT>(stream);
-
-                                                   //////////////////////////////////////////////
-                                                   // Return true to continue iterating so this
-                                                   // function gets called again with "I + 1"
-                                                   // (until all function args are processed).
-                                                   // Note that returning false would stop
-                                                   // iterating, equivalent to a "break"
-                                                   // statement in a regular "for" loop.
-                                                   //////////////////////////////////////////////
-                                                   return true;
-                                               };
-
-                ////////////////////////////////////////////////////
-                // Roll our own functor for C++17 (identical to
-                // lambda above). Note that we don't support C++
-                // versions < C++17 so if we drop through here we
-                // must be targeting C++17 (since CPP17_OR_LATER
-                // was checked at top of file and is now in effect)
-                ////////////////////////////////////////////////////
-                #else
-                    const StreamArgType<CharT, CharTraitsT> streamArgType(stream);
-                #endif
-
-                ////////////////////////////////////////////////////////
-                // Invoke the above functor ("streamArgType") once
-                // for each arg in the function whose traits we're
-                // processing ("F"). Note that the following generic
-                // function (template) "ForEachArg()" will effectively
-                // stamp out one copy of member function (template)
-                // "operator()<I, ArgTypeT>" in "streamArgType" above
-                // (for each argument in function "F" we're now
-                // processing). IOW, we wind up with "N" versions of
-                // "operator()" for "N" in the range zero to the number
-                // of non-variadic args in function "F" minus 1 (where
-                // the template args of each "operator()" reflect the
-                // "Ith" arg in function "F")
-                ////////////////////////////////////////////////////////
-                ForEachArg<F>(streamArgType);
-
-                // Is function variadic? (i.e., last arg is "...")
-                if (IsVariadic_v<F>)
-                {
-                    OutputArgI(ArgCount_v<F>, // i
-                               _T("..."), // argTypeAsStr
-                               stream);
-                }
             }
 
             ////////////////////////////////////////////////////////////////////
             // Implementation function for "StdExt::DisplayAllFunctionTraits()"
-            // declared just after the following function. See that function
-            // for details (it just defers to us).
+            // declared just after this class. See that function for details
+            // (it just defers to us).
             ////////////////////////////////////////////////////////////////////
-            template <TRAITS_FUNCTION_C F, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
-            std::basic_ostream<CharT, CharTraitsT>& Process(std::basic_ostream<CharT, CharTraitsT> &stream)
+            template <typename F>
+            std::basic_ostream<CharT, CharTraitsT>& Process() const
             {
                 /////////////////////////////////////////////////////////////
                 // Lambda for displaying the "#)" seen at the start of each
-                // output line (where "#" is the argument # starting at 1)
+                // output line (where "#" is the argument # starting at 1),
                 // but not the "#)" seen for each arg in the "Arguments"
-                // section of the output, which are later handled by
-                // "StreamArgTypes()" above.
+                // section of the output, which are later handled by a call
+                // to (member function) "StreamArgTypes()".
                 /////////////////////////////////////////////////////////////
-                auto streamNumBracket = [&stream, num = 1]() mutable -> auto&
-                                        {
-                                            return stream << num++ << _T(") ");
-                                        };
+                auto streamNumBracket = [this, num = 1]() mutable -> auto&
+                {
+                    return this->m_Stream << num++ << _T(") ");
+                };
 
                 ///////////////////////////////
                 // #) Type
@@ -8188,13 +8020,13 @@ namespace StdExt
                 // Non-static member function? (includes functors)
                 if (IsMemberFunction_v<F>)
                 {
-                    stream << (IsFunctor_v<F> ? _T("Functor") : _T("Non-static member"));
-                    stream << _T(" (class/struct=\"") << MemberFunctionClassName_v<F> << _T("\")\n");
+                    m_Stream << (IsFunctor_v<F> ? _T("Functor") : _T("Non-static member"));
+                    m_Stream << _T(" (class/struct=\"") << MemberFunctionClassName_v<F> << _T("\")\n");
                 }
                 // Free function (which includes static member functions)
                 else
                 {
-                    stream << _T("Free or static member\n");
+                    m_Stream << _T("Free or static member\n");
                 }
 
                 ///////////////////////////////
@@ -8215,16 +8047,29 @@ namespace StdExt
                                       (IsVariadic_v<F> ? _T(" + variadic") : _T("")) <<
                                       _T("):");
 
-                /////////////////////////////////////////////
-                // Function's arg list not empty, i.e. not
-                // "(void)"? (so has at least 1 non-variadic
-                // arg and/or is variadic)
-                /////////////////////////////////////////////
+                //////////////////////////////////////////////
+                // Function's arg list not empty, i.e., not
+                // "Func()" or (equivalently) "Func(void)"?
+                // (so it has at least 1 non-variadic arg
+                // and/or is variadic)
+                //////////////////////////////////////////////
                 if (!IsEmptyArgList_v<F>)
                 {
-                    stream << _T("\n");
-
-                    StreamArgTypes<F>(stream);
+                    m_Stream << _T("\n");
+                    
+                    //////////////////////////////////////////////
+                    // Stream all args as per this example (note
+                    // that a tab character precedes each number
+                    // and a linefeed ("\n") follows the last
+                    // line - the "..." line only exists if the
+                    // function is variadic):
+                    //
+                    //    1) const std::basic_string<wchar_t> &
+                    //    2) const char*
+                    //    3) short
+                    //    4) ...
+                    //////////////////////////////////////////////
+                    StreamArgTypes<F>();
                 }
                 else
                 {
@@ -8232,7 +8077,7 @@ namespace StdExt
                     // Function's arg list is "(void)" (it
                     // has no args and is not variadic)
                     ////////////////////////////////////////
-                    stream << _T(" None\n");
+                    m_Stream << _T(" None\n");
                 }
 
                 ///////////////////////////////////////////////////
@@ -8265,20 +8110,221 @@ namespace StdExt
                 ///////////////////////////////
                 streamNumBracket() << _T("noexcept: ") << std::boolalpha << IsNoexcept_v<F>;
 
-                return stream;
+                return m_Stream;
             }
-        }; // namespace DisplayAllFunctionTraitsImpl
+
+        private:
+            ///////////////////////////////////////////////////////////////
+            // OutputArgI(). Streams the "Ith" arg to "m_Stream" (formatted
+            // as seen below). Note that "I" refers to the (zero-based)
+            // "Ith" arg in the function we're being called for (in
+            // left-to-right order), and "argTypeAsStr" is its type
+            // (converted to a WYSIWYG string).
+            ///////////////////////////////////////////////////////////////
+            void OutputArgI(const std::size_t i, // "Ith" arg (zero-based)
+                            tstring_view argTypeAsStr) const // Type of the "Ith" arg just above (as a string)
+            {
+                ////////////////////////////////////////
+                // E.g., (using zero-based i = 2 as an
+                // example, i.e., the 3rd arg of the
+                // function we're being called for)
+                // 
+                //     "\t3) double\n"
+                ////////////////////////////////////////
+                m_Stream << _T("\t") <<
+                            (i + 1) << // "Ith" arg ("i" is zero-based so we add 1 to display
+                                        // it as 1-based - more natural for display purposes)
+                            _T(") ") <<
+                            argTypeAsStr <<
+                            _T("\n");
+            }
+
+            /////////////////////////////////////////////////////////////////
+            // OutputArgI(). Converts "ArgTypeT" template arg to a "pretty"
+            // (WYSIWYG) string and passes it to above (non-template)
+            // overload where it's streamed to "m_Stream" (formatted as
+            // seen in the above overload). Note that "I" refers to the
+            // (zero-based) "Ith" arg in the function we're being called for
+            // (in left-to-right order) and "ArgTypeT" is its type.
+            /////////////////////////////////////////////////////////////////
+            template <std::size_t I, typename ArgTypeT>
+            void OutputArgI() const // "Ith" arg (zero-based)
+            {
+                ////////////////////////////////////////
+                // Convert "ArgTypeT" to a string (its
+                // user-friendly name) and pass it to
+                // the overload just above
+                ////////////////////////////////////////
+                OutputArgI(I, TypeName_v<ArgTypeT>);
+            }
+
+            ////////////////////////////////////////////////////////////
+            // C++17? Note that we don't support earlier versions and
+            // everything would have already been preprocessed out if
+            // compiling for versions prior to C++17 (see check for
+            // CPP17_OR_LATER near to top of file). For C++20 or later
+            // however we replace the following class (StreamArgType)
+            // with its lambda template equivalent at point of use
+            // later on (in "StreamArgTypes()"). Both just invoke
+            // "OutputArgI()" above so are identical but the lambda is
+            // more convenient.
+            ////////////////////////////////////////////////////////////
+            #if CPP17
+                class StreamArgType
+                {
+                public:
+                    StreamArgType(const DisplayAllFunctionTraitsImpl &displayAllFunctionTraitsImpl) noexcept
+                        : m_DisplayAllFunctionTraitsImpl(displayAllFunctionTraitsImpl)
+                    {
+                    }
+
+                    ///////////////////////////////////////////////////
+                    // Functor we'll be invoking once for each arg in
+                    // the function whose traits we're displaying
+                    // (where "I" is the zero-based number of the arg,
+                    // and "ArgTypeT" is its type). Following is a
+                    // template so it effectively gets stamped out
+                    // once for each argument in the function whose
+                    // traits we're displaying. See call to
+                    // "ForEachArg()" in "StreamArgTypes()" (which
+                    // processes this class in C++ 17 only).
+                    ///////////////////////////////////////////////////
+                    template <std::size_t I, typename ArgTypeT>
+                    bool operator()() const
+                    {
+                        /////////////////////////////////////////////
+                        // Defer to this function (template) which
+                        // streams (zero-based) arg "I" (whose type
+                        // is "ArgTypeT") to "m_Stream". Both "I"
+                        // (actually "I+1" to make it one-based for
+                        // display purposes) and the type name of
+                        // "ArgType"T are therefore displayed.
+                        /////////////////////////////////////////////
+                        m_DisplayAllFunctionTraitsImpl.OutputArgI<I, ArgTypeT>();
+
+                        //////////////////////////////////////////////
+                        // Return true to continue iterating so this
+                        // function gets called again with "I + 1"
+                        // (until all args in the function whose
+                        // traits are being displayed are processed).
+                        // Note that returning false would stop
+                        // iterating, equivalent to a "break"
+                        // statement in a regular"for" loop.
+                        //////////////////////////////////////////////
+                        return true;
+                    }
+
+                private:
+                    const DisplayAllFunctionTraitsImpl& m_DisplayAllFunctionTraitsImpl;
+                };
+            #endif
+
+            ///////////////////////////////////////////////////////////////////////////
+            // "StreamArgTypes()". Displays all arguments for function "F" to
+            // "m_Stream" as per the following example:
+            //
+            // If "F" is a function of the following type:
+            //
+            //       int (const std::string &, const char *, short, ...) noexcept;
+            //
+            // Then displays (outputs to "m_Stream") the following (note that the
+            // format of the type names below are compiler-dependent but are usually
+            // identical or very similar):
+            //
+            //       1) const std::basic_string<char> &
+            //       2) const char *
+            //	     3) short
+            //	     4) ...
+            // 
+            // Note that a tab character precedes each line above, and a linefeed
+            // ("\n") is output after the final line. Note that if "F" has no args
+            // however (including variadic args), then the function does nothing
+            // (nothing gets streamed to "m_Stream")
+            ///////////////////////////////////////////////////////////////////////////
+            template <TRAITS_FUNCTION_C F>
+            void StreamArgTypes() const
+            {
+                // Lambda templates available starting in C++20
+                #if CPP20_OR_LATER
+                    ///////////////////////////////////////////////////
+                    // Lambda we'll be invoking once for each arg in
+                    // function "F" (where "I" is the zero-based
+                    // number of the arg, and "ArgTypeT" is its type).
+                    // Following is a template so it effectively gets
+                    // stamped out once for each argument in function
+                    // "F" (in the call to "ForEachArg()" below).
+                    ///////////////////////////////////////////////////
+                    const auto streamArgType = [&]<std::size_t I, typename ArgTypeT>()
+                    {
+                        /////////////////////////////////////////////
+                        // Defer to this function (template) which
+                        // streams (zero-based) arg "I" (whose type
+                        // is "ArgTypeT") to "m_Stream". Both "I"
+                        // (actually "I+1" to make it one-based for
+                        // display purposes) and the type name of
+                        // "ArgType"T are therefore displayed.
+                        /////////////////////////////////////////////
+                        OutputArgI<I, ArgTypeT>();
+
+                        ////////////////////////////////////////////////
+                        // Return true to continue iterating so this
+                        // function gets called again with "I + 1"
+                        // (until all args in function "F" are
+                        // processed). Note that returning false would
+                        // stop iterating, equivalent to a "break"
+                        // statement in a regular "for" loop.
+                        ////////////////////////////////////////////////
+                        return true;
+                    };
+
+                    ////////////////////////////////////////////////////
+                    // Roll our own functor for C++17 (identical to
+                    // lambda above). Note that we don't support C++
+                    // versions < C++17 so if we drop through here we
+                    // must be targeting C++17 (since CPP17_OR_LATER
+                    // was checked at top of file and is now in effect)
+                    ////////////////////////////////////////////////////
+                #else
+                    const StreamArgType streamArgType(*this);
+                #endif
+
+                ////////////////////////////////////////////////////////
+                // Invoke the above functor ("streamArgType") once for
+                // each arg in the function whose traits we're
+                // processing ("F"). Note that the following generic
+                // function (template) "ForEachArg()" will effectively
+                // stamp out one copy of member function (template)
+                // "streamArgType.operator()<I, ArgTypeT>" for each
+                // argument in function "F". IOW, we wind up with "N"
+                // versions of "streamArgType.operator()", where "N" is
+                // the number of non-variadic args in function "F" and
+                // the template args of each "streamArgType.operator()"
+                // reflect the "Ith" arg in function "F" (where "I" is
+                // in the range 0 to N - 1)
+                ////////////////////////////////////////////////////////
+                ForEachArg<F>(streamArgType);
+
+                // Is function variadic? (i.e., last arg is "...")
+                if (IsVariadic_v<F>)
+                {
+                    OutputArgI(ArgCount_v<F>, // i
+                               _T("...")); // argTypeAsStr
+                }
+            }
+
+            std::basic_ostream<CharT, CharTraitsT>& m_Stream;
+        }; // class DisplayAllFunctionTraitsImpl
     } // namespace Private
 
     /////////////////////////////////////////////////////////////////////////
     // DisplayAllFunctionTraits(). Displays (streams) all function traits
-    // for function "F" to the given "stream" and returns "stream". The
-    // format of the streamed traits is shown in the examples below. Please
-    // note however that the format of the displayed types in these examples
-    // can vary slightly depending on the target compiler (since the
-    // compiler itself is responsible for them). Other trivial changes to
-    // the format not shown below might also occur depending on the function
-    // but the general format shown below remains the same.    
+    // for function "F" to "stream" and returns "stream". The format of the
+    // streamed traits is shown in the examples below. Please note however
+    // that the format of the displayed types in these examples can vary
+    // slightly depending on the target compiler (since the compiler itself
+    // is responsible for them). Other trivial changes to the format not
+    // shown below might also occur depending on the function but the
+    // general format shown below remains the same.
     //
     //      // Standard C++ headers
     //      #include <iostream>
@@ -8329,7 +8375,7 @@ namespace StdExt
     //
     // This will stream the traits for function "Test::SomeClass::DoSomething()"
     // above to "tcout" in the following format (note that the format may vary
-    // slightly depending on the function and the target compiler):
+    // slightly depending on "F" and the target compiler):
     //
     //      1) Type: int (Test::SomeClass::*)(const std::basic_string<wchar_t>&, const char*, short int, int, float, long int, double, ...) const volatile && noexcept
     //      2) Classification: Non-static member (class/struct="Test::SomeClass")
@@ -8364,7 +8410,14 @@ namespace StdExt
     template <TRAITS_FUNCTION_C F, typename CharT, typename CharTraitsT = std::char_traits<CharT>>
     std::basic_ostream<CharT, CharTraitsT>& DisplayAllFunctionTraits(std::basic_ostream<CharT, CharTraitsT> &stream)
     {
-        return Private::DisplayAllFunctionTraitsImpl::Process<F>(stream);
+        ////////////////////////////////////////////////
+        // Implementation class that does all the work
+        // (for internal use only so declared in
+        // namespace "Private")
+        ////////////////////////////////////////////////
+        const Private::DisplayAllFunctionTraitsImpl<CharT, CharTraitsT> displayAllFunctionTraitsImpl(stream);
+
+        return displayAllFunctionTraitsImpl.template Process<F>();
     }
 } // namespace StdExt
 #else
