@@ -552,7 +552,7 @@ Type alias identical to "*F*" itself unless "*F*" is a functor (i.e., [IsFunctor
 <a name="FunctionTypeName_v"></a><details><summary>FunctionTypeName_v</summary>
 ```C++
 template <TRAITS_FUNCTION_C F>
-inline constexpr bool FunctionTypeName_v;
+inline constexpr tstring_view FunctionTypeName_v;
 ```
 Same as [FunctionType_t](#functiontype_t) just above but returns this as a (WYSIWYG) string (of type "*tstring_view*" - see [TypeName_v](#typename_v) for details).</details>
 
