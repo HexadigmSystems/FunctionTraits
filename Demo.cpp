@@ -11,54 +11,70 @@
 //
 // DESCRIPTION
 // -----------
-// Demo program showing the capabilities of the "FunctionTraits" library
-// declared in "TypeTraits.h" (used to retrieve information about any
-// function including its return type, argument types, and other information
-// - write traits also fully supported but not demo'd in this program - see
-// link below for examples). Just run the program to display all available
-// traits for the 3 sample functions seen in namespace "TestFuncs" later in
-// this file (traits displayed to the stdout). You can update these 3
-// functions with any signature whose traits you want to display, and re-run
-// the app. No other changes are required. Note however that all 3 functions
-// are ultimately passed to function template
-// "DisplayAllFunctionTraits<F>()" in "TypeTraits.h" itself, which displays
-// all traits for function "F" (see "DisplayAllFunctionTraits" at the link
-// below). You can therefore just call this function directly if you wish,
-// passing any function type you want for template arg "F" (free functions
-// which includes static member functions, non-static member functions,
-// pointers and references to functions, references to pointers to
-// functions, and functors (including lambdas). Note however that inspecting
-// this particular function in "TypeTraits.h" shows some of the major
-// features of the library at work, so it's a very good learning exercise
-// for your own code (demonstrating what can be accomplished). Moreover,
-// "DisplayAllFunctionTraits<F>()" is just a client of the library itself,
-// no different than your own code will be, since it simply relies on the
-// other templates in the library to carry out its own work. It therefore
-// just calls the other templates similar to what you'll do in your own
-// code, so you can see an actual client of the library in action (even
-// though this particular client happens to belong to the library itself).
-// It's also reasonably short for what it does, and no tracing into the
-// actual implementation details of the library itself is required (to
-// understand how to use the library). You only need to trace into the
-// implementation of "DisplayAllFunctionTraits<F>()" itself (not any of the
-// library's other templates it calls). Again, because it's just a client of
-// the library, it utilizes the other templates the same way you will, so
-// you'll find it a useful learning experience for your own code. Note that
-// other examples of how to use the library are also available at the link
-// below. See the "Usage" section for full details.
-//
-// Lastly, note that the program defaults to C++20. If you wish to change
-// this then add -DCMAKE_CXX_STANDARD=?? to the CMake command line options,
-// setting "??" to the target version (which must be 17 or any later version
-// of C++ - "FunctionTraits" doesn't support earlier versions). In Compiler
-// Explorer, the CMake command line options are normally located near the
-// top-left corner of the source code window on the left, just above the
-// project name "FunctionTraitsDemo". For further details on the CMake
-// command line options for this demo, see the top of the "CMakeLists.txt"
-// file in the Compiler Explorer source code window.
-//
 // For complete details on "FunctionTraits" (fully documented), see
 // https://github.com/HexadigmSystems/FunctionTraits
+//
+// This file contains a small demo program highlighting the capabilities of
+// the "FunctionTraits" library declared in "FunctionTraits.h" (see above
+// link), a collection of templates used to retrieve and/or modify any
+// component of a C++ function (return type, argument types, cv-qualifiers,
+// noexcept specification, etc. - all components comprising a C++ function
+// are available, and write traits to modify these components are also fully
+// supported though not demo'd in this program - see link above for
+// examples). Just run the program to display all available traits for the 3
+// sample functions seen in namespace "TestFuncs" later in this file (traits
+// displayed to the stdout). You can update these 3 functions with any
+// signature whose traits you want to display and re-run the app (or
+// experiment with any other template in the library). Note however that all
+// 3 sample functions are simply passed to the (function) template
+// "DisplayAllFunctionTraits()" in the library itself, which displays all
+// traits for any function type you pass (via its template arg "F" - see
+// https://github.com/HexadigmSystems/FunctionTraits/#displayallfunctiontraits
+// for details). You can therefore just call "DisplayAllFunctionTraits()"
+// directly if you wish, passing any function type you want for its template
+// arg "F" (free functions which includes static member functions, pointers
+// and references to free functions, references to pointers to free
+// functions, non-static member function pointers, functors including
+// lambdas, "abominable" functions and "std::function" specializations).
+// Note however that inspecting the code for "DisplayAllFunctionTraits()"
+// itself in "FunctionTraits.h" shows some of the major features of the
+// library at work, so it's a very good learning exercise for your own code
+// (demonstrating what can be accomplished). Moreover,
+// "DisplayAllFunctionTraits()" is designed as a client of the library
+// itself, no different than your own code will be, since it simply relies
+// on the other templates in the library to carry out its own work. It
+// therefore just calls the other templates similar to what you'll do in
+// your own code, so you can see an actual client of the library in action
+// (even though this particular client happens to belong to the library
+// itself). It's also reasonably short for what it does, and you only need
+// to trace into the implementation of "DisplayAllFunctionTraits()" itself,
+// not any of the library's other templates that it calls (which would be an
+// arduous and unnecessary task). Note that other examples of how to use the
+// library are also available at the library's link above. See the "Usage"
+// section there for full details. You can copy these (usage) examples into
+// function "main()" below if you wish, or experiment with any other
+// template in the library, relying on "DisplayAllFunctionTraits()" whenever
+// you want to display a function's complete traits. This is particularly
+// useful when testing the library's write trait templates so you can see
+// the results of changing any component of a C++ function (return type,
+// parameter types, cv-qualifiers, noexcept specification, etc.). Also see
+// "TypeName_v" in the library for converting any C++ type to its
+// user-friendly string equivalent, which is also useful when you just want
+// to display a C++ type - see
+// https://github.com/HexadigmSystems/FunctionTraits/#typename_v.
+//
+// Lastly, note that within Compiler Explorer (the hosting site for this
+// demo), the program defaults to C++20. If you wish to change this then add
+// -DCMAKE_CXX_STANDARD=?? to the CMake command line options in Compiler
+// Explorer, setting "??" in the latter option to the target C++ version
+// (17, 20, 23 or beyond - versions prior to C++17 are not supported). In
+// Compiler Explorer, the CMake command line options are normally located
+// near the top-left corner of the source code window on the left, just
+// above the project name "FunctionTraitsDemo", so add just the
+// -DCMAKE_CXX_STANDARD=??" option there. For further details on the CMake
+// command line options for this demo (though most users don't need to get
+// involved with these), see the top of the "CMakeLists.txt" file in the
+// Compiler Explorer source code window.
 /////////////////////////////////////////////////////////////////////////////
 
 // #included first so we can check CPP17_OR_LATER just below
@@ -72,7 +88,7 @@
     // If it is in effect then no need to #include the headers
     // below (they're already available)
     ////////////////////////////////////////////////////////////
-    #if !defined(STDEXT_IMPORTED_STD) 
+    #if !defined(STDEXT_IMPORTED_STD)
         // Standard C/C++ headers
         #include <cstddef>
         #include <iostream>
@@ -84,12 +100,12 @@
     // Our headers (only file in this repository you need
     // to explicitly #include)
     ////////////////////////////////////////////////////////
-    #include "TypeTraits.h"
+    #include "FunctionTraits.h"
 
-    //////////////////////////////////////
-    // Everything in "TypeTraits.h" just
+    /////////////////////////////////////////
+    // Everything in "FunctionTraits.h" just
     // above declared in this namespace
-    //////////////////////////////////////
+    /////////////////////////////////////////
     using namespace StdExt;
 
     /////////////////////////////////////////////////////////////////////////////
@@ -108,7 +124,7 @@
         // following function from the "FunctionTraits"
         // library itself does all the work. See here
         // for details:
-        // 
+        //
         //    https://github.com/HexadigmSystems/FunctionTraits#DisplayAllFunctionTraits
         /////////////////////////////////////////////////
         DisplayAllFunctionTraits<F>(tcout);
@@ -150,7 +166,7 @@
             ///////////////////////////////////////////////////
             // Adding this to make the class a functor (which
             // are also supported)
-            ///////////////////////////////////////////////////        
+            ///////////////////////////////////////////////////
             std::basic_string<tchar> operator()(std::size_t) const;
         };
     }

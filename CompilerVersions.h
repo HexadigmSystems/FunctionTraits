@@ -134,13 +134,13 @@
 //
 //     Example Usage (for C++17)
 //     -------------------------
-// 
+//
 //     #if CPP17_OR_LATER
 //          // Code that targets C++17 or later
 //     #else
 //          // Must be C++14 or earlier (C++14 precedes C++17)
 //     #endif
-// 
+//
 //     #if CPP17_OR_EARLIER
 //          // Code that targets C++17 or earlier
 //     #else
@@ -342,7 +342,7 @@
     #define CPP14_OR_LATER 0
 #endif
 
-#undef CPP_VERSION // Done with this
+#undef CPP_VERSION // Done with this (for internal use only)
 
 //////////////////////////////////////////////////////////////////
 // CPPXX_OR_EARLIER (#defined) constants that can be tested
@@ -374,8 +374,8 @@
 // internal use only - #defined further below if
 // required)
 ///////////////////////////////////////////////////
-#if defined(DECLARE_MACROS_ONLY)
-    #error "DECLARE_MACROS_ONLY already #defined (for internal use only so never should be)"
+#if defined(DECLARE_PUBLIC_MACROS_ONLY)
+    #error "DECLARE_PUBLIC_MACROS_ONLY already #defined (for internal use on a per file basis only so never should be)"
 #endif
 
 #if CPP20_OR_LATER
@@ -387,12 +387,12 @@
     // the 1st link):
     //     https://en.cppreference.com/w/cpp/feature_test#Library_features
     //     https://en.cppreference.com/w/cpp/utility/feature_test
-    // 
+    //
     // Note that there are also predefined language feature-test macros
     // (opposed to "library" feature-test macros above) so <version> not
     // required (macros are always predefined). See:
     //     https://en.cppreference.com/w/cpp/feature_test#Language_features
-    // 
+    //
     // See here for "__has_include" usage example (2nd link from GCC docs):
     //     https://en.cppreference.com/w/cpp/feature_test#Example
     //     https://gcc.gnu.org/onlinedocs/cpp/_005f_005fhas_005finclude.html
@@ -532,9 +532,10 @@
     //
     //         #define IS_CONST_C StdExt::IsConst_c // Assuming the "StdExt" namespace for this example
     //     #else
-    //         #define STATIC_ASSERT_IS_CONST(T) static_assert(std::is_const_v<T>, \
-    //                                                         "\"" #T "\" must be const")
     //         #define IS_CONST_C typename
+    //         #define STATIC_ASSERT_IS_CONST(T) static_assert(std::is_const_v<T>, \
+    //                                                         "\"" #T "\" must be const (i.e., " \
+    //                                                         "it must satisfy \"std::is_const\"");
     //     #endif
     //
     // Then in any code that requires this concept you can simply do
@@ -544,13 +545,14 @@
     //     struct Whatever
     //     {
     //         #if !defined(USE_CONCEPTS)
-    //             ///////////////////////////////////////////////
-    //             // Kicks in if concepts are NOT supported,
-    //             // otherwise IS_CONST_C concept kicks in just
-    //             // above instead (latter simply resolves to
-    //             // the "typename" keyword when concepts aren't
-    //             // supported)
-    //             ///////////////////////////////////////////////
+    //             //////////////////////////////////////////////////
+    //             // Kicks in if concepts not supported, otherwise
+    //             // corresponding concept kicks in in the template
+    //             // declaration above instead (macro for this
+    //             // above resolves to the "typename" keyword when
+    //             // concepts aren't supported and the following
+    //             // "static_assert" is then used instead)
+    //             //////////////////////////////////////////////////
     //             STATIC_ASSERT_IS_CONST(T);
     //         #endif
     //
@@ -568,6 +570,59 @@
     #if defined(__cpp_lib_concepts) // See https://en.cppreference.com/w/cpp/feature_test#cpp_lib_concepts
                                     // There's also cpp_concepts: https://en.cppreference.com/w/cpp/feature_test#cpp_concepts
         #define USE_CONCEPTS
+    #endif
+
+    ////////////////////////////////////////////////////////////////
+    // Official language feature macro for both generic lambdas in
+    // C++14 and lambda templates in C++20:
+    //
+    //   https://en.cppreference.com/w/cpp/feature_test#cpp_generic_lambdas
+    //
+    // Also see its official feature spec (P0428R2):
+    //
+    //   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0428r2.pdf
+    //
+    // Note that the same feature macro "__cpp_generic_lambdas" is
+    // used to test for both generic lambdas in C++14 AND lambda
+    // templates in C++20, but for generic lambdas the version to
+    // test for is 201304 and for lambda templates it's 201707
+    // (what we're checking for below). Lambda templates however
+    // are still considered a form of generic lambdas by the C++
+    // standard (why the same feature macro was obviously chosen
+    // for both), and the term "lambda template", while widely used,
+    // isn't actually an official name in the C++ standard. "Lambda
+    // templates" are effectively just generic lambdas that support
+    // the usual C++ template syntax though I think the standard
+    // should have made a distinction between them.
+    //
+    // In any case, note that we're currently inside an "#if
+    // CPP20_OR_LATER" block so the following check is only
+    // conducted in C++20 or later but that's normally implied by
+    // "__cpp_generic_lambdas" itself anyway (when greater than or
+    // equal to 201707). Checking for the following inside an "#if
+    // CPP20_OR_LATER" block however not only makes it clear this
+    // is a C++20 feature, but it avoids the (albeit rare)
+    // possibility that "__cpp_generic_lambdas" is >= 201707 in an
+    // earlier C++ version (if some compiler already supported it
+    // before it was officially released in C++20 - for our
+    // purposes we prefer to rely on its official release in C++20
+    // only which is guaranteed since the following occurs inside
+    // an "#if CPP20_OR_LATER" block as noted). Note that relying
+    // on LAMBDA_TEMPLATES_SUPPORTED instead of checking for "#if
+    // CPP20_OR_LATER" is also more reliable since some compilers
+    // don't support lambda templates in their early releases of
+    // C++20 (so while CPP20_OR_LATER may be #defined, lambda
+    // templates may still not be available). Microsoft for
+    // instance doesn't support them in C++20 until MSVC V19.27
+    // (released with VS V16.7), so testing "#if CPP20_OR_LATER" in
+    // versions just prior to that will return true even though
+    // lambda templates aren't supported yet (leading to compiler
+    // errors or other possible issues).
+    ////////////////////////////////////////////////////////////////
+    #if defined(__cpp_generic_lambdas)
+        #if __cpp_generic_lambdas >= 201707
+            #define LAMBDA_TEMPLATES_SUPPORTED
+        #endif
     #endif
 
     /////////////////////////////////////////////////////////////////////////////
@@ -590,10 +645,10 @@
     // might also do this themself). Therefore, when a user #includes this
     // header in the module version, only the macros in the header will need to
     // be declared since C++ modules don't export #defined macros (we #define an
-    // internal constant DECLARE_MACROS_ONLY below to facilitate this). If the
-    // user hasn't #defined STDEXT_USE_MODULES however then they wish to use
-    // this header normally (declare everything as usual), even if they've also
-    // added the module to their project as well (which will still be
+    // internal constant DECLARE_PUBLIC_MACROS_ONLY below to facilitate this).
+    // If the user hasn't #defined STDEXT_USE_MODULES however then they wish to
+    // use this header normally (declare everything as usual), even if they've
+    // also added the module to their project as well (which will still be
     // successfully compiled), though that would be very unlikely (why add the
     // module if they're not going to use it? - if they've added it then they'll
     // normally #define STDEXT_USE_MODULES as well). As for the 2nd condition
@@ -622,7 +677,7 @@
         // the "CompilerVersions" module on their own (which
         // is more natural anyway - relying on this header
         // may even confuse some users who might not realize
-        // that a "#include CompilerVersions.h" statement is
+        // that a #include "CompilerVersions.h" statement is
         // actually importing the "CompilerVersions" module
         // to pick up all public declarations in the header
         // instead of declaring them in the header itself -
@@ -651,11 +706,11 @@
         // already available via the import statement just
         // above.
         //////////////////////////////////////////////////////
-        #define DECLARE_MACROS_ONLY
+        #define DECLARE_PUBLIC_MACROS_ONLY
     #endif
 #endif // #if CPP20_OR_LATER
 
-#if !defined(DECLARE_MACROS_ONLY)
+#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
     // "import std" not currently in effect? (C++23 or later)
     #if !defined(STDEXT_IMPORTED_STD)
         // Standard C/C++ headers
@@ -738,7 +793,7 @@
             #endif
         #endif
     #endif // #if !defined(STDEXT_IMPORTED_STD)
-#endif // #if !defined(DECLARE_MACROS_ONLY)
+#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
 ///////////////////////////////////////////////////////
 // MSFT? (or any other compiler we support running in
@@ -848,7 +903,7 @@
     ///////////////////////////////////////////////////////////////////
     // #defined constants storing the compiler's major, minor, build
     // and revision numbers (for Microsoft C++). We simply strip these
-    // out of the predefined Microsoft constants _MSC_FULL_VER, _MSC_VER, 
+    // out of the predefined Microsoft constants _MSC_FULL_VER, _MSC_VER,
     // and _MSC_BUILD. See these here at this writing:
     //
     //    Predefined macros
@@ -882,24 +937,22 @@
     /////////////////////////////////////////////////////////////
     // #defined constants corresponding to the predefined MSFT
     // constants _MSC_VER and _MSC_FULL_VER. One such constant
-    // exists for each modern version of Visual Studio. Note
-    // while MSFT does publish the values for _MSC_VER here at
-    // this writing:
+    // exists for each modern version of Visual Studio. MSFT
+    // periodically moves this information around however and
+    // currently publishes the values of _MSC_VER here:
     //
-    //     Predefined macros
-    //     https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
+    //     Microsoft Visual C++ compiler versioning
+    //     https://learn.microsoft.com/en-us/cpp/overview/compiler-versions?view=msvc-170
     //
     // Unfortunately they don't publish each _MSC_FULL_VER at
-    // this writing (after extensive searching - go figure), so
-    // the constants below were picked up from the following
-    // (unofficial) links instead (not sure where they got it
-    // from but hopefully accurate):
+    // this writing (after extensive searching - go figure), but
+    // there is the following which is presumably (hopefully) a
+    // reliable source so the MSC_FULL_VER_? constants below were
+    // picked up from here (not sure where they got it from but
+    // hopefully accurate - their citations aren't sufficient):
     //
     //     Microsoft Visual C++
     //     https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering
-    //
-    //     Pre-defined Compiler Macros (Note: no longer being updated!)
-    //     https://sourceforge.net/p/predef/wiki/Compilers/
     //
     // Also see the following for details on how to use the macros
     // _MSC_VER and _MSC_FULL_VER in general (they can be compared
@@ -958,10 +1011,8 @@
     #define MSC_VER_2019_V16_5          1925
     #define MSC_VER_2019_V16_6          1926
     #define MSC_VER_2019_V16_7          1927
-    #define MSC_VER_2019_V16_8_AND_9    1928
-    #define MSC_FULL_VER_2019_16_9      192829500 // Search for this value here: https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
-    #define MSC_VER_2019_V16_10_AND_11  1929
-    #define MSC_FULL_VER_2019_16_11     192930100 // Search for this value here: https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
+    #define MSC_VER_2019_V16_8_AND_9    1928 // Search for 16.8 and 16.9 here (merged by MSFT into a single version): https://learn.microsoft.com/en-us/cpp/overview/compiler-versions?view=msvc-170
+    #define MSC_VER_2019_V16_10_AND_11  1929 // Search for 16.10 and 16.11 here (merged by MSFT into a single version): https://learn.microsoft.com/en-us/cpp/overview/compiler-versions?view=msvc-170
 
     // Visual Studio 2022
     #define MSC_VER_2022                1930
@@ -976,6 +1027,10 @@
     #define MSC_VER_2022_V17_8          1938
     #define MSC_VER_2022_V17_9          1939
     #define MSC_VER_2022_V17_10         1940
+    #define MSC_VER_2022_V17_11         1941
+    #define MSC_VER_2022_V17_12         1942
+    #define MSC_VER_2022_V17_13         1943
+    #define MSC_VER_2022_V17_14         1944
 #else
     ///////////////////////////////////////////////////////
     // Native (very ancient and ugly) MSFT specific macro
@@ -1003,7 +1058,7 @@
     #define _T(x) x
 #endif // #if defined(_MSC_VER)
 
-#if !defined(DECLARE_MACROS_ONLY)
+#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
     namespace StdExt
     {
         ///////////////////////////////////////////////////////
@@ -1013,7 +1068,6 @@
         // are affected)
         ///////////////////////////////////////////////////////
         #if defined(_MSC_VER)
-
             //////////////////////////////////////////
             // TCHAR declared in <tchar.h> #included
             // further above (Microsoft only)
@@ -1064,7 +1118,7 @@
             // release is not currently designed to do. The use of
             // tchar for non-MSFT platforms simply allows us to more
             // easily deal with character types in a consistent way
-            // (by always using tchar for any character types we
+            // (by always using "tchar" for any character types we
             // process whether we're targeting MSFT or not). On
             // MSFT platforms it will normally be "wchar_t" as noted
             // above, but "char" is also supported on MSFT if someone
@@ -1160,6 +1214,6 @@
         }
     } // namespace StdExt
 #else
-    #undef DECLARE_MACROS_ONLY
-#endif // #if !defined(DECLARE_MACROS_ONLY)
+    #undef DECLARE_PUBLIC_MACROS_ONLY
+#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 #endif // #ifndef COMPILER_VERSIONS (#include guard)
