@@ -14,59 +14,62 @@
 //
 // DESCRIPTION
 // -----------
-// Header file implementing the "FunctionTraits" template library (fully)
-// documented here https://github.com/HexadigmSystems/FunctionTraits. More
-// generally however, the header contains miscellaneous (generic) templates
-// similar to those in the native C++ header <type_traits> among others
-// (though the library relies on the Pascal naming convention instead of
-// "snake case" normally used by the C++ standard itself). Therefore, while
-// the header exists to implement the "FunctionTraits" library, and most
-// users will be #including it for that purpose only, not all templates in
-// the file are directly associated with "FunctionTraits" per se, and
-// therefore aren't documented at the library's link above. The header's
-// main focus is "FunctionTraits" so all other "public" declarations exist
-// merely to support it (more on what "public" means shortly). Nevertheless,
-// since these support templates are independent of "FunctionTraits" itself
-// and can therefore be used for other purposes in their own right (the
-// library contains various useful templates beyond what the standard C++
-// library offers), it would be better (cleaner) if the library were
-// designed with them separated into their own header, rather than directly
-// declaring them in this one (since declaring them in their own header
-// means they could be independently #included wherever needed). Doing so
-// however means users of the "FunctionTraits" library would have another
-// header to add to their source code in addition to "FunctionTraits.h" and
-// "CompilerVersions.h" (the only two headers users need to add currently).
-// For now then these support templates are declared in this header simply
-// to minimize the number of headers users need to add to their code (just
-// the latter two ".h" files only). Users can still use these support
-// templates for their own independent purposes however, if they wish to
-// inspect the code itself (again, since they are not documented at the
-// above link).
+// Header file implementing the "FunctionTraits" template library (fully
+// documented here https://github.com/HexadigmSystems/FunctionTraits - see
+// this for complete details). More generally however, this header contains
+// miscellaneous (generic) templates similar to those in the native C++
+// header <type_traits> among others (though the library relies on the
+// Pascal naming convention instead of "snake case" normally used by the C++
+// standard library itself). Therefore, while this header exists to
+// implement the "FunctionTraits" library, and most users will be #including
+// it for that purpose only, not all templates in the file are directly
+// associated with "FunctionTraits" per se, and therefore aren't documented
+// at the library's link above. The header's main purpose is to support
+// "FunctionTraits" so all other "public" declarations exist for that
+// purpose only (more on what "public" means shortly). Nevertheless, since
+// these support templates are independent of "FunctionTraits" itself and
+// can therefore be used for other purposes in their own right (the library
+// contains various useful templates beyond what the standard C++ library
+// offers), it would be better (cleaner) if the library were designed with
+// them separated into their own header, rather than directly declaring them
+// in this one (since declaring them in their own header means they could be
+// independently #included wherever needed). The following header could then
+// just #include it. Doing so however means users of the "FunctionTraits"
+// library would have another header to add to their source code in addition
+// to "FunctionTraits.h" and "CompilerVersions.h" (the only two headers
+// users need to add currently). For now then these support templates are
+// declared in this header simply to minimize the number of headers
+// "FunctionTraits" users need to add to their code (just the latter two
+// ".h" files only). Users can still use these support templates for their
+// own independent purposes however, if they wish to inspect the code itself
+// (again, since they are not documented at the above link).
 //
 // Please note that all declarations in this file are declared in namespace
 // "StdExt". Everything is available for public use except declarations in
 // (nested) namespace "StdExt::Private", which are reserved for internal use
 // only (implementation details). Macros however don't respect namespaces of
 // course but all macros #defined for *internal* use only are documented as
-// such throughout this header (and usually #undefined later in the file
-// anyway). All others are available for public use if required (and
-// therefore aren't #undefined), meaning any that aren't explicitly
-// documented for internal use (all such internal macros indicate this).
-// Note that macros are a necessary "evil" in C++ sometimes but are kept to
-// a minimum (only used where legitimately required).
+// such throughout this header (and normally #undefined later in the file
+// unless they are needed outside this header but still for internal
+// purposes only - such macros are rare however). All other macros are
+// available for public use if required (and therefore aren't #undefined),
+// meaning any that aren't explicitly documented for internal use (all
+// internal macros indicate this and public macros don't). Note that macros
+// are a necessary "evil" in C++ sometimes but are kept to a minimum (only
+// used where legitimately required).
 //
 // Finally, note that this header is supported by GCC, Microsoft, Clang and
-// Intel compilers only at this writing (C++17 and later - the check for
-// CPP17_OR_LATER just below causes all code to be preprocessed out
-// otherwise). A separate check below also ensures the minimum supported
-// versions of these compilers are running or a #error terminates
-// compilation. Note that this file depends on (#includes)
-// "CompilerVersions.h" as well. All other dependencies are native C++
-// headers with the exception of the native Windows header "tchar.h" on MSFT
-// platforms (or any other supported compiler running in Microsoft VC++
-// compatibility mode). "tchar.h" must be in the #include search path and
-// normally will be when targeting MSFT (in most MSFT C++ project
-// environments).
+// Intel (oneAPi) compilers only at this writing (for C++17 and later - the
+// check for CPP17_OR_LATER near the start of the file below causes all code
+// to be preprocessed out otherwise). A separate check below also ensures
+// the minimum supported versions of these compilers are running or a #error
+// terminates compilation. Note that this file depends on (#includes)
+// "CompilerVersions.h" as well (the only other header comprising this
+// library). All other dependencies are native C++ headers with the
+// exception of the native Windows header "tchar.h" on MSFT platforms (or
+// any other supported compiler running in Microsoft VC++ compatibility
+// mode). "tchar.h" must be in the #include search path and normally will be
+// when targeting MSFT (in most MSFT C++ project environments).
 /////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
@@ -208,14 +211,15 @@
 // still supported but a warning from the "deprecated"
 // attribute will notify the user accordingly (with a
 // message to upgrade to the new way of doing things -
-// note that on MSFT platforms however our deprecated
-// messages are ignored by MSVC for some reason). When
-// not #defined however then deprecated features will no
-// longer be declared so will result in compiler errors
-// (so upgrading to the new way of doing things then
-// becomes mandatory - the last commit message at
-// https://github.com/HexadigmAdmin/FunctionTraits will
-// explain what needs to be done).
+// note that on MSFT platforms however the deprecated
+// messages are ignored by MSVC at this writing for some
+// reason). When not #defined however then deprecated
+// features will no longer be declared so will result in
+// compiler errors (so upgrading to the new way of doing
+// things then becomes mandatory). Note that this flag
+// was introduced in Git commit 38276f0. See its commit
+// message here:
+// https://github.com/HexadigmSystems/FunctionTraits/commit/38276f0582c3296a4e8283889624a4f4f88e0657
 /////////////////////////////////////////////////////////
 #define STDEXT_SUPPORT_DEPRECATED
 
@@ -226,7 +230,7 @@
 // user may have renamed the latter file's extension to). In this case we
 // know modules (a C++20 feature) are supported (the 1st condition tests
 // CPP20_OR_LATER for this but will be replaced with the official C++
-// feature constant "__cpp_modules" in a later release since it's not yet
+// feature macro "__cpp_modules" in a later release since it's not yet
 // supported by all compilers), and the 2nd condition then checks if
 // STDEXT_USE_MODULES was #defined by the user themself, indicating they've
 // added the ".cppm" files to their project (in this case the
@@ -239,26 +243,25 @@
 // this themself). Therefore, when a user #includes this header in the
 // module version, only the macros in the header will need to be declared
 // since C++ modules don't export #defined macros (we #define an internal
-// constant DECLARE_PUBLIC_MACROS_ONLY below to facilitate this). If the
-// user hasn't #defined STDEXT_USE_MODULES however then they wish to use
-// this header normally (declare everything as usual), even if they've also
-// added the module to their project as well (which will still be
-// successfully compiled), though that would be very unlikely (why add the
-// module if they're not going to use it? - if they've added it then they'll
-// normally #define STDEXT_USE_MODULES as well). As for the 3rd condition
-// we're testing here, STDEXT_BUILDING_MODULE_FUNCTION_TRAITS (an internal
-// constant), this is #defined by the module itself (FunctionTraits.cppm)
-// before #including this header in its global fragment section. The module
-// then simply exports all public declarations from this header in its
-// purview section via "using" declarations.
-// STDEXT_BUILDING_MODULE_FUNCTION_TRAITS is therefore #defined only if the
-// module itself is now being built. If #defined then it must be the module
-// itself now #including us and if not #defined then it must be a client of
-// the module #including us instead (which is what the following tests for
-// in its 3rd condition - if all 3 conditions are true then it must be a
-// user #including us, not the module itself, so we only declare the
-// #defined macros in this header instead of all other declarations, as
-// described above).
+// macro DECLARE_PUBLIC_MACROS_ONLY below to facilitate this). If the user
+// hasn't #defined STDEXT_USE_MODULES however then they wish to use this
+// header normally (declare everything as usual), even if they've also added
+// the module to their project as well (which will still be successfully
+// compiled), though that would be very unlikely (why add the module if
+// they're not going to use it? - if they've added it then they'll normally
+// #define STDEXT_USE_MODULES as well). As for the 3rd condition we're
+// testing here, STDEXT_BUILDING_MODULE_FUNCTION_TRAITS (an internal macro),
+// this is #defined by the module itself (FunctionTraits.cppm) before
+// #including this header in its global fragment section. The module then
+// simply exports all public declarations from this header in its purview
+// section via "using" declarations. STDEXT_BUILDING_MODULE_FUNCTION_TRAITS
+// is therefore #defined only if the module itself is now being built. If
+// #defined then it must be the module itself now #including us and if not
+// #defined then it must be a client of the module #including us instead
+// (which is what the following tests for in its 3rd condition - if all 3
+// conditions are true then it must be a user #including us, not the module
+// itself, so we only declare the #defined macros in this header instead of
+// all other declarations, as described above).
 /////////////////////////////////////////////////////////////////////////////
 #if CPP20_OR_LATER && defined(STDEXT_USE_MODULES) && !defined(STDEXT_BUILDING_MODULE_FUNCTION_TRAITS) // See comments about CPP20_OR_LATER above (to be
                                                                                                       // replaced by "__cpp_modules" in a future release)
@@ -319,6 +322,7 @@
     // above.
     //////////////////////////////////////////////////////
     #define DECLARE_PUBLIC_MACROS_ONLY
+
 //////////////////////////////////////////////////////////////
 // We're now coming through either because the module version
 // of this header isn't installed ("FunctionTraits.cppm" or
@@ -560,7 +564,7 @@
     #define VARIABLE_DEPRECATED_DUE_TO_NAME_CHANGE(NEW_VARIABLE_NAME) ENTITY_DEPRECATED_DUE_TO_NAME_CHANGE(Variable, NEW_VARIABLE_NAME)
     #define ENUM_DEPRECATED_DUE_TO_NAME_CHANGE(NEW_ENUM_NAME) ENTITY_DEPRECATED_DUE_TO_NAME_CHANGE(Enum, NEW_ENUM_NAME)
 
-#endif
+#endif // #if defined(STDEXT_SUPPORT_DEPRECATED)
 
 // Everything below in this namespace
 namespace StdExt
@@ -1210,7 +1214,7 @@ namespace StdExt
             //
             // Since the "L" prefix can only be applied to string literals
             // then it shouldn't work with __FUNCSIG__ when using
-            // non-Microsoft compilers, since the latter constant isn't a
+            // non-Microsoft compilers, since the latter macro isn't a
             // string literal in non-Microsoft compilers as described. It's
             // only a string literal when using VC++ itself (as officially
             // documented by MSFT), so "L" should only work when compiling
@@ -1304,10 +1308,10 @@ namespace StdExt
             // https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170
             // though the name is subject to change by MSFT of course), then
             // the Clang compiler will be used instead of the native VC++
-            // compiler. Although our own #defined constant CLANG_COMPILER
-            // will then be defined in this case (instead of the
+            // compiler. Although our own #defined macro CLANG_COMPILER will
+            // then be defined in this case (instead of the
             // MICROSOFT_COMPILER since VC++ itself is no longer the chosen
-            // compiler), the native Microsoft constant _MSC_VER will still
+            // compiler), the native Microsoft macro _MSC_VER will still
             // be #defined which we check for just below (instead of
             // CLANG_COMPILER). __FUNCSIG__ will then be used as seen below
             // (and _T applied to it as seen), since _T will still correctly
@@ -1385,10 +1389,10 @@ namespace StdExt
                     // Note: Shouldn't be possible to come through here
                     // at this writing since the same #error message
                     // would have already been displayed earlier (when
-                    // the compiler constants just above were #defined
-                    // in "CompilerVersions.h")
+                    // the compiler macro just above were #defined in
+                    // "CompilerVersions.h")
                     /////////////////////////////////////////////////////
-                    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
+                    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
                 #endif
             }
 
@@ -1656,8 +1660,8 @@ namespace StdExt
                     // Note: Shouldn't be possible to come through here
                     // at this writing since the same #error message
                     // would have already been displayed earlier (when
-                    // the compiler constants just above were #defined
-                    // in "CompilerVersions.h")
+                    // the compiler macros just above were #defined in
+                    // "CompilerVersions.h")
                     /////////////////////////////////////////////////////
                     #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
                 #endif
@@ -1874,10 +1878,10 @@ namespace StdExt
                     // Note: Shouldn't be possible to come through here
                     // at this writing since the same #error message
                     // would have already been displayed earlier (when
-                    // the compiler constants just above were #defined
-                    // in "CompilerVersions.h")
+                    // the compiler macros just above were #defined in
+                    // "CompilerVersions.h")
                     /////////////////////////////////////////////////////
-                    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
+                    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
                 #endif
             }
 
@@ -2106,8 +2110,8 @@ namespace StdExt
             }
 
             ///////////////////////////////////////////////
-            // Normally tests true (constant not #defined
-            // by default). See the same call in "Get()"
+            // Normally tests true (macro not #defined by
+            // default). See the same call in "Get()"
             // function above for details (the comments
             // there)
             ///////////////////////////////////////////////
@@ -2253,32 +2257,31 @@ namespace StdExt
     // all compilers we currently support. See here for GCC for instance
     // https://gcc.gnu.org/onlinedocs/gcc/Function-Names.html).
     //
-    // Whether it's a string literal or not doesn't matter for our
-    // purposes however since we correctly extract the type name portion
-    // from the string regardless (corresponding to template arg "T"),
-    // returning this as a "tstring_view". Note that there are no lifetime
-    // worries with the returned "tstring_view" since by default we store
-    // the name of the type in a static string just big enough to hold it
-    // (so it remains alive for the life of the app). This behavior can
-    // be disabled however by #defining
-    // TYPENAME_V_DONT_MINIMIZE_REQD_SPACE but there's no normally no
-    // reason to do so unless a compiler error prevents the current code
-    // from compiling for some reason (which should never happen on
-    // currently supported compilers normally but we support this constant
-    // for future use). If #defined then the returned "tstring_view" will
-    // point directly into __PRETTY_FUNCTION__ instead (or __FUNCSIG__
-    // when _MSC_VER is #defined), but these strings are also statically
-    // defined so there are still no lifetime issues. The "tstring_view"
-    // returned is just a view into these static strings which remain
-    // alive for the life of the app. Note TYPENAME_V_DONT_MINIMIZE_REQD_SPACE
-    //
-    // isn't #defined by default since it's more space efficient not to.
-    // When #defined it means that all of __PRETTY_FUNCTION__ or
-    // __FUNCSIG__ will be included in the compiled binary even though we
-    // only access the name portion of it ("TypeName_v" just returns a
-    // "tstring_view" pointing to the type name withing these strings).
-    // Since TYPENAME_V_DONT_MINIMIZE_REQD_SPACE isn't #defined by default
-    // it means that __PRETTY_FUNCTION__ or __FUNCSIG__ will no longer be
+    // Whether it's a string literal or not doesn't matter for our purposes
+    // however since we correctly extract the type name portion from the
+    // string regardless (corresponding to template arg "T"), returning
+    // this as a "tstring_view". Note that there are no lifetime worries
+    // with the returned "tstring_view" since by default we store the name
+    // of the type in a static string just big enough to hold it (so it
+    // remains alive for the life of the app). This behavior can be
+    // disabled however by #defining TYPENAME_V_DONT_MINIMIZE_REQD_SPACE
+    // but there's no normally no reason to do so unless a compiler error
+    // prevents the current code from compiling for some reason (which
+    // should never happen on currently supported compilers normally but we
+    // support this macro for future use). If #defined then the returned
+    // "tstring_view" will point directly into __PRETTY_FUNCTION__ instead
+    // (or __FUNCSIG__ when _MSC_VER is #defined), but these strings are
+    // also statically defined so there are still no lifetime issues. The
+    // "tstring_view" returned is just a view into these static strings
+    // which remain alive for the life of the app. Note that
+    // TYPENAME_V_DONT_MINIMIZE_REQD_SPACE isn't #defined by default since
+    // it's more space efficient not to. When #defined it means that all of
+    // __PRETTY_FUNCTION__ or __FUNCSIG__ will be included in the compiled
+    // binary even though we only access the name portion of it
+    // ("TypeName_v" just returns a "tstring_view" pointing to the type
+    // name withing these strings). Since
+    // TYPENAME_V_DONT_MINIMIZE_REQD_SPACE isn't #defined by default it
+    // means that __PRETTY_FUNCTION__ or __FUNCSIG__ will no longer be
     // stored in the compiled binary, only a copy of the type name itself
     // in its own static buffer (normally reducing the space of your
     // compiled binary though unless you call "TypeName_v" with a lot of
@@ -2352,7 +2355,7 @@ namespace StdExt
     inline constexpr tstring_view TypeName_v = Private::TypeNameImpl<T>::Get();
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
-    // See this #defined constant for details
+    // See this #defined macro for details
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
             template <typename T>
@@ -2368,7 +2371,7 @@ namespace StdExt
                                                            "(i.e., it must satisfy \"std::is_function\")");
     #endif // #if defined(USE_CONCEPTS)
 
-    // See this #defined constant for details
+    // See this #defined macro for details
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
             template <typename T>
@@ -2394,7 +2397,7 @@ namespace StdExt
     inline constexpr bool IsClassOrVoid_v = std::is_class_v<T> || std::is_void_v<T>;
 #endif // !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
-    // See this #defined constant for details
+    // See this #defined macro for details
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
             template <typename T>
@@ -2419,12 +2422,6 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    namespace Private
-    {
-        template <typename T>
-        using Type_t = T;
-    }
-
     ////////////////////////////////////////////////////////////////////////////
     // IsConstOrVolatile_v. WYSIWYG. Note that the negation means "T" is *not*
     // "const" or "volatile" (neither qualifier present - again, WYSIWYG)
@@ -2433,221 +2430,405 @@ namespace StdExt
     inline constexpr bool IsConstOrVolatile_v = std::is_const_v<T> ||
                                                 std::is_volatile_v<T>;
 
-    /////////////////////////////////////////////////////////////////////////////
-    // IsSpecialization. Primary template. See partial specialization just below
-    // for details.
-    /////////////////////////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename...> class,
-              typename = std::remove_cv_t<T>> // Arg for internal use only (users
-                                              // should never explicitly pass it)
-    struct IsSpecialization : std::false_type
+    /////////////////////////////////////////////////////////////////
+    // For internal use only (implementation of "IsSpecialization_v"
+    // declared just after this namespace - see this for details)
+    /////////////////////////////////////////////////////////////////
+    namespace Private
+    {
+        /////////////////////////////////////////////////////////////////////
+        // IsSpecializationImpl. Primary template. Kicks in if "T" isn't a
+        // specialization of a class template taking type args only. If "T"
+        // *is* a specialization of a class template taking type args only
+        // then our "IsSpecializationImpl" specialization just below kicks in
+        // instead (see comments for that below).
+        /////////////////////////////////////////////////////////////////////
+        template <typename T>
+        struct IsSpecializationImpl : std::false_type
+        {
+        };
+
+        /////////////////////////////////////////////////////////////////////
+        // IsSpecializationImpl. Specialization that kicks in if "T" in the
+        // primary template above is a specialization of a class template
+        // taking type args only (no non-type template args). If "T" *isn't*
+        // a specialization of a class template taking type args only then
+        // the primary template above kicks in instead (see comments for that
+        // above).
+        /////////////////////////////////////////////////////////////////////
+        template <template<typename...> class Template,
+                  typename... ArgsT>
+        struct IsSpecializationImpl< Template<ArgsT...> > : std::true_type
+        {
+            using TemplateArgsTuple = std::tuple<ArgsT...>;
+        };
+    }; // namespace Private
+
+    /////////////////////////////////////////////////////////////////////
+    // IsSpecialization. Derives from "std::true_type" if template arg
+    // "T" is an (optionally cv-qualified) specialization of a class
+    // template whose template args are all type-based args (i.e., the
+    // class template takes no non-type template args) or
+    // "std::false_type" otherwise (noting that "std::false_type" always
+    // results if "T" is a derivative of such a specialization - it has
+    // to be the actual specialization itself). IOW, if "T" isn't a
+    // specialization of a class template whatsoever (i.e., it's either
+    // not a class at all or it's just an ordinary non-template based
+    // class) or it is a specialization of a class template but the
+    // template takes any non-type template args then this struct always
+    // inherits from "std::false_type". Note that detecting if "T" is
+    // specialized on a class template taking a mixture of both type and
+    // non-type template args isn't possible in a generic way in C++ at
+    // this writing (for an arbitrary mixture of type and non-type
+    // template args), hence the following template only derives from
+    // "std::true_type" if the class template that "T" is specialized on
+    // takes template args that are all type-based (no non-type template
+    // args). If you need to detect "T" when it's specialized on a class
+    // template taking a mixture of type and/or non-type template args
+    // (with at least 1 non-type template arg) then you'll have to write
+    // a custom template similar to "IsSpecialization" to handle it (for
+    // the particular mixture of template args you're dealing with).
+    //
+    //    Examples (using the "IsSpecialization_v" helper
+    //    declared just after this struct)
+    //    ------------------------------------------------
+    //
+    //    //////////////////////////////////////////////////////////////
+    //    // Inherits from "std::true_type" because "std::vector<int>"
+    //    // is a type specialized on a class template (std::vector),
+    //    // and the template args of "std::vector" are all type-based
+    //    // args (std::vector takes no non-type based template args):
+    //    //
+    //    //    /////////////////////////////////////////////
+    //    //    // All (both) template args of "std::vector"
+    //    //    // are type-based args
+    //    //    /////////////////////////////////////////////
+    //    //    template <typename T,
+    //    //              typename Allocator = std::allocator<T>>
+    //    //    class vector;
+    //    //////////////////////////////////////////////////////////////
+    //    using T = std::vector<int>;
+    //    constexpr bool IsVectorASpecialization = IsSpecialization_v<T>;
+    //
+    //    /////////////////////////////////////////////////////////////////
+    //    // Inherits from "std::false_type" because "std::array<int, 5>"
+    //    // is a type specialized on a class template (std::array), but
+    //    // the template args of "std::array" aren't all type-based args
+    //    // (its 2nd template arg is a "std::size_t", i.e., a non-type
+    //    // template arg):
+    //    //
+    //    //    // 2nd template arg of "std::array" is a non-type arg
+    //    //    template <typename T,
+    //    //              std::size_t N>
+    //    //    class array;
+    //    /////////////////////////////////////////////////////////////////
+    //    using T = std::array<int, 5>;
+    //    constexpr bool IsArrayASpecialization = IsSpecialization_v<T>;
+    //
+    //    /////////////////////////////////////////////////////////////
+    //    // Inherits from "std::false_type" because an "int" isn't a
+    //    // type specialized on a class template whatsoever
+    //    /////////////////////////////////////////////////////////////
+    //    using T = int;
+    //    constexpr bool IsIntASpecialization = IsSpecialization_v<T>;
+    /////////////////////////////////////////////////////////////////////
+    template <typename T>
+    struct IsSpecialization : std::bool_constant< Private::IsSpecializationImpl<std::remove_cv_t<T>
+                                                                               >::value
+                                                >
     {
     };
 
-    /////////////////////////////////////////////////////////////////////////////
-    // Partial specialization of (primary) template just above. The following
-    // kicks in when the 1st template arg in the primary template above (a type)
-    // is an (optionally cv-qualified) specialization of the 2nd template arg (a
-    // template), though derivatives of such specializations aren't supported
-    // (they will always return false). IOW, this partial specialization kicks
-    // in if the 1st template arg (a type) is a type created from a template
-    // given by the 2nd template arg (a template). If not then the primary
-    // template kicks in above instead (i.e., when the 1st template arg (a type)
-    // isn't a type created from the template given by the 2nd template arg (a
-    // template), meaning it's not a specialization of that template). Note that
-    // the "Template" parameter can be any template taking type args only (any
-    // number of them). If "Template" takes any non-type args however then the
-    // primary template will always kick in instead (so it always inherits from
-    // "std::false_type"). Handling a mixture of both type and non-type template
-    // args in "Template" isn't possible in C++ at this writing (in a generic
-    // template like "IsSpecialization" AFAIK). If you need to detect such
-    // specializations then you'll have to write a custom template to handle it
-    // (for your particular use case).
+    /////////////////////////////////////////////////////////////////////
+    // Helper variable template for "IsSpecialization" just above (with
+    // the usual "_v" suffix). Set to true if "T" is a class template
+    // specialization for a template taking all type args (no non-type
+    // args) or false otherwise. See "IsSpecialization" above for
+    // details.
+    /////////////////////////////////////////////////////////////////////
+    template <typename T>
+    inline constexpr bool IsSpecialization_v = IsSpecialization<T>::value;
+#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+
+#if defined(USE_CONCEPTS)
+    #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+        template <typename T>
+        concept IsSpecialization_c = IsSpecialization_v<T>;
+    #endif
+
+    #define IS_SPECIALIZATION_C StdExt::IsSpecialization_c
+    #define STATIC_ASSERT_IS_SPECIALIZATION_MSG(T)
+    #define STATIC_ASSERT_IS_SPECIALIZATION(T)
+#else
+    #define IS_SPECIALIZATION_C typename
+    #define STATIC_ASSERT_IS_SPECIALIZATION_MSG(T) QUOTE_STRINGIFY(T) " must be a class type " \
+                                                   "specialized on a template taking type " \
+                                                   "args only (no non-type args). " \
+                                                   QUOTE_STRINGIFY(T) " either isn't a class " \
+                                                   "type whatsoever or it is a class type but " \
+                                                   "it's either not specialized on a class " \
+                                                   "template (it's just an ordinary non-template " \
+                                                   "class), or it is specialized on a class " \
+                                                   "template but the template takes one or more " \
+                                                   "non-type template args (only type-based " \
+                                                   "template args are supported)."
+    #define STATIC_ASSERT_IS_SPECIALIZATION(T) static_assert(StdExt::IsSpecialization_v<T>, \
+                                                             STATIC_ASSERT_IS_SPECIALIZATION_MSG(T));
+#endif // #if defined(USE_CONCEPTS)
+
+#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+    ////////////////////////////////////////////////////////////////////
+    // TemplateArgsTuple_t. For the given template arg "T", which must
+    // be a specialization of a class template whose template args are
+    // all type-based args (i.e., the class template "T" is specialized
+    // on takes no non-type template args - an IS_SPECIALIZATION_C
+    // constraints violation will trigger in C++20 or later otherwise or
+    // a "TemplateArgsTuple" is not a member of "IsSpecializationImpl"
+    // compiler error of some kind in C++17), then the following alias
+    // template, "TemplateArgsTuple_t", resolves to a "std::tuple" of
+    // the types that "T" is specialized on. Note that "T" may be
+    // "const" and/or "volatile" (cv-qualifiers are ignored).
     //
-    // IMPORTANT:
-    // ---------
-    // As noted above, "T" may be "const" and/or "volatile" (the specialization
-    // kicks in regardless).
+    //    Example 1
+    //    ---------
+    //
+    //    //////////////////////////////////////////////////////////////
+    //    // In this example "std::vector<int>" is a type specialized
+    //    // on a class template (std::vector), and the template args
+    //    // of "std::vector" are all type-based args (i.e., it takes
+    //    // no non-type based template args):
+    //    //
+    //    //    //////////////////////////////////////////////////
+    //    //    // All (both) template args of "std::vector" are
+    //    //    // type-based args:
+    //    //    //////////////////////////////////////////////////
+    //    //    template <typename T,
+    //    //              typename Allocator = std::allocator<T>>
+    //    //    class vector;
+    //    //
+    //    // "T" is therefore a valid type for passing to
+    //    // "TemplateArgsTuple_t" which therefore resolves to a
+    //    // "std::tuple" of all types "T" is specialized on:
+    //    //
+    //    //    std::tuple<int, std::allocator<int>>
+    //    //
+    //    // Note that the 2nd template arg of "std::vector" defaults
+    //    // to a "std::allocator" of its 1st template arg, where its
+    //    // 1st template arg is an "int" in this example so its 2nd
+    //    // template arg defaults to "std::allocator<int>" (hence the
+    //    // "std::tuple" just above contains that)
+    //    //////////////////////////////////////////////////////////////
+    //    using T = std::vector<int>;
+    //    using VectorOfIntTemplateArgsTuple_t = TemplateArgsTuple_t<T>;
+    //
+    //    Example 2
+    //    ---------
+    //
+    //    ///////////////////////////////////////////////////////////////
+    //    // In this example "std::array<int, 5>" is a type specialized
+    //    // on a class template (std::array), but the template args of
+    //    // "std::array" aren't all type-based args (its 2nd template
+    //    // arg is a "std::size_t", i.e., a non-type template arg):
+    //    //
+    //    //    // 2nd template arg of "std::array" is a non-type arg:
+    //    //    template <typename T,
+    //    //              std::size_t N>
+    //    //    class array;
+    //    //
+    //    // "T" therefore isn't a valid type for passing to
+    //    // "TemplateArgsTuple_t" so a constraints violation will
+    //    // trigger in C++20 or later or a "TemplateArgsTuple" is
+    //    // not a member of "IsSpecializationImpl" compiler error of
+    //    // some kind in C++17.
+    //    ///////////////////////////////////////////////////////////////
+    //    using T = std::array<int, 5>; // "std::array" type not a valid type for passing to "TemplateArgsTuple_t" (see comments above)
+    //    using ArrayOfIntTemplateArgsTuple_t = TemplateArgsTuple_t<T>; // Compiler error always occurs (see comments above)
+    //
+    //    Example 3
+    //    ---------
+    //
+    //    //////////////////////////////////////////////////////////
+    //    // An "int" isn't a type specialized on a class template
+    //    // whatsoever so it's also unsuitable for passing to
+    //    // "TemplateArgsTuple_t". An IS_SPECIALIZATION_C
+    //    // constraints violation will therefore trigger in C++20
+    //    // or later or a "TemplateArgsTuple" is not a member of
+    //    // "IsSpecializationImpl" compiler error of some kind in
+    //    // C++17.
+    //    //////////////////////////////////////////////////////////
+    //    using T = int; // "int" not a valid type for passing to "TemplateArgsTuple_t" (see comments above)
+    //    using IntTemplateArgsTuple_t = TemplateArgsTuple_t<T>; // Compiler error always occurs (see comments above)
+    
+    template <IS_SPECIALIZATION_C T>
+    using TemplateArgsTuple_t = typename Private::IsSpecializationImpl< std::remove_cv_t<T>
+                                                                      >::TemplateArgsTuple;
+
+    ////////////////////////////////////////////////////////////////////
+    // Helper (convenience) variable for the above template
+    // ("TemplateArgsTuple_t"). Returns the number of template args that
+    // "T" is specialized on (just the size of the "std::tuple"
+    // "returned by "TemplateArgsTuple_t" above - see this for details).
+    ////////////////////////////////////////////////////////////////////
+    template <IS_SPECIALIZATION_C T>
+    inline constexpr std::size_t TemplateArgsCount_v = std::tuple_size_v< TemplateArgsTuple_t<T> >;
+
+    template <std::size_t I,
+              IS_SPECIALIZATION_C T
+             >
+    inline constexpr bool IndexLessThanTemplateArgsCount_v = I < TemplateArgsCount_v<T>;
+
+    #if defined(USE_CONCEPTS)
+        #define REQUIRES_I_LESS_THAN_TEMPLATE_ARGS_COUNT(I, T) requires StdExt::IndexLessThanTemplateArgsCount_v<I, T>
+    #else
+        #define REQUIRES_I_LESS_THAN_TEMPLATE_ARGS_COUNT(I, T)
+    #endif
+
+    /////////////////////////////////////////////////////////////////////
+    // For the given template arg "T", which must be a specialization of
+    // a class template taking type-based template args only (a
+    // constraints violation will occur in C++20 or later otherwise, or
+    // a "static_assert" in C++17), returns the type of the zero-based
+    // Ith template arg used to specialize "T" (for the given template
+    // arg "I" passed to the following template).
+    //
+    // TODO: In C++17 only, if "T" isn't a type suitable for passing to
+    // this template (i.e., it's not a type specialized on a class
+    // template taking type args only), then a "static_assert" will
+    // correctly trigger (the call to "TemplateArgsTuple_t" in the
+    // following call will ultimately do so). However, if template arg
+    // "I" below is out of bounds in the template that "T" is
+    // specialized on (i.e., it's greater than or equal to the number of
+    // args in that template though the library itself never does this
+    // by design at this writing), then all compilers we support will
+    // currently "static_assert" on this situation (an implementation
+    // detail of those compilers but they all currently do). Ideally we
+    // should trap it ourselves instead however but it's low priority
+    // for now (again, the library itself never does this by design at
+    // this writing but users of the library might, though the following
+    // template is just a support template only and therefore not
+    // officially documented in the "FunctionTraits" docs - the chance
+    // of a user coming across it by inspecting this header and then
+    // using it with an illegal value of "I" would therefore be highly
+    // unlikely but normally harmless anyway since it's an illegal
+    // situation and all compilers we support will trap it for us). Note
+    // that in C++20 or later however it's not an issue since the call
+    // to REQUIRES_I_LESS_THAN_TEMPLATE_ARGS_COUNT just below traps it
+    // (but in theory we should really add the code to trap it in C++17
+    // as well though fewer and fewer users are currently using C++17 at
+    // this point so it will almost certainly never become an issue - at
+    // some point in the distant future all support for C++17 will
+    // likely be dropped anyway).
+    /////////////////////////////////////////////////////////////////////
+    template <std::size_t I,
+              IS_SPECIALIZATION_C T>
+    REQUIRES_I_LESS_THAN_TEMPLATE_ARGS_COUNT(I, T)
+    using IthTemplateArg_t = std::tuple_element_t<I, TemplateArgsTuple_t<T> >;
+
+    template <IS_SPECIALIZATION_C T>
+    REQUIRES_I_LESS_THAN_TEMPLATE_ARGS_COUNT(0, T)
+    using FirstTemplateArg_t = IthTemplateArg_t<0, T>;
+
+    namespace Private
+    {
+        ////////////////////////////////////////////////////////////////
+        // IsSpecializationOfImpl. Primary template. Kicks in if "T"
+        // isn't a specialization of the class template passed via the
+        // 2nd template arg. If "T" *is* a specialization of the class
+        // template passed via the 2nd template arg then our
+        // "IsSpecializationOfImpl" specialization just below kicks in
+        // instead (see comments for that below).
+        ////////////////////////////////////////////////////////////////
+        template <typename T,
+                  template<typename...> class
+                 >
+        struct IsSpecializationOfImpl : std::false_type
+        {
+        };
+
+        ////////////////////////////////////////////////////////////////
+        // IsSpecializationOfImpl. Specialization that kicks in if "T"
+        // in the primary template above (its 1st template arg) is a
+        // specialization of the class template passed via its 2nd
+        // template arg above. If "T" *isn't* a specialization of that
+        // class template then the primary template above kicks in
+        // instead (see comments for that above).
+        ////////////////////////////////////////////////////////////////
+        template < template<typename...> class Template,
+                   typename... ArgsT
+                 >
+        struct IsSpecializationOfImpl<Template<ArgsT...>,
+                                      Template
+                                     >
+                                     : std::true_type
+        {
+        };
+    } // namespace Private
+
+    ////////////////////////////////////////////////////////////////
+    // IsSpecializationOf. Derives from "std::true_type" if
+    // template arg "T" (a type) is an (optionally cv-qualified)
+    // specialization of the 2nd template arg (a template), or
+    // "std::false_type" otherwise (note that derivatives of such
+    // specializations won't kick in so "IsSpecializationOf" will
+    // always inherit from "std::false_type" if "T" is a derivative
+    // of the 2nd template arg - see "IsTemplateBaseOf_v" if you
+    // need to handle such derivatives). IOW, the struct inherits
+    // from "std::false_type" if its 1st template arg (a type)
+    // isn't a type created from the template given by its 2nd
+    // template arg (a template), meaning it's not a specialization
+    // of that template (including derivatives of such
+    // specializations). Note that the 2nd template arg can be any
+    // template taking type args only (any number of them). If it
+    // takes any non-type args however then a compilation error
+    // will always occur instead (since such templates won't match
+    // the template expected via the 2nd template arg). In the
+    // latter case, note that handling a mixture of both type and
+    // non-type template args in the template passed via 2nd
+    // template arg isn't possible in C++ at this writing (in a
+    // generic template like "IsSpecializationOf"). If you need to
+    // detect such specializations (of templates with a mixture of
+    // type and/or non-type template args) then you'll have to
+    // write a custom template similar to this one to handle it
+    // (for your particular use case).
     //
     //    Example
     //    -------
     //    template <typename T>
     //    class Whatever
     //    {
-    //       //////////////////////////////////////////////////////
-    //       // Make sure type "T" is a "std::vector" (relying on
-    //       // our "IsSpecialization_v" helper variable however
-    //       // declared just after "IsSpecialization" below)
-    //       //////////////////////////////////////////////////////
-    //       static_assert(IsSpecialization_v<T, std::vector>
-    //                     "Invalid template arg T. Must be a \"std::vector\"");
+    //       //////////////////////////////////////////////////////////
+    //       // Make sure type "T" is a "std::vector" specialization
+    //       // (relying on our "IsSpecializationOf_v" helper variable
+    //       // however declared just after "IsSpecializationOf"
+    //       // below)
+    //       //////////////////////////////////////////////////////////
+    //       static_assert(IsSpecializationOf_v<T, std::vector>,
+    //                     "Invalid template arg T. Must be a "
+    //                     "\"std::vector\" specialization.");
     //    };
     //
-    //    Whatever<std::vector<int>> whatever1; // "static_assert" above succeeds (we're passing a "std::vector")
-    //    Whatever<std::list<int>> whatever2; // "static_assert" above fails (we're not passing a "std::vector")
-    /////////////////////////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename...> class Template,
-              typename... ArgsT>
-    struct IsSpecialization<T,
-                            Template,
-                            Template<ArgsT...>
-                           > : std::true_type
-    {
-    };
-
-    //////////////////////////////////////////////////////////
-    // Helper variable template for "IsSpecialization" above
-    // (with the usual "_v" suffix). Set to true if "T" is
-    // a specialization of the given "Template" or false
-    // otherwise. See "IsSpecialization" above for details.
-    //////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename...> class Template>
-    inline constexpr bool IsSpecialization_v = IsSpecialization<T, Template>::value;
-#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-
-#if defined(USE_CONCEPTS)
-    #define REQUIRES_IS_SPECIALIZATION(T, TEMPLATE) requires StdExt::IsSpecialization_v<T, TEMPLATE>
-#else
-    #define REQUIRES_IS_SPECIALIZATION(T, TEMPLATE)
-#endif // #if defined(USE_CONCEPTS)
-
-#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    /////////////////////////////////////////////////////////////////
-    // TemplateArgsTuple - Primary template but should never kick in
-    // unless "T" isn't a specialization of "Template", which is
-    // illegal for the purposes of this template (so the
-    // REQUIRES_IS_SPECIALIZATION concept seen just below will kick
-    // in in C++20 or later, or the "static_assert" below in C++17
-    // otherwise. If "T" *is* a specialization of "Template" however
-    // and it normally will be then our specialization below kicks
-    // in instead (see comments for that below).
-    /////////////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename...> class Template,
-              typename = std::remove_cv_t<T>> // Arg for internal use only (users
-                                              // should never explicitly pass it)
-    REQUIRES_IS_SPECIALIZATION(T, Template)
-    struct TemplateArgsTuple
-    {
-        // See this constant for details
-        #if !defined(USE_CONCEPTS)
-            //////////////////////////////////////////////////
-            // Kicks in if concepts not supported, otherwise
-            // corresponding concept kicks in in the template
-            // declaration above instead (macro for this
-            // above resolves to whitespace when concepts
-            // aren't supported)
-            //////////////////////////////////////////////////
-            static_assert(AlwaysFalse_v<T>,
-                          "Template arg \"T\" (a type), is not a specialization "
-                          "of template arg \"Template\" (a template). This is "
-                          "illegal for the purposes of this template "
-                          "(TemplateArgsTuple).");
-        #endif
-    };
-
-    /////////////////////////////////////////////////////////////////
-    // TemplateArgsTuple - Specialization that kicks in if the 1st
-    // template arg, "T", is a specialization of the 2nd template
-    // arg, "Template", where "Template" is any template taking one
-    // or more type args (not non-type args - if any are present in
-    // "Template" then the primary template of "TemplateArgsTuple"
-    // will kick in instead). If "T" is a specialization of
-    // "Template" as described then this "TemplateArgsTuple"
-    // specialization kicks in and its "ArgsTuple_t" member (alias)
-    // will be set to the "std::tuple" of all template args that "T"
-    // was specialized on.
-    //
-    // For instance, given the following:
-    //
-    //   using VectorArgsTuple = TemplateArgsTuple_t< std::vector<int>, // Specialization of template just below
-    //                                                std::vector>;
-    //
-    // Yields this:
-    //
-    //    std::tuple< int, std::allocator<int> >
-    //
-    // The above "std::tuple" is simply specialized on the template
-    // args of "std::vector<int>" itself. Note that in this case,
-    // the 2nd template arg of the above "std::tuple" is a
-    // "std::allocator<int>" because it's the 2nd template arg of
-    // "std::vector<int>" (the default template arg of
-    // "std::vector"). See the "std::vector" docs for details (its
-    // 2nd template arg defaults to a "std::allocator" of its 1st
-    // template arg, where its 1st template arg is an "int" in this
-    // example so it defaults to "std::allocator<int>").
-    /////////////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename...> class Template,
-              typename... ArgsT>
-    struct TemplateArgsTuple<T,
-                             Template,
-                             Template<ArgsT...>
-                            >
-    {
-        using ArgsTuple_t = std::tuple<ArgsT...>;
-    };
-
-    /////////////////////////////////////////////////////////////////
-    // Helper alias for the above template
-    /////////////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename...> class Template>
-    REQUIRES_IS_SPECIALIZATION(T, Template)
-    using TemplateArgsTuple_t = typename TemplateArgsTuple<T, Template>::ArgsTuple_t;
-
-    template <std::size_t I,
-              typename T,
-              template<typename...> class Template>
+    //    Whatever<std::vector<int>> someVector; // "static_assert" above succeeds (we're passing a "std::vector")
+    //    Whatever<std::list<int>> someList; // "static_assert" above fails (we're not passing a "std::vector")
     ////////////////////////////////////////////////////////////////
-    // TODO - Tighten the following up in a future release to trap
-    // invalid values of "I" as well (very low priority right now).
-    // In the current release, all supported compilers will trigger
-    // a "static_assert" in the call to "std::tuple_element_t" just
-    // below instead (an implementation detail but testing shows
-    // that's what they all currently do, and probably unlikely to
-    // ever change - this is fine for our purposes for now since
-    // the library itself never passes illegal values for "I" so
-    // unless a user calls us with an illegal value of "I" then
-    // we're safe - passing an illegal value for "I" therefore
-    // isn't supported and results in a hard compiler error even in
-    // an SFINAE context but in a future release would be a good
-    // idea to trap it).
-    ////////////////////////////////////////////////////////////////
-    REQUIRES_IS_SPECIALIZATION(T, Template)
-    using IthTemplateArg_t = std::tuple_element_t<I, TemplateArgsTuple_t<T, Template> >;
+    template <typename T,
+              template<typename...> class Template
+             >
+    struct IsSpecializationOf : std::bool_constant< Private::IsSpecializationOfImpl<std::remove_cv_t<T>,
+                                                                                    Template
+                                                                                   >::value
+                                                  >
+    {
+    };
 
+    ////////////////////////////////////////////////////////////////
+    // Helper variable template for "IsSpecializationOf" just above
+    // (with the usual "_v" suffix). Set to true if "T" is a
+    // specialization of the given "Template" or false otherwise.
+    // See "IsSpecializationOf" above for details.
+    ////////////////////////////////////////////////////////////////
     template <typename T,
               template<typename...> class Template>
-    REQUIRES_IS_SPECIALIZATION(T, Template)
-    using FirstTemplateArg_t = IthTemplateArg_t<0, T, Template>;
-
-    ///////////////////////////////////////////////////////////
-    // Degenerate case of "FirstTemplateArg_t" just above
-    // where in the following template the "Template" template
-    // arg takes a single type arg only (unlike
-    // "FirstTemplateArg_t" whose "Template" template arg can
-    // take any number of template args - "FirstTemplateArg_t"
-    // and the following template are identical otherwise)).
-    // This template is therefore more suitable than calling
-    // "FirstTemplateArg_t" directly when the "Template"
-    // template arg is a template taking a single template arg
-    // only. While "FirstTemplateArg_t" can also be called
-    // instead of the following template and will yield the
-    // same result (which is why the following template just
-    // defers to "FirstTemplateArg_t"), the following template
-    // makes it explicitly clear that the "Template" template
-    // arg you pass must be a template taking a single
-    // template arg only. It's therefore cleaner to call the
-    // following instead of "FirstTemplateArg_t" in this case.
-    ///////////////////////////////////////////////////////////
-    template <typename T,
-              template<typename> class Template>
-    REQUIRES_IS_SPECIALIZATION(T, Template)
-    using TemplateArg_t = FirstTemplateArg_t<T, Template>;
+    inline constexpr bool IsSpecializationOf_v = IsSpecializationOf<T, Template>::value;
 
     //////////////////////////////////////////////////////////////////
     // For internal use only (implementation of "IsTemplateBaseOf_v"
@@ -2666,101 +2847,183 @@ namespace StdExt
             static constexpr std::false_type Test(...);
 
             template <typename DerivedU,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct Process : std::false_type
             {
             };
 
-            /////////////////////////////////////////////////////////////////////
-            // Note: This specialization can't rely on the "FunctionTraitsBase"
-            // template args directly in the following template header (which
-            // would be the more straightforward way of implementing it) since
-            // C++ can't deduce the types this way (using any mainstream
-            // technique I've tried). It results in errors similar to the
-            // following (a MSFT error but all other supported compilers result
-            // in their own similar warnings):
-            //
-            //   error C2764: 'F': template parameter not used or deducible in
-            //   partial specialization
-            //   'StdExt::Private::IsFunctionTraitsBase<T>::Process<U,void>'
-            //
-            // The same error is repeated for every template arg of
-            // "FunctionTraitsBase" (none of them can be deduced when referring
-            // to them in any "std::void_t" or "std::enable_if_t call below).
-            // The following technique works instead (though not as clean as the
-            // above technique would be if it were supported).
-            /////////////////////////////////////////////////////////////////////
             template <typename DerivedU>
             struct Process <DerivedU,
                             ////////////////////////////////////////////////////////////////////
-                            // Invokes "Test" above, passing it a "U *" so the "Test" overload
-                            // returning "std::true_type" will kick in if "U" itself is a
-                            // "BaseTemplate" specialization or derivative of one. The
-                            // following "Process" specialization will therefore kick in which
-                            // inherits from "std::true_type" to indicate this (that "U" is a
-                            // "BaseTemplate" specialization or derivative). OTOH, the variadic
-                            // overload of "Test" above will kick in instead if "U" isn't a
+                            // Invokes "Test" above, passing it an instance of "DerivedU *" so
+                            // the "Test" overload returning "std::true_type" will kick in if
+                            // "DerivedU" itself is a "BaseTemplate" specialization or
+                            // derivative of one. The following "Process" specialization will
+                            // therefore kick in which inherits from "std::true_type" to
+                            // indicate this (that "DerivedU" is a "BaseTemplate"
+                            // specialization or derivative). OTOH, the variadic overload of
+                            // "Test" above will kick in instead if "DerivedU" isn't a
                             // "BaseTemplate" specialization or derivative, and that overload
                             // returns "std::false_type" so SFINAE will therefore fail in the
                             // following call. The primary template of "Process" will therefore
                             // kick in which inherits from "std::false_type" indicating that
-                            // "U" isn't a "BaseTemplate" specialization or derivative. This is
-                            // the usual reason SFINAE fails, because the variadic version of
-                            // "Test" above is invoked (meaning "U" isn't a "BaseTemplate"
-                            // specialization or derivative), but SFINAE can fail for other
-                            // possible reasons as well (though rare in practice). If "U" is a
-                            // "BaseTemplate" derivative for instance but was derived from
-                            // "BaseTemplate" using the "private" or "protected" keyword, then
-                            // the following will also fail SFINAE simply because the
-                            // "BaseTemplate" base class is inaccessible (so it can't invoke
-                            // the version of "Test" returning "std::true_type" above because
-                            // of the "inaccessibility" issue which will therefore cause SFINAE
-                            // to fail here). Unfortunately this means that the primary
-                            // template will kick in indicating that "U" isn't a "BaseTemplate"
-                            // derivative even though it is (the "BaseTemplate" base class of
-                            // "U" simply isn't accessible). In reality this scenario is
-                            // extraordinarily unlikely to ever occur however so we won't worry
-                            // about it for now (the library itself never creates this
-                            // situation so an end-user would have to explicitly create it -
-                            // very unlikely). Unfortunately it's difficult to circumvent
-                            // however so we'll live with the limitation for now. Trying to
-                            // re-factor this code to rely on a more mainstream and (always)
-                            // reliable technique based on passing "U" to "std::is_base_of"
-                            // proved to be difficult because of C++ issues deducing the
-                            // template args of "BaseTemplate" - longer story but I couldn't
-                            // find a way to do it (to my surprise). The call to "Test" below
-                            // is the best technique I could find and while it will be reliable
-                            // under almost all real-world situation, it remains imperfect for
-                            // the reason just described. In any case, SFINAE can also fail in
-                            // the following call for other (rare) reasons as well. "U" may not
+                            // "DerivedU" isn't a "BaseTemplate" specialization or derivative.
+                            // This is the usual reason SFINAE fails, because the variadic
+                            // version of "Test" above is invoked (meaning "DerivedU" isn't a
+                            // "BaseTemplate" specialization or derivative), but SFINAE can
+                            // fail for other possible reasons as well (though rare in
+                            // practice). If "DerivedU" is a "BaseTemplate" derivative for
+                            // instance but was derived from "BaseTemplate" using the "private"
+                            // or "protected" keyword, then the following will also fail SFINAE
+                            // simply because the "BaseTemplate" base class is inaccessible (so
+                            // it can't invoke the version of "Test" returning "std::true_type"
+                            // above because of the "inaccessibility" issue which will
+                            // therefore cause SFINAE to fail here). Unfortunately this means
+                            // that the primary template will kick in indicating that
+                            // "DerivedU" isn't a "BaseTemplate" derivative even though it is
+                            // (the "BaseTemplate" base class of "DerivedU" simply isn't
+                            // accessible). In reality this scenario is extraordinarily
+                            // unlikely to ever occur however so we won't worry about it for
+                            // now (the library itself never creates this situation so an
+                            // end-user would have to explicitly create it - very unlikely).
+                            // Unfortunately it's difficult to circumvent however so we'll live
+                            // with the limitation for now. Trying to re-factor this code to
+                            // rely on a more mainstream and (always) reliable technique based
+                            // on passing "DerivedU" to "std::is_base_of" proved to be
+                            // difficult because of C++ issues deducing the template args of
+                            // "BaseTemplate" - longer story but I couldn't find a way to do it
+                            // (to my surprise). The call to "Test" below is the best technique
+                            // I could find and while it will be reliable under almost all
+                            // real-world situation, it remains imperfect for the reason just
+                            // described. In any case, SFINAE can also fail in the following
+                            // call for other (rare) reasons as well. "DerivedU" may not
                             // support pointers for instance, i.e., "U *" might be illegal, in
-                            // particular if "U" is an abominable function, i.e., a native C++
-                            // function type with the "const" and/or "volatile" and/or & or &&
-                            // qualifiers. Pointers to such functions are illegal in C++ so the
-                            // following will fail SFINAE for that reason (since "U *" itself
-                            // is illegal when "U" is an abominable function - our attempt to
-                            // create "U *" below will therefore fail). That's fine for our
-                            // purposes however since "U" isn't a "BaseTemplate" specialization
-                            // or derivative in this case anyway. It's an abominable function
-                            // type or possibly some other type that doesn't support pointers
-                            // though such types are very rare in C++. Our primary template
-                            // therefore correctly kicks in in such cases which correctly
-                            // inherits from "std::false_type" since such types are never
-                            // "BaseTemplate" specializations or derivatives anyway (i.e., if
-                            // "U" is a "BaseTemplate" specialization or derivative then since
-                            // "U" is just a struct then "U *" itself is always legal).
+                            // particular if "DerivedU" is an abominable function, i.e., a
+                            // native C++ function type with the "const" and/or "volatile"
+                            // and/or & or && qualifiers. Pointers to such functions are
+                            // illegal in C++ so the following will fail SFINAE for that reason
+                            // (since "U *" itself is illegal when "DerivedU" is an abominable
+                            // function - our attempt to create "U *" below will therefore
+                            // fail). That's fine for our purposes however since "DerivedU"
+                            // isn't a "BaseTemplate" specialization or derivative in this case
+                            // anyway. It's an abominable function type or possibly some other
+                            // type that doesn't support pointers though such types are very
+                            // rare in C++. Our primary template therefore correctly kicks in
+                            // in such cases which correctly inherits from "std::false_type"
+                            // since such types are never "BaseTemplate" specializations or
+                            // derivatives anyway (i.e., if "DerivedU" is a "BaseTemplate"
+                            // specialization or derivative then since "DerivedU" is just a
+                            // struct then "DerivedU *" itself is always legal).
                             ////////////////////////////////////////////////////////////////////
-                            std::enable_if_t< decltype(Test(std::declval<DerivedU *>()))::value >
-                            >
-                            : std::true_type
+                            std::enable_if_t< decltype(Test(std::declval<const DerivedU *>()))::value >
+                           >
+                           : std::true_type
             {
             };
 
         public:
             static constexpr bool Value = Process<std::remove_cv_t<DerivedT>>::value;
         };
-    }
+    } // namespace Private
 
+    ///////////////////////////////////////////////////////////////////////
+    // IsTemplateBaseOf_v. Analogous to "std::is_base_of (see
+    // https://en.cppreference.com/w/cpp/types/is_base_of.html) but
+    // instead of passing a base class *type* for the 1st template arg,
+    // you'll pass a base class *template* instead (and specifically one
+    // that takes type args only - if it takes any non-type args then
+    // compilation will fail with an error that the template you're
+    // passing isn't a valid template template arg suitable for passing to
+    // "IsTemplateBaseOf_v"). "IsTemplateBaseOf_v" then mimics the
+    // behavior of "std::is_base_of" except instead of passing a type for
+    // the 1st template arg, you'll pass a template instead, so true is
+    // returned if the 2nd arg derives from that template (or more
+    // accurately any type specialized on that template), or false
+    // otherwise.
+    //
+    //    EXAMPLE 1
+    //    ---------
+    //
+    //    // All template args here are type-based args
+    //    template <typename T, typename U>
+    //    class B1
+    //    {
+    //    };
+    //
+    //    class D1 : public B1<int, float>
+    //    {
+    //    };
+    //
+    //    ////////////////////////////////////////////////////
+    //    // "true" because "B1" is a base class of "D1" and
+    //    // the template args of "B1" are all type-based
+    //    // args ("B1" takes no non-type based template
+    //    // args or false would be returned otherwise - see
+    //    // example 2 below):
+    //    ////////////////////////////////////////////////////
+    //    constexpr bool IsB1ABaseOfD1_v = IsTemplateBaseOf_v<B1
+    //                                                        D1>;
+    //
+    //    EXAMPLE 2
+    //    ---------
+    //
+    //    // Not all template args here are type-based args
+    //    template <typename T, std::size_t Size>
+    //    class B2
+    //    {
+    //    };
+    //
+    //    class D2 : public B2<int, 10>
+    //    {
+    //    };
+    //
+    //    /////////////////////////////////////////////////////
+    //    // "false" even though "B2" is a base class of "D2"
+    //    // but the "B2" template args aren't all type-based
+    //    // args (its 2nd template arg is a "std::size_t",
+    //    // i.e., a non-type template arg). "true" results
+    //    // only if they *are* all type-based args.
+    //    /////////////////////////////////////////////////////
+    //    constexpr bool IsB2ABaseOfD2_v = IsTemplateBaseOf_v<B2
+    //                                                        D2>;
+    //
+    //    EXAMPLE 3
+    //    ---------
+    //
+    //    // All template args here are type-based args
+    //    template <typename T, typename U>
+    //    class B3
+    //    {
+    //    };
+    //
+    //    class D3
+    //    {
+    //    };
+    //
+    //    /////////////////////////////////////////////////
+    //    // "false" since "B3" isn't a base class of "D3"
+    //    // whatsoever
+    //    /////////////////////////////////////////////////
+    //    constexpr bool IsB3ABaseOfD3_v = IsTemplateBaseOf_v<B3
+    //                                                        D3>;
+    //
+    //    EXAMPLE 4
+    //    ---------
+    //
+    //    // All template args here are type-based args
+    //    template <typename T, typename U>
+    //    class B3
+    //    {
+    //    };
+    //
+    //    /////////////////////////////////////////////
+    //    // "false" since "B4" isn't a base class of
+    //    // an "int" whatsoever (an "int" isn't even
+    //    // a class)
+    //    /////////////////////////////////////////////
+    //    constexpr bool IsB4ABaseOfAnInt_v = IsTemplateBaseOf_v<B4,
+    //                                                           int>;
+    ///////////////////////////////////////////////////////////////////////
     template <template<typename...> class BaseTemplateT,
               typename DerivedT>
     inline constexpr bool IsTemplateBaseOf_v = Private::IsTemplateBaseOfImpl<BaseTemplateT, DerivedT>::Value;
@@ -2796,22 +3059,24 @@ namespace StdExt
     ////////////////////////////////////////////////////////////
     inline constexpr std::size_t size_t_npos = static_cast<std::size_t>(-1);
 
-    template <std::size_t Val1, std::size_t Val2>
+    template <std::size_t Val1,
+              std::size_t Val2>
     inline constexpr bool LessThanOrEqual_v = (Val1 <= Val2);
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-            template <std::size_t Val1, std::size_t Val2>
+            template <std::size_t Val1,
+                      std::size_t Val2>
             concept LessThanOrEqual_c = LessThanOrEqual_v<Val1, Val2>;
         #endif
 
-        #define REQUIRES_LESS_THAN_OR_EQUAL_C(VAL1, VAL2) requires StdExt::LessThanOrEqual_c<VAL1, VAL2>
+        #define REQUIRES_LESS_THAN_OR_EQUAL_C(VAL1, VAL2) requires StdExt::LessThanOrEqual_c<(VAL1), (VAL2)>
         #define STATIC_ASSERT_LESS_THAN_OR_EQUAL(VAL1, VAL2)
         #define STATIC_ASSERT_LESS_THAN_OR_EQUAL_F(VAL1, VAL2)
     #else
         #define REQUIRES_LESS_THAN_OR_EQUAL_C(VAL1, VAL2)
-        #define STATIC_ASSERT_LESS_THAN_OR_EQUAL(VAL1, VAL2) static_assert(StdExt::LessThanOrEqual_v<VAL1, VAL2>, \
+        #define STATIC_ASSERT_LESS_THAN_OR_EQUAL(VAL1, VAL2) static_assert(StdExt::LessThanOrEqual_v<(VAL1), (VAL2)>, \
                                                                            QUOTE_STRINGIFY(VAL1) " must be less than " \
                                                                            "or equal to " QUOTE_STRINGIFY(VAL2));
 
@@ -2823,26 +3088,26 @@ namespace StdExt
                 STATIC_ASSERT_LESS_THAN_OR_EQUAL(Val1, Val2)
             }
         #endif
-        #define STATIC_ASSERT_LESS_THAN_OR_EQUAL_F(VAL1, VAL2) StdExt::StaticAssertLessThanOrEqual<VAL1, VAL2>()
+        #define STATIC_ASSERT_LESS_THAN_OR_EQUAL_F(VAL1, VAL2) StdExt::StaticAssertLessThanOrEqual<(VAL1), (VAL2)>()
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    template<std::size_t Begin, // Inclusive
-             std::size_t End> // Not inclusive (so 1 beyond the actual end in the usual C++ way)
+    template <std::size_t Begin, // Inclusive
+              std::size_t End> // Not inclusive (so 1 beyond the actual end in the usual C++ way)
     REQUIRES_LESS_THAN_OR_EQUAL_C(Begin, End)
     inline constexpr std::size_t CountRemaining_v = STATIC_ASSERT_V(STATIC_ASSERT_LESS_THAN_OR_EQUAL_F(Begin, End),
                                                                     (End - Begin));
 
-    template<std::size_t Begin, // Inclusive
-             std::size_t End, // Not inclusive (so 1 beyond the actual end in the usual C++ way)
-             std::size_t Count>
+    template <std::size_t Begin, // Inclusive
+              std::size_t End, // Not inclusive (so 1 beyond the actual end in the usual C++ way)
+              std::size_t Count>
     REQUIRES_LESS_THAN_OR_EQUAL_C(Begin, End)
     inline constexpr bool CountExceedsRemaining_v = STATIC_ASSERT_V(STATIC_ASSERT_LESS_THAN_OR_EQUAL_F(Begin, End),
                                                                     (Count > CountRemaining_v<Begin, End>));
 
-    template<std::size_t Begin, // Inclusive
-             std::size_t End, // Not inclusive (so 1 beyond the actual end in the usual C++ way)
-             std::size_t Count = size_t_npos>
+    template <std::size_t Begin, // Inclusive
+              std::size_t End, // Not inclusive (so 1 beyond the actual end in the usual C++ way)
+              std::size_t Count = size_t_npos>
     REQUIRES_LESS_THAN_OR_EQUAL_C(Begin, End)
     inline constexpr std::size_t MinOfCountOrRemaining_v = STATIC_ASSERT_V(STATIC_ASSERT_LESS_THAN_OR_EQUAL_F(Begin, End),
                                                                            (std::min(Count, CountRemaining_v<Begin, End>)));
@@ -2853,8 +3118,14 @@ namespace StdExt
     ////////////////////////////////////////////////////////////////////////
     namespace Private
     {
-        template <std::size_t Begin, std::size_t Size>
+        template <std::size_t Begin,
+                  std::size_t Size>
         #if defined(USE_CONCEPTS)
+            ///////////////////////////////////////////////////////
+            // Ensure (Begin + Size) < size_t_npos or resulting
+            // sequence will be too big. It must fall between 0
+            // and (size_t_npos - 1) which the following enforces:
+            ///////////////////////////////////////////////////////
             requires (!CountExceedsRemaining_v<Begin, size_t_npos, Size>)
         #endif
         class MakeIndexSequenceStartAtImpl
@@ -2862,17 +3133,62 @@ namespace StdExt
             #if !defined(USE_CONCEPTS)
                 ///////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead
+                // corresponding "requires" clause kicks in in the
+                // template declaration above instead
                 ///////////////////////////////////////////////////
-                static_assert(!CountExceedsRemaining_v<Begin, size_t_npos, Size>);
+                static_assert(!CountExceedsRemaining_v<Begin, size_t_npos, Size>,
+                              "\"Size\" arg exceeds the maximum allowed for the "
+                              "given \"Begin\" arg. The resulting sequence must "
+                              "fall in the range 0 to (size_t_npos - 1) but the "
+                              "args you've passed will cause it to be exceeded.");
+
             #endif
 
-            template <std::size_t... Indices>
-            static constexpr auto Process(std::index_sequence<Indices...>) -> std::index_sequence<(Begin + Indices)...>;
+            ///////////////////////////////////////////////////////
+            // E.g., if "Size" is 3 then "Process()" is passed an
+            // instance of this:
+            //
+            //    std::index_sequence<0, 1, 2>
+            //
+            // And if "Begin" is, say, 5 then "Process()" returns
+            // this:
+            //
+            //    std::index_sequence<5, 6, 7>
+            //
+            // However if "Size" is 0 then "Process()" is passed
+            // an empty sequence instead:
+            //
+            //    std::index_sequence<>
+            //
+            // And "Process()" therefore returns an empty sequence
+            // as well (same as just above):
+            //
+            //    std::index_sequence<>
+            ///////////////////////////////////////////////////////
+            template <std::size_t... Offsets>
+            static constexpr auto Process(std::index_sequence<Offsets...>) -> std::index_sequence<(Begin + Offsets)...>;
 
         public:
-            using Type = decltype(Process(std::make_index_sequence<Size>()));
+            /////////////////////////////////////////////////////////
+            // E.g., if "Size" is 3 then "std::make_index_sequence"
+            // returns the following type which we instantiate and
+            // pass to "Process()":
+            //
+            //    std::index_sequence<0, 1, 2>
+            //
+            // If "Size" is 0 however then "make_index_sequence"
+            // returns an empty sequence instead:
+            //
+            //    std::index_sequence<>
+            //
+            // See "Process()" above for further details (we simply
+            // return the type of its return type, a
+            // "std::index_sequence" where each index is the same
+            // as those just above except that "Begin" has been
+            // added to each one - always an empty sequence however
+            // if "Size" is 0)
+            /////////////////////////////////////////////////////////
+            using Type = decltype(Process(std::make_index_sequence<Size>{}));
         };
     }
 
@@ -2885,110 +3201,150 @@ namespace StdExt
     //
     //    //////////////////////////////////////////////////////////
     //    // Yields the following (a "std::index_sequence" starting
-    //    // at 3 for a length of 5):
+    //    // at 5 for a length of 3):
     //    //
-    //    //    std::integer_sequence<std::size_t, 3, 4, 5, 6, 7>
+    //    //    std::index_sequence<5, 6, 7>
     //    //////////////////////////////////////////////////////////
-    //    using IndexSequenceStartAt3Size5 = MakeIndexSequenceStartAt<3, 5>;
+    //    using IndexSequenceStartAt5Size3 = MakeIndexSequenceStartAt<5, 3>;
     //
     //    ////////////////////////////////////////////////////////
     //    // Yields an empty sequence because "Size" is zero (0):
     //    //
-    //    //    std::integer_sequence<std::size_t>
+    //    //    std::index_sequence<>
     //    ////////////////////////////////////////////////////////
-    //    using EmptyIndexSequence = MakeIndexSequenceStartAt<3, 0>;
+    //    using EmptyIndexSequence = MakeIndexSequenceStartAt<5, 0>;
     //////////////////////////////////////////////////////////////////////
     template <std::size_t Begin,
               std::size_t Size>
+    #if defined(USE_CONCEPTS)
+        requires (!CountExceedsRemaining_v<Begin, size_t_npos, Size>)
+    #endif
     using MakeIndexSequenceStartAt = typename Private::MakeIndexSequenceStartAtImpl<Begin, Size>::Type;
 
-    ////////////////////////////////////////////////////////////////////////////
-    // "IsForEachFunctor" (primary template). Determines if template arg "T" is
-    // a functor type whose "operator()" member has the following signature and
-    // is also callable in the context of whether "T" is "const" and/or
+    ////////////////////////////////////////////////////////////////
+    // "IsForEachFunctor" (primary template). Determines if
+    // template arg "T" is a functor type whose "operator()" member
+    // has the following signature (though "std::size_t" isn't
+    // strictly enforceable - more on this later), and is also
+    // callable in the context of whether "T" is "const" and/or
     // "volatile" and or an lvalue or rvalue (read on):
     //
     //     template <std::size_t I>
     //     bool operator()() [const] [volatile] [&|&&];
     //
-    // If "T" contains this function AND it can also be called on an instance
-    // of "T" (again, read on), then "T" qualifies as a functor that can be
-    // passed to function template "ForEach()" declared later on. Note that the
-    // specialization just below does the actual work of checking for this. It
-    // simply invokes the above function template in an unevaluated context
-    // using "std::declval()" as follows:
+    // If "T" contains this function AND it can also be called on
+    // an instance of "T" (again, read on), then "T" qualifies as a
+    // functor that can be passed to function template "ForEach()"
+    // declared later on. Note that the specialization just below
+    // does the actual work of checking for this. It simply invokes
+    // the above function template in an unevaluated context using
+    // "std::declval()" as follows:
     //
     //     T::operator<0>()
     //
-    // If the call succeeds then "operator()" must not only exist as a member
-    // of "T" with a "bool" return type (we check for this as well), but it's
-    // also callable in the context of whether "T" is "const" and/or "volatile"
-    // and or an lvalue or rvalue. Note that to qualify as an lvalue for
-    // purposes of "IsForEachFunctor", "T" must be an lvalue reference such as
-    // "int &". To qualify as an rvalue, "T" must either be a non-reference
-    // type such as a plain "int" OR an rvalue reference such as "int &&". The
-    // behavior of what qualifies as an lvalue and rvalue for purposes of
-    // using "IsForEachFunctor" therefore follows the usual perfect forwarding
-    // rules for function template arguments (where an lvalue reference for "T"
-    // means the function's "T &&" argument collapses to an lvalue reference,
-    // and a non-reference type or rvalue reference type for "T" means the
-    // function's "T &&" argument is an rvalue reference - read up on perfect
-    // forwarding for details if you're not already familiar this).
+    // If the call succeeds then "operator()" must not only exist
+    // as a member of "T" with a "bool" return type (we check for
+    // this as well), but it's also callable in the context of
+    // whether "T" is "const" and/or "volatile" and or an lvalue or
+    // rvalue. Note that to qualify as an lvalue for purposes of
+    // "IsForEachFunctor", "T" must be an lvalue reference such as
+    // "int &". To qualify as an rvalue, "T" must either be a
+    // non-reference type such as a plain "int" OR an rvalue
+    // reference such as "int &&". The behavior of what qualifies
+    // as an lvalue and rvalue for purposes of using
+    // "IsForEachFunctor" therefore follows the usual perfect
+    // forwarding rules for function template arguments (where an
+    // lvalue reference for "T" means the function's "T &&"
+    // argument collapses to an lvalue reference, and a
+    // non-reference type or rvalue reference type for "T" means
+    // the function's "T &&" argument is an rvalue reference - read
+    // up on perfect forwarding for details if you're not already
+    // familiar this).
     //
-    // As an example, if "T" contains the above "operator()" template but it's
-    // not declared with the "const" qualifier but "T" itself is (declared
-    // "const"), then calling the function as shown above fails since you can't
-    // call a non-const member function using a constant object. The primary
-    // template therefore kicks in, inheriting from "std::false_type".
-    // Similarly, if "operator()" is declared with the "&&" reference qualifier
-    // (rare as this is in practice), but "T" is an lvalue reference, then
-    // again, the above call fails since you can't invoke a member function
-    // declared with the "&&" (rvalue) reference qualifier using an lvalue
-    // reference. Again, the primary template will therefore kick in (once
-    // again inheriting from "std::false_type"). The upshot is that not only
-    // must "operator()" exist as a member of "T", it must also be callable in
-    // the context of "T" itself (whether "T" is "const" and/or "volatile"
-    // and/or an lvalue reference, rvalue reference or non-reference - in all
-    // cases "operator()" must be properly declared to support calls based on
-    // the cv-qualifiers and/or lvalue/rvalue state of "T" itself as described
-    // above). If it is then the specialization kicks in and "IsForEachFunctor"
-    // therefore inherits from "std::true_type" (meaning "T" is a suitable
-    // functor type for passing as the 2nd template arg of function template
-    // "ForEach()").
-    ////////////////////////////////////////////////////////////////////////////
+    // As an example, if "T" contains the above "operator()"
+    // template but it's not declared with the "const" qualifier
+    // but "T" itself is (declared "const"), then calling the
+    // function as shown above fails since you can't call a
+    // non-const member function using a constant object. The
+    // primary template therefore kicks in, inheriting from
+    // "std::false_type". Similarly, if "operator()" is declared
+    // with the "&&" reference qualifier (rare as this is in
+    // practice), but "T" is an lvalue reference, then again, the
+    // above call fails since you can't invoke a member function
+    // declared with the "&&" (rvalue) reference qualifier using an
+    // lvalue reference. Again, the primary template will therefore
+    // kick in (once again inheriting from "std::false_type"). The
+    // upshot is that not only must "operator()" exist as a member
+    // of "T", it must also be callable in the context of "T"
+    // itself (whether "T" is "const" and/or "volatile" and/or an
+    // lvalue reference, rvalue reference or non-reference - in all
+    // cases "operator()" must be properly declared to support
+    // calls based on the cv-qualifiers and/or lvalue/rvalue state
+    // of "T" itself as described above). If it is then the
+    // specialization kicks in and "IsForEachFunctor" therefore
+    // inherits from "std::true_type" (meaning "T" is a suitable
+    // functor type for passing as the 2nd template arg of function
+    // template "ForEach()").
+    //
+    // Lastly, note that while the signature above requires that
+    // the template arg be of "std::size_t", until reflection is
+    // available in C++26, there is no current way to strictly
+    // enforce this for now. The type need not be "std::size_" that
+    // is, but any integral type such as "int" (so the following
+    // template will therefore return true in this case). While the
+    // template is intended for returning true only if the
+    // "T::operator()" member above takes a "std::size_t" template
+    // arg, the language currently provides no way to ensure that
+    // it actually is a "std::size_t" opposed to any other integral
+    // type.
+    ////////////////////////////////////////////////////////////////
     template <typename T,
-              typename = void> // Arg for internal use only (users should never explicitly pass it)
+              typename = void> // Arg for internal use only (never explicitly passed)
     struct IsForEachFunctor : std::false_type
     {
     };
 
-    /////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
     // Specialization of "IsForEachFunctor" (primary) template just
     // above. This specialization does all the work. See primary
     // template above for details. Note that calls to "declval(T)"
     // return "T &&" (unless "T" is void - see "declval()" docs) so
     // the following call to this works according to the usual
-    // perfect forwarding rules in C++. That is, if "T" is an lvalue
-    // reference then "declval()" returns an lvalue reference (due
-    // to the C++ reference collapsing rules), otherwise "T" must be
-    // an a non-reference or an rvalue reference so "declval"
-    // returns an rvalue reference (in either case). In all cases
-    // "declval()" therefore returns the same function argument type
-    // used in a perfect forwarding function. Such arguments are
-    // always of the type "T &&" which resolves to an lvalue
-    // reference only if "T" is an lvalue reference (again, due to
-    // the C++ reference collapsing rules), or an rvalue reference
-    // if "T" is a non-reference or rvalue reference. "declval()"
-    // therefore returns the exact same type as a perfectly
-    // forwarded argument after plugging in "T" which is what we
-    // require here (we're invoking "operator()" on that argument in
-    // the following call in an unevaluated context simply to make
-    // sure it can be invoked - the primary template kicks in via
-    // SFINAE otherwise).
-    /////////////////////////////////////////////////////////////////
+    // perfect forwarding rules in C++. That is, if "T" is an
+    // lvalue reference then "declval()" returns an lvalue
+    // reference (due to the C++ reference collapsing rules),
+    // otherwise "T" must be an a non-reference or an rvalue
+    // reference so "declval" returns an rvalue reference in either
+    // case. In all cases "declval()" therefore returns the same
+    // function argument type used in a perfect forwarding
+    // function. Such arguments are always of the type "T &&" which
+    // resolves to an lvalue reference only if "T" is an lvalue
+    // reference (again, due to the C++ reference collapsing
+    // rules), or an rvalue reference if "T" is a non-reference or
+    // rvalue reference. "declval()" therefore returns the exact
+    // same type as a perfectly forwarded argument after plugging
+    // in "T" which is what we require here (we're invoking
+    // "operator()" on that argument in the following call in an
+    // unevaluated context simply to make sure it can be invoked -
+    // the primary template kicks in via SFINAE otherwise).
+    //
+    // Lastly, as described in the primary template (see its
+    // comments for details), our call to "std::size_t(0)" seen
+    // just below doesn't guarantee that "T::operator()" takes a
+    // "std::size_t" arg (so the call to "std::size_t()" is just to
+    // show our intent only). It can take any integral type ("int"
+    // or whatever) since C++ currently provides no way to
+    // specifically target a non-type template arg like "size_t" in
+    // a case like this (until reflection is available in C++26).
+    // Any integral type that can be created from zero (0) in this
+    // case (such as "int") will therefore also cause this
+    // specialization to kick in (though the intent is to
+    // explicitly target "size_t" but there is no way to currently
+    // enforce it).
+    ////////////////////////////////////////////////////////////////
     template <typename T>
     struct IsForEachFunctor<T,
-                            // See explanation of "declval()" in comments above
+                            // See explanation above
                             std::enable_if_t< std::is_same_v< decltype(std::declval<T>().template operator()<std::size_t(0)>()),
                                                               bool
                                                             >
@@ -2997,17 +3353,17 @@ namespace StdExt
     {
     };
 
-    /////////////////////////////////////////////////////////
-    // Helper variable template for "IsForEachFunctor" just
-    // above (with the usual "_v" suffix).
-    /////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
+    // Helper variable template for "IsForEachFunctor" just above
+    // (with the usual "_v" suffix).
+    ////////////////////////////////////////////////////////////////
     template <typename T>
     inline constexpr bool IsForEachFunctor_v = IsForEachFunctor<T>::value;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -3026,23 +3382,43 @@ namespace StdExt
                                                                    "template <std::size_t I>\n" \
                                                                    "bool operator()() const\n" \
                                                                    "\n" \
-                                                                   "The function should return true to continue iterating or false to " \
-                                                                   "stop iterating, similar to a \"break\" statement in a regular \"for\" " \
-                                                                   "loop. Note that the function must return a \"bool\" but otherwise " \
-                                                                   "must simply be invocable on an instance of " QUOTE_STRINGIFY(T) " (so " \
-                                                                   "whether it's declared \"const\", \"noexcept\", etc. is immaterial so " \
-                                                                   "long as it can be specialized on a \"std::size_t\" and invoked on an " \
-                                                                   "instance of " QUOTE_STRINGIFY(T) " as noted");
+                                                                   "The function should return true to continue iterating or false " \
+                                                                   "to stop iterating, similar to a \"break\" statement in a regular " \
+                                                                   "for loop. Note that the function must return a \"bool\" but " \
+                                                                   "otherwise must simply be invocable on an instance of " \
+                                                                   QUOTE_STRINGIFY(T) " (so whether it's declared \"const\", " \
+                                                                   "\"noexcept\", etc. is usually immaterial so long as it can be " \
+                                                                   "specialized on a \"std::size_t\" and invoked on an instance of " \
+                                                                   QUOTE_STRINGIFY(T) " as noted - note however that in the rare " \
+                                                                   "case where your \"operator()\" member is declared with the " \
+                                                                   "\"&\" qualifier but you pass a temporary " QUOTE_STRINGIFY(T) \
+                                                                   "object, i.e., an \"rvalue\", then C++ requires your \"operator()\" " \
+                                                                   "member to also be declared \"const\" or a compiler error will " \
+                                                                   "always occur - if your \"operator()\" member is declared with " \
+                                                                   "the \"&&\" qualifier however then C++ requires that your " \
+                                                                   QUOTE_STRINGIFY(T) " object must *always* be an \"rvalue\" " \
+                                                                   "- passing an \"lvalue\" in this case will always result in a " \
+                                                                   "compiler error whether \"operator()\" is \"const\" or not).");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    /////////////////////////////////////////////////////
-    // In C++20 and later we rely on a locally defined
-    // lambda declared in function template "ForEach()"
-    // instead (that does the same thing as class
-    // "ForEachImpl" does below in C++17 or earlier).
-    /////////////////////////////////////////////////////
-    #if CPP17_OR_EARLIER
+    ////////////////////////////////////////////////////////
+    // The following (LAMBDA_TEMPLATES_SUPPORTED) is always
+    // undefined in C++17 and normally #defined in C++20 or
+    // later (unless we're targeting an early version of
+    // C++20 that doesn't support lambda templates yet in
+    // which case it will also be #undefined). If not
+    // #defined (so C++17 or early versions of C++20 as
+    // just described)), then class "ForEachImpl" is
+    // declared just below which will be used by template
+    // "ForEach()" declared just after this namespace. If
+    // the following *is* #defined however (so C++20 or
+    // later) then "ForEach()" will rely on a local lambda
+    // template instead (the equivalent of "ForEachImpl"
+    // just below but locally declared in function template
+    // "ForEach()" so it's cleaner).
+    ////////////////////////////////////////////////////////
+    #if !defined(LAMBDA_TEMPLATES_SUPPORTED)
         /////////////////////////////////////////////////////
         // For internal use only (by "ForEach()" just after
         // this namespace)
@@ -3052,18 +3428,30 @@ namespace StdExt
             /////////////////////////////////////////////////////////////
             // class ForEachImpl. Private implementation class used by
             // function template "ForEach()" declared just after this
-            // private namespace. See this for details. Note that in the
-            // following class, "ForEachFunctorT" is always the same
-            // template type passed to "ForEach()", so either "T &" for
-            // the lvalue case or just plain "T" or "T &&" for the rvalue
-            // case (for the "rvalue" case however usually just plain
-            // "T" as per the usual perfect forwarding rules when
-            // invoking such functions via implicit type deduction).
+            // private namespace. See this for details. Note that in
+            // the following class, "ForEachFunctorT" is always the
+            // same template type passed to "ForEach()", so either "T
+            // &" for the lvalue case or just plain "T" for the rvalue
+            // case (i.e., follows the usual perfect forwarding rules
+            // when invoking such functions via implicit type
+            // deduction).
             ///////////////////////////////////////////////////////////
-            template <std::size_t N, typename ForEachFunctorT>
+            template <std::size_t N,
+                      FOR_EACH_FUNCTOR_C ForEachFunctorT>
             class ForEachImpl
             {
-                STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(ForEachFunctorT)
+                // See this macro for details
+                #if !defined(USE_CONCEPTS)
+                    //////////////////////////////////////////////////
+                    // Kicks in if concepts not supported, otherwise
+                    // corresponding concept kickS in in the template
+                    // declaration above instead (macro for this
+                    // above resolve to the "typename" keyword when
+                    // concepts aren't supported and the following
+                    // "static_assert" is then used instead)
+                    //////////////////////////////////////////////////
+                    STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(ForEachFunctorT)
+                #endif
 
             public:
                 /////////////////////////////////////////////////////////
@@ -3080,8 +3468,8 @@ namespace StdExt
                     // illegal to bind an lvalue (functor) to an rvalue
                     // reference (m_Functor) so "std::forward" is required to
                     // circumvent this (for the "&&" case it returns an "&&"
-                    // reference but it's now unnamed so an rvalue and therefore
-                    // suitable for initializing "m_Functor")
+                    // reference but it's now unnamed so an rvalue and
+                    // therefore suitable for initializing "m_Functor")
                     ///////////////////////////////////////////////////////////
                     : m_Functor(std::forward<ForEachFunctorT>(functor))
                 {
@@ -3096,13 +3484,14 @@ namespace StdExt
                         // Note: Call to "std::forward()" here required to:
                         //
                         //    1) Perfect forward "m_Functor" back to "&" or "&&"
-                        //       accordingly
+                        //       accordingly (the latter case in particular)
                         //    2) In the "&&" case, invoke "operator()" in the
                         //       context of an rvalue (in particular, can't do
                         //       this on "m_Functor" directly, without invoking
                         //       "std::forward", since "m_Functor" is an lvalue
                         //       so the lvalue version of "operator()" would kick
-                        //       in in the following call instead!!)
+                        //       in in the following call instead - "std::forward"
+                        //       calls it in the correct "&&" context instead)
                         //////////////////////////////////////////////////////////
                         if (std::forward<ForEachFunctorT>(m_Functor).template operator()<I>())
                         {
@@ -3135,7 +3524,7 @@ namespace StdExt
                 ForEachFunctorT &&m_Functor;
             };
         } // namespace Private
-    #endif // #if CPP17_OR_EARLIER
+    #endif // #if !defined(LAMBDA_TEMPLATES_SUPPORTED)
 
     ///////////////////////////////////////////////////////////////////
     // ForEach(). Generic function template effectively equivalent to
@@ -3155,7 +3544,7 @@ namespace StdExt
     //
     //         /////////////////////////////////////////////////////
     //         // "true" means continue processing so this function
-    //         // will immediately be called again specialized on
+    //         // will immediately be called again, specialized on
     //         // "I + 1" until "N" is reached (EXclusive). Return
     //         // false instead to immediately stop processing
     //         // (equivalent to a "break" statement in a regular
@@ -3221,152 +3610,195 @@ namespace StdExt
     //                                     };
     //
     //     ///////////////////////////////////////////////////////////////////
-    //     // Call "ForEach()" which iterates (effectively does a "foreach")
-    //     // of the above lambda "N" times, where "N" is explicitly passed
-    //     // as the 1st template arg to "ForEach()" (the number of elements
-    //     // in our tuple, 3 in this case), and the 2nd template arg, the
-    //     // type of the functor, "ForEachFunctorT", is implicitly deduced
-    //     // from the arg itself. We're passing "displayTupleElement" so
-    //     // the 2nd template arg is implicitly deduced to the type of this
-    //     // functor, i.e., whatever class the compiler generates for the
-    //     // above lambda behind the scenes (recall that a lambda is just
-    //     // syntactic sugar for a compiler-generated functor - the functor's
-    //     // class is called its "closure type"). The upshot is that
-    //     // "operator()" in this functor (the above lambda) is effectively
-    //     // stamped out 3 times and invoked for each (for I=0, I=1 and I=2)
+    //     // Call "ForEach()" which effectively does a "std::for_each" of
+    //     // the above lambda "N" times, where "N" is explicitly passed as
+    //     // the 1st template arg to "ForEach()" (the number of elements in
+    //     // our tuple, 3 in this case), and the 2nd template arg, the type
+    //     // of the functor, "ForEachFunctorT", is implicitly deduced from
+    //     // the arg itself. We're passing "displayTupleElement" so the 2nd
+    //     // template arg is implicitly deduced to the type of this functor,
+    //     // i.e., whatever class the compiler generates for the above
+    //     // lambda behind the scenes (recall that a lambda is just
+    //     // syntactic sugar for a compiler-generated functor - the
+    //     // functor's class is called its "closure type"). The upshot is
+    //     // that "operator()" in this functor (the above lambda) is
+    //     // effectively stamped out 3 times and invoked for each (for I=0,
+    //     // I=1 and I=2)
     //     ///////////////////////////////////////////////////////////////////
     //     ForEach<std::tuple_size_v<TupleT>>(displayTupleElement);
     ///////////////////////////////////////////////////////////////////
-    template <std::size_t N, FOR_EACH_FUNCTOR_C ForEachFunctorT>
+    template <std::size_t N,
+              FOR_EACH_FUNCTOR_C ForEachFunctorT>
     inline constexpr bool ForEach(ForEachFunctorT&& functor)
     {
+        // See this macro for details
+        #if !defined(USE_CONCEPTS)
+            //////////////////////////////////////////////////
+            // Kicks in if concepts not supported, otherwise
+            // corresponding concept kicks in in the template
+            // declaration above instead (macro for this
+            // above resolve to the "typename" keyword when
+            // concepts aren't supported and the following
+            // "static_assert" is then used instead)
+            //////////////////////////////////////////////////
+            STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(ForEachFunctorT)
+        #endif
+
         // Lambda templates not supported until C++20
         #if defined(LAMBDA_TEMPLATES_SUPPORTED)
             ////////////////////////////////////////////////////////////
-            // Lambda template we'll be calling "N" times for the given
-            // template arg "N" in "ForEach()" (the function you're now
-            // reading). Each iteration invokes "functor", where
-            // processing stops after "N" calls to "functor" or
-            // "functor" returns false, whichever comes first (false only
-            // returned if "functor" wants to break like a normal "for"
-            // loop, which rarely happens in practice so we usually
-            // iterate "N" times)
+            // Lambda template we'll be calling up to "N" times for the
+            // given template arg "N" in "ForEach()" (the function
+            // you're now reading). Each iteration invokes "functor",
+            // where processing stops after "N" calls to "functor" or
+            // "functor" returns false, whichever comes first (false
+            // only returned if "functor" wants to break like a normal
+            // "for" loop, which rarely happens in practice so we
+            // usually iterate "N" times)
             //
             // IMPORTANT:
             // ---------
-            // The parameter "functor" (we'll call this the "outer"
-            // functor) is always a reference type so it's always of
-            // the form "T&" or "T&&". The following lambda captures it
-            // by (lvalue) reference as seen so it effectively creates
-            // an (lvalue) reference (member) variable that either
-            // looks like this:
+            // The type of the "functor" arg passed to "ForEach" (we'll
+            // call this the "outer" functor) is "ForEachFunctorT &&"
+            // so it resolves to "ForEachFunctorT &" if the caller
+            // passes an lvalue or "ForEachFunctorT &&" if they pass an
+            // rvalue (i.e., "ForEach" is a perfect forwarding function
+            // - Google for this if you're not already familiar). The
+            //   following lambda always captures it by *lvalue*
+            //   reference however as seen (even when an rvalue is
+            //   passed to the function - read on), so it always
+            //   creates an *lvalue* reference (member) variable that
+            //   either looks like this:
             //
-            //     T& &functor;
+            //     // If "ForEach" is passed an lvalue
+            //     ForEachFunctorT& &functor;
             //
             // or this:
             //
-            //     T&& &functor;
+            //     // If "ForEach" is passed an rvalue
+            //     ForEachFunctorT&& &functor;
             //
-            // We'll call this the "inner" functor. In either case
-            // however the usual reference collapsing rules then kick
-            // in so it always resolves to this (Google for these
-            // rules if you're not already familiar):
+            // We'll call this the "inner" functor (just the member
+            // variable the lambda uses to access the "outer" functor).
+            // In either case above however the usual C++ reference
+            // collapsing rules then kick in so it always resolves to
+            // this (Google for these rules if you're not already
+            // familiar):
             //
-            //     T& functor;
+            //     ForEachFunctorT& functor;
             //
-            // IOW, the inner "functor" is always an lvalue reference
-            // inside the lambda even when the outer "functor" is an
-            // rvalue reference. We therefore need to invoke
-            // "std::forward" on it in the lambda below so that we get
-            // back the correct "&" or "&&" reference of the outer
-            // "functor" itself, which we then invoke in the correct
-            // "&" or "&&" context below. See comments below.
+            // IOW, the "inner" functor (again, the internal member of
+            // the lambda's compiler-generated class that the lambda
+            // itself will use to access the "outer" functor - it never
+            // accesses the "outer" functor directly), is *always* an
+            // lvalue reference member even when the "outer" functor is
+            // an rvalue reference (because of the C++ reference
+            // collapsing rules). We therefore need to invoke
+            // "std::forward" on the "inner" functor in the lambda
+            // below so that we get back the correct "&" or "&&"
+            // reference of the outer "functor" itself, which we then
+            // invoke in the correct "&" or "&&" context below (which
+            // we'd have to do anyway even if the "inner" functor were
+            // stored as an "rvalue" reference - it's still a named
+            // member variable so would still be an lvalue in this case
+            // meaning "std::forward" would still be required below).
+            // See comments below for further details (yes, it's tricky
+            // keeping all this straight in your head).
             ////////////////////////////////////////////////////////////
-            const auto process = [&functor]<std::size_t I>
-                                 (const auto &process)
-                                 {
-                                     if constexpr (I < N)
+            const auto forEachImpl = [&functor]<std::size_t I>
+                                     (const auto &forEachImpl)
                                      {
-                                         //////////////////////////////////////////////////////////
-                                         // See comments above. We call "std::forward()" here to
-                                         // convert the inner "functor" back to the correct "&" or
-                                         // "&&" reference type of the outer "functor" (note that
-                                         // the inner "functor" member variable we're working with
-                                         // here is always an lvalue reference as described in the
-                                         // comments above). We then immediately invoke the
-                                         // functor in this context noting that it wouldn't work
-                                         // correctly in the "&&" case if we assigned the return
-                                         // value of "std::forward" to a variable first and then
-                                         // invoked the functor. We need to invoke the functor
-                                         // using the return value of "std::forward" directly,
-                                         // on-the-fly as seen. If we assigned it to a variable
-                                         // first instead then in the "&&" case we'd have a
-                                         // variable of type "&&" but since the variable has a
-                                         // name it would be an lvalue, since named variables are
-                                         // always lvalues (even for "&&" reference variables).
-                                         // Invoking the functor on that lvalue variable would
-                                         // therefore call the functor in the context of an
-                                         // lvalue, not an rvalue which is what we require (so,
-                                         // for instance, if the "operator()" member of "functor"
-                                         // has an "&&" reference qualifier, though this would be
-                                         // rare in practice but still always possible, a compiler
-                                         // error would occur since we'd be attempting to call
-                                         // that function using an lvalue which isn't legal -
-                                         // doing it using the rvalue returned directly by
-                                         // "std::forward()" works correctly).
-                                         //////////////////////////////////////////////////////////
-                                         if (std::forward<ForEachFunctorT>(functor).template operator()<I>())
+                                         if constexpr (I < N)
                                          {
-                                             ////////////////////////////////////////////////
-                                             // Recursive call (in spirit anyway - actually
-                                             // stamps out and runs another version of this
-                                             // function specialized on I + 1)
-                                             ////////////////////////////////////////////////
-                                             return process.template operator()<I + 1>(process);
+                                             //////////////////////////////////////////////////////////
+                                             // See comments above. We call "std::forward()" here to
+                                             // convert the "inner" functor back to the correct "&" or
+                                             // "&&" reference type of the "outer" functor (again,
+                                             // note that the "inner" functor member variable we're
+                                             // working with here is always an *lvalue* reference as
+                                             // described in the comments above). We then immediately
+                                             // invoke the functor in this "&" or "&&" context noting
+                                             // that the call to "std::forward" isn't actually
+                                             // necessary when the "outer" functor is an lvalue
+                                             // reference (but the call to "std::forward" is harmless
+                                             // in this case). In this case we could just invoke the
+                                             // "inner" functor as-is, without calling "std::forward"
+                                             // first (and get the same result). It *is* required if
+                                             // the "outer" functor is an "rvalue" reference however
+                                             // in order to cast the "inner" functor back to an
+                                             // "rvalue" reference. Note that this would be required
+                                             // even if the "inner" functor were stored as an rvalue
+                                             // reference (though it's not), since it would still be a
+                                             // named member variable and therefore an lvalue (named
+                                             // variables are always lvalues), so the call to
+                                             // "std::forward" would still be required. Failure to do
+                                             // so would incorrectly call the functor in the context
+                                             // of an lvalue even though the "inner" functor is stored
+                                             // as an rvalue (if it was in fact stored that way). As a
+                                             // result, if the "operator()" member of "functor" has an
+                                             // "&&" reference qualifier, though this would be rare in
+                                             // practice but still always possible, a compiler error
+                                             // would occur since we'd be attempting to call that
+                                             // function using an lvalue reference which isn't legal.
+                                             // Doing it using the rvalue reference returned directly
+                                             // by "std::forward()" therefore works correctly (so the
+                                             // call to "std::forward" is always necessary whether the
+                                             // "inner" functor is declared as an lvalue reference or
+                                             // rvalue reference, though in our case it's always an
+                                             // lvalue reference even when the "outer" functor is an
+                                             // rvalue reference).
+                                             //////////////////////////////////////////////////////////
+                                             if (std::forward<ForEachFunctorT>(functor).template operator()<I>())
+                                             {
+                                                 ////////////////////////////////////////////////
+                                                 // Recursive call (in spirit anyway - actually
+                                                 // stamps out and runs another version of this
+                                                 // lambda function specialized on I + 1)
+                                                 ////////////////////////////////////////////////
+                                                 return forEachImpl.template operator()<I + 1>(forEachImpl);
+                                             }
+                                             else
+                                             {
+                                                 return false;
+                                             }
                                          }
                                          else
                                          {
-                                             return false;
+                                             return true;
                                          }
-                                     }
-                                     else
-                                     {
-                                         return true;
-                                     }
-                                 };
+                                     };
 
-            return process.template operator()<0>(process);
+            return forEachImpl.template operator()<0>(forEachImpl);
         #else
-            STATIC_ASSERT_IS_FOR_EACH_FUNCTOR(ForEachFunctorT)
-
-            //////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////
             // Create an instance of "Private::ForEachImpl" and
             // invoke its "Process()" member function template,
             // passing 0 for its template arg (to start processing
             // the first iteration). The latter function then
             // recursively invokes itself, calling "functor" "N"
             // times or until "functor" returns false, whichever
-            // comes first (false only returned if "functor" wants to
-            // break like a normal "for" loop, which rarely happens
-            // in practice so we usually iterate "N" times)
+            // comes first (false only returned if "functor" wants
+            // to break like a normal "for" loop, which rarely
+            // happens in practice so we usually iterate "N" times)
             //
-            // Note: The "ForEachFunctorT" template arg we're passing
-            // here as the 2nd template arg of class of
+            // Note: The "ForEachFunctorT" template arg we're
+            // passing here as the 2nd template arg of class of
             // "Private::ForEachImpl" means that the latter's
             // constructor will take the same arg type as "functor"
-            // itself (& or && as usual). We then call "std::forward"
-            // as seen to pass "functor" to the constructor. Note
-            // that "std::forward" is mandatory here because
-            // "functor" is an lvalue even in the "&&" case (since
-            // it's named - named rvalue references are still
-            // lvalues). Attempting to pass "functor" directly would
-            // therefore cause a compiler error since you can't bind
-            // an lvalue (functor) to an rvalue reference (the arg
-            // type that the "Private::ForEachImpl" constructor is
-            // expecting in this case).
-            ///////////////////////////////////////////////////////////
-            return Private::ForEachImpl<N, ForEachFunctorT>(std::forward<ForEachFunctorT>(functor)).template Process<0>();
-        #endif
+            // itself (& or && as usual). We then call
+            // "std::forward" as seen to pass "functor" to the
+            // constructor. Note that "std::forward" is mandatory
+            // here because "functor" is an lvalue even in the "&&"
+            // case (since it's named - named rvalue references are
+            // still lvalues), so attempting to pass "functor"
+            // directly would cause a compiler error since you can't
+            // bind an lvalue (functor) to an rvalue reference (the
+            // arg type that the "Private::ForEachImpl" constructor
+            // is expecting in this case).
+            ////////////////////////////////////////////////////////
+            const Private::ForEachImpl<N, ForEachFunctorT> forEachImpl(std::forward<ForEachFunctorT>(functor));
+            return forEachImpl.template Process<0>();
+        #endif // #if defined(LAMBDA_TEMPLATES_SUPPORTED)
     }
 
     ////////////////////////////////////////////////////////
@@ -3385,12 +3817,12 @@ namespace StdExt
     // library never does).
     /////////////////////////////////////////////////////////
     template <typename T>
-    inline constexpr bool IsTupleSpecialization_v = IsSpecialization_v<T, std::tuple>;
+    inline constexpr bool IsTupleSpecialization_v = IsSpecializationOf_v<T, std::tuple>;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -3432,15 +3864,63 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+    // For internal use only (we #undef it further below)
+    #define INDEX_LESS_THAN_TUPLE_SIZE I < std::tuple_size_v<TupleT>
+
+    #if defined(USE_CONCEPTS)
+        // For internal use only (we #undef it further below)
+        #define INDEX_LESS_THAN_TUPLE_SIZE_IMPL INDEX_LESS_THAN_TUPLE_SIZE
+    #else
+        ///////////////////////////////////////////////////////////////////////
+        // For internal use only (implementation of "IndexLessThanTupleSize_v"
+        // declared just after this namespace - see this for details)
+        ///////////////////////////////////////////////////////////////////////
+        namespace Private
+        {
+            // Primary template
+            template <typename TupleT,
+                      std::size_t I,
+                      typename = void> // Arg for internal use only (never explicitly passed)
+            struct IndexLessThanTupleSizeImpl : std::false_type
+            {
+                /////////////////////////////////////////////////////////
+                // Always triggers at this point! (since specialization
+                // just below didn't kick in)
+                /////////////////////////////////////////////////////////
+                static_assert(AlwaysFalse_v<TupleT>,
+                              STATIC_ASSERT_IS_TUPLE_MSG(TupleT));
+            }; // class IndexLessThanTupleSizeImpl
+
+            // Specialization of above template
+            template <typename TupleT,
+                      std::size_t I
+                     >
+            struct IndexLessThanTupleSizeImpl<TupleT,
+                                              I,
+                                              std::enable_if_t< IsTupleSpecialization_v<TupleT> >
+                                             > : std::bool_constant<INDEX_LESS_THAN_TUPLE_SIZE>
+            {
+            }; // class IndexLessThanTupleSizeImpl
+
+            // For internal use only (we #undef it further below)
+            #define INDEX_LESS_THAN_TUPLE_SIZE_IMPL Private::IndexLessThanTupleSizeImpl<TupleT, \
+                                                                                        I \
+                                                                                       >::value
+        }; // namespace Private
+    #endif // #if defined(USE_CONCEPTS)
+
     template <TUPLE_C TupleT,
               std::size_t I>
-    inline constexpr bool IndexLessThanTupleSize_v = STATIC_ASSERT_V(STATIC_ASSERT_IS_TUPLE_F(TupleT),
-                                                                     (I < std::tuple_size_v<TupleT>));
+    inline constexpr bool IndexLessThanTupleSize_v = INDEX_LESS_THAN_TUPLE_SIZE_IMPL;
+    // Done with these (for private use of above template only) ...
+    #undef INDEX_LESS_THAN_TUPLE_SIZE_IMPL
+    #undef INDEX_LESS_THAN_TUPLE_SIZE
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-            template <typename TupleT, std::size_t I>
+            template <typename TupleT,
+                      std::size_t I>
             concept IndexLessThanTupleSize_c = IndexLessThanTupleSize_v<TupleT, I>;
         #endif
 
@@ -3478,7 +3958,8 @@ namespace StdExt
                                                                              STATIC_ASSERT_I_LESS_THAN_TUPLE_SIZE_MSG(TUPLE, I));
 
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-            template <typename TupleT, std::size_t I>
+            template <typename TupleT,
+                      std::size_t I>
             inline constexpr void StaticAssertIndexLessThanTupleSize() noexcept
             {
                 STATIC_ASSERT_I_LESS_THAN_TUPLE_SIZE(TupleT, I)
@@ -3488,14 +3969,64 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    template <TUPLE_C TupleT, std::size_t I>
-    inline constexpr bool IndexLessThanOrEqualToTupleSize_v = STATIC_ASSERT_V(STATIC_ASSERT_IS_TUPLE_F(TupleT),
-                                                                              (I <= std::tuple_size_v<TupleT>));
+    // For internal use only (we #undef it further below)
+    #define INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE I <= std::tuple_size_v<TupleT>
+
+    #if defined(USE_CONCEPTS)
+        // For internal use only (we #undef it further below)
+        #define INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE_IMPL INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE
+    #else
+        //////////////////////////////////////////////////////////////////////////////
+        // For internal use only (implementation of "IndexLessThanOrEqualToTupleSize"
+        // declared just after this namespace - see this for details)
+        //////////////////////////////////////////////////////////////////////////////
+        namespace Private
+        {
+            // Primary template
+            template <typename TupleT,
+                      std::size_t I,
+                      typename = void> // Arg for internal use only (never explicitly passed)
+            struct IndexLessThanOrEqualToTupleSizeImpl : std::false_type
+            {
+                /////////////////////////////////////////////////////////
+                // Always triggers at this point! (since specialization
+                // just below didn't kick in)
+                /////////////////////////////////////////////////////////
+                static_assert(AlwaysFalse_v<TupleT>,
+                              STATIC_ASSERT_IS_TUPLE_MSG(TupleT));
+            }; // class IndexLessThanOrEqualToTupleSizeImpl
+
+            // Specialization of above template
+            template <typename TupleT,
+                      std::size_t I
+                     >
+            struct IndexLessThanOrEqualToTupleSizeImpl<TupleT,
+                                                       I,
+                                                       std::enable_if_t< IsTupleSpecialization_v<TupleT> >
+                                                      > : std::bool_constant<INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE>
+            {
+            }; // class IndexLessThanOrEqualToTupleSizeImpl
+
+            // For internal use only (we #undef it further below)
+            #define INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE_IMPL Private::IndexLessThanOrEqualToTupleSizeImpl<TupleT, \
+                                                                                                             I \
+                                                                                                            >::value
+        }; // namespace Private
+    #endif // #if defined(USE_CONCEPTS)
+
+    template <TUPLE_C TupleT,
+              std::size_t I>
+    inline constexpr bool IndexLessThanOrEqualToTupleSize_v = INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE_IMPL;
+    // Done with these (for private use of above template only) ...
+    #undef INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE_IMPL
+    #undef INDEX_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE
+
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-            template <typename TupleT, std::size_t I>
+            template <typename TupleT,
+                      std::size_t I>
             concept IndexLessThanOrEqualToTupleSize_c = IndexLessThanOrEqualToTupleSize_v<TupleT, I>;
         #endif
 
@@ -3529,7 +4060,8 @@ namespace StdExt
         #define STATIC_ASSERT_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TUPLE, I) static_assert(StdExt::IndexLessThanOrEqualToTupleSize_v<TUPLE, (I)>, \
                                                                                          STATIC_ASSERT_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE_MSG(TUPLE, I));
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-            template <typename TupleT, std::size_t I>
+            template <typename TupleT,
+                      std::size_t I>
             inline constexpr void StaticAssertIndexLessThanOrEqualToTupleSize() noexcept
             {
                 STATIC_ASSERT_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
@@ -3539,14 +4071,15 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    ///////////////////////////////////////////////////////////////
-    // For internal use only (implementation of "SubTuple_t"
-    // declared just after this namespace - see this for details)
-    ///////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    // For internal use only (implementation of
+    // "MinOfCountOrTupleTypesRemaining_v" declared just
+    // after this namespace)
+    //////////////////////////////////////////////////////
     namespace Private
     {
-        template <typename TupleT,
-                  std::size_t I,
+        template <typename TupleT, // Guaranteed to be a "std::tuple" by design or we never arrive here
+                  std::size_t I, // Guaranteed to be <= "std::tuple_size_v<TupleT>" by design or we never arrive here
                   std::size_t Count>
         inline constexpr std::size_t MinOfCountOrTupleTypesRemainingImplArgsValidated_v = MinOfCountOrRemaining_v<I, std::tuple_size_v<TupleT>, Count>;
 
@@ -3557,7 +4090,7 @@ namespace StdExt
         template <typename TupleT,
                   std::size_t I,
                   std::size_t Count,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         class MinOfCountOrTupleTypesRemainingImpl
         {
             /////////////////////////////////////////////////////////
@@ -3585,10 +4118,7 @@ namespace StdExt
 
         // Specialization of above template
         template <typename TupleT,
-                  std::size_t I, // Renamed "Index" here by design (so we can call it "I"
-                                     // in our "ValueImpl" structs below - can't call it "I"
-                                     // in both places since it might trigger a "shadowing"
-                                     // warning on some compilers)
+                  std::size_t I,
                   std::size_t Count>
         class MinOfCountOrTupleTypesRemainingImpl<TupleT,
                                                   I,
@@ -3598,9 +4128,12 @@ namespace StdExt
         {
             // Primary template
             template <std::size_t InnerI,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct ValueImpl
             {
+                // By design (sanity check only, should always succeed)
+                static_assert(InnerI == I);
+
                 /////////////////////////////////////////////////////////
                 // Always triggers at this point! (since specialization
                 // just below didn't kick in)
@@ -3665,57 +4198,6 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
     } // namespace Private
 
-    //////////////////////////////////////////////////////////////////
-    // SubTuple_t. Alias template for a "std::tuple" of all types in
-    // template arg "TupleT" (a "std::tuple"), from index "I"
-    // inclusive for a length of "Count" (so effectively the
-    // "std::tuple" equivalent of "std::basic_string::substr" but
-    // dealing with types instead of characters). Note that "I" must
-    // be less than or equal to the size of "TupleT". If it equals
-    // the size of "T" however then an empty tuple is always returned
-    // (since "Count" is cut off here - read on). If "Count" exceeds
-    // the number of types remaining in "TupleT" from index "I" then
-    // all remaining types in "TupleT" are included (i.e., all types
-    // from index "I" to the end of the tuple - the default arg for
-    // "Count" ensures this). Note that if "Count" equals zero then
-    // an empty tuple results and this is guaranteed if "I" equals
-    // the size of "TupleT" itself (since "Count" will be forcibly
-    // set to zero here, i.e., cut off as previously noted - an empty
-    // tuple therefore results).
-    //
-    // E.g.,
-    //
-    //    using TupleT = std::tuple<char,              // 0
-    //                              int,               // 1
-    //                              long,              // 2
-    //                              float,             // 3
-    //                              double,            // 4
-    //                              std::string_view>; // 5
-    //
-    //    ///////////////////////////////////////////////////////
-    //    // Yields the following ("std::tuple" of all types in
-    //    // "TupleT" from index 2 inclusive for a length of 3):
-    //    //
-    //    //    std::tuple<long, float, double>
-    //    ///////////////////////////////////////////////////////
-    //    using TupleAtIndex2Size3 = SubTuple_t<TupleT, 2, 3>;
-    //
-    //    /////////////////////////////////////////////////////////
-    //    // Yields the following (all types in "TupleT" from
-    //    // index 2 till the end - the default arg for "Count"
-    //    // is "size_t_npos" which ensures this):
-    //    //
-    //    //    std::tuple<long, float, double, std::string_view>
-    //    /////////////////////////////////////////////////////////
-    //    using TupleAtIndex2TillEnd = SubTuple_t<TupleT, 2>;
-    //
-    //    //////////////////////////////////////////////////////////
-    //    // Yields an empty tuple because "Count" arg is zero (0)
-    //    //
-    //    //    std::tuple<>
-    //    //////////////////////////////////////////////////////////
-    //    using EmptyTuple = SubTuple_t<TupleT, 2, 0>;
-    //////////////////////////////////////////////////////////////////
     template <TUPLE_C TupleT,
               std::size_t I,
               std::size_t Count = size_t_npos>
@@ -3724,24 +4206,110 @@ namespace StdExt
     // Done with this (for private use of above template only) ...
     #undef MIN_OF_COUNT_OR_TUPLE_TYPES_REMAINING_V_IMPL
 
-    ///////////////////////////////////////////////////////////////
-    // For internal use only (implementation of "SubTuple_t"
-    // declared just after this namespace - see this for details)
-    ///////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+    // For internal use only (implementation of "SubTuple"
+    // declared just after this namespace - see this for
+    // details)
+    ////////////////////////////////////////////////////////
     namespace Private
     {
-        template <typename TupleT,
-                  std::size_t I,
+        template <TUPLE_C TupleT, // TUPLE_C guaranteed to hold by design or we never arrive here
+                  std::size_t I, // See requires comment below
                   std::size_t Count>
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I) // Guaranteed to hold by design or we never arrive
+                                                               // here ("I" always <= "std::tuple_size_v<TupleT>")
         class SubTupleImplArgsValidated
         {
+            // See this macro for details
+            #if !defined(USE_CONCEPTS)
+                ///////////////////////////////////////////////////
+                // Sanity checks only. Both guaranteed to hold by
+                // design or we never come through here otherwise.
+                // Kicks in if concepts not supported, otherwise
+                // corresponding concepts kick in in the template
+                // declaration above instead (macro for TUPLE_C
+                // above resolves to the "typename" keyword when
+                // concepts aren't supported and
+                // REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE
+                // resolves to whitespace, and the following
+                // "static_asserts" are then used instead).
+                ///////////////////////////////////////////////////
+                STATIC_ASSERT_IS_TUPLE(TupleT)
+                STATIC_ASSERT_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
+            #endif
+
+            ////////////////////////////////////////////////////
+            // E.g., if "I" is 5 and "ClampedCount" is 3 then
+            // "Process()" is passed this:
+            //
+            //    std::index_sequence<5, 6, 7>
+            //
+            // So if "TupleT" is, say, this:
+            //
+            //    std::tuple<bool,         // 0
+            //               char,         // 1
+            //               int,          // 2
+            //               long,         // 3
+            //               float,        // 4
+            //               double,       // 5
+            //               long double,  // 6
+            //               std::string,  // 7
+            //               MyClassType>  // 8
+            //
+            // Then "Process()" returns this (types at index 5
+            // to 7):
+            //
+            //    std::tuple<double, long double, std::string>
+            //
+            // However if "ClampedCount" is 0 then "Process()"
+            // is passed an empty sequence instead:
+            //
+            //    std::index_sequence<>
+            //
+            // And "Process()" therefore returns an empty
+            // "std::tuple":
+            //
+            //    std::tuple<>
+            ////////////////////////////////////////////////////
             template <std::size_t... Indices>
             static constexpr auto Process(std::index_sequence<Indices...>) -> std::tuple< std::tuple_element_t<Indices, TupleT>... >;
 
+            /////////////////////////////////////////////////////////////
+            // Lesser of "Count" or the number of types remaining in
+            // "TupleT" from index "I" inclusive to the last type in
+            // "TupleT" inclusive (i.e., std::tuple_size_v<TupleT> - I).
+            // IOW, if "Count" exceeds the number of types remaining in
+            // "TupleT" from index "I" (inclusive) then we simply cut it
+            // off (clamp it) at the last type in "TupleT" (noting that
+            // if "I" is "std::tuple_size_v<TupleT>" itself, i.e., it's
+            // one beyond the last type in "TupleT", then the following
+            // will always be set to zero).
+            /////////////////////////////////////////////////////////////
             static constexpr std::size_t ClampedCount = MinOfCountOrTupleTypesRemaining_v<TupleT, I, Count>;
 
         public:
-            using Type = decltype(Process(MakeIndexSequenceStartAt<I, ClampedCount>()));
+            /////////////////////////////////////////////////////
+            // E.g., if "I" is 5 and "ClampedCount" is 3 then
+            // "MakeIndexSequenceStartAt" returns the following
+            // type which we instantiate and pass to "Process()":
+            //
+            //    std::index_sequence<5, 6, 7>
+            //
+            // If "ClampedCount" is 0 however then
+            // "MakeIndexSequenceStartAt" returns an empty
+            // sequence instead:
+            //
+            //    std::index_sequence<>
+            //
+            // We then return the type that "Process()" itself
+            // returns, which is the "std::tuple" of all types
+            // in our "TupleT" template arg at the indices we're
+            // passing here (so the types at index 5 to 7 in the
+            // first example above, or an empty "std::tuple" in
+            // the 2nd example above). See "Process()" above for
+            // details.
+            /////////////////////////////////////////////////////
+            using Type = decltype(Process(MakeIndexSequenceStartAt<I, ClampedCount>{}));
         };
 
     #if defined(USE_CONCEPTS)
@@ -3751,7 +4319,7 @@ namespace StdExt
         template <typename TupleT,
                   std::size_t I,
                   std::size_t Count,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         class SubTupleImpl
         {
             /////////////////////////////////////////////////////////
@@ -3772,7 +4340,9 @@ namespace StdExt
             // (so it's the only error message users need to see).
             // We therefore declare the following to eliminate any
             // extraneous "undeclared type" error that might occur
-            // if it weren't declared.
+            // if it weren't declared (the following is empty but
+            // it's not relevant since the "static_assert" just
+            // above always kicks in anyway).
             ///////////////////////////////////////////////////////
             using Type = std::tuple<>;
         };
@@ -3789,9 +4359,12 @@ namespace StdExt
         {
             // Primary template
             template <std::size_t InnerI,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct TypeImpl
             {
+                // By design (sanity check only, should always succeed)
+                static_assert(InnerI == I);
+
                 /////////////////////////////////////////////////////////
                 // Always triggers at this point! (since specialization
                 // just below didn't kick in)
@@ -3824,7 +4397,9 @@ namespace StdExt
                 // By design (sanity check only, should always succeed)
                 static_assert(InnerI == I);
 
-                using Type = typename SubTupleImplArgsValidated<TupleT, I, Count>::Type;
+                using Type = typename SubTupleImplArgsValidated<TupleT,
+                                                                I,
+                                                                Count>::Type;
             }; // class TypeImpl
 
         public:
@@ -3836,7 +4411,7 @@ namespace StdExt
             // "TypeImpl" is specialized above (since having
             // "TypeImpl" rely on "I" directly can run afoul of C++
             // template arg dependency rules and/or the C++ two-phase
-            // template lookup rules - passing them as template args
+            // template lookup rules - passing it as a template arg
             // here circumvents those issues). Note that "I" can
             // still be directly accessed within "TypeImpl" above,
             // once the primary template or specialization of
@@ -3857,63 +4432,81 @@ namespace StdExt
     } // namespace Private
 
     //////////////////////////////////////////////////////////////////
-    // SubTuple_t. Alias template for a "std::tuple" of all types in
+    // SubTuple. Alias template for a "std::tuple" of all types in
     // template arg "TupleT" (a "std::tuple"), from index "I"
     // inclusive for a length of "Count" (so effectively the
     // "std::tuple" equivalent of "std::basic_string::substr" but
     // dealing with types instead of characters). Note that "I" must
-    // be less than or equal to the size of "TupleT". If it equals
-    // the size of "T" however then an empty tuple is always returned
-    // (since "Count" is cut off here - read on). If "Count" exceeds
-    // the number of types remaining in "TupleT" from index "I" then
-    // all remaining types in "TupleT" are included (i.e., all types
-    // from index "I" to the end of the tuple - the default arg for
-    // "Count" ensures this). Note that if "Count" equals zero then
-    // an empty tuple results and this is guaranteed if "I" equals
-    // the size of "TupleT" itself (since "Count" will be forcibly
-    // set to zero here, i.e., cut off as previously noted - an empty
-    // tuple therefore results).
+    // be less than or equal to the size of "TupleT" or a constraints
+    // violation occurs in C++20 or later or a "static_assert" in
+    // C++17. If it equals the size of "TupleT" however then an empty
+    // tuple always results (since "Count" is cut off here - read
+    // on). If "Count" exceeds the number of types remaining in
+    // "TupleT" from index "I" inclusive then we clamp it at the last
+    // type in "TupleT", meaning all types from index "I" to the end
+    // of "TupleT" will be included in the type that's returned (note
+    // that the default "size_t_npos" arg for "Count" ensures this).
+    // Note that if "Count" equals zero then an empty tuple always
+    // results and this is guaranteed if "I" equals the size of
+    // "TupleT" itself (since "Count" will be clamped at zero here so
+    // an empty tuple therefore results).
     //
     // E.g.,
     //
-    //    using TupleT = std::tuple<char,              // 0
-    //                              int,               // 1
-    //                              long,              // 2
-    //                              float,             // 3
-    //                              double,            // 4
-    //                              std::string_view>; // 5
+    //    using TupleT = std::tuple<bool,         // 0
+    //                              char,         // 1
+    //                              int,          // 2
+    //                              long,         // 3
+    //                              float,        // 4
+    //                              double,       // 5
+    //                              long double,  // 6
+    //                              std::string,  // 7
+    //                              MyClassType>  // 8
     //
     //    ///////////////////////////////////////////////////////
     //    // Yields the following ("std::tuple" of all types in
-    //    // "TupleT" from index 2 inclusive for a length of 3):
+    //    // "TupleT" from index 5 inclusive for a length of 3):
     //    //
-    //    //    std::tuple<long, float, double>
+    //    //    std::tuple<double, long double, std::string>
     //    ///////////////////////////////////////////////////////
-    //    using TupleAtIndex2Size3 = SubTuple_t<TupleT, 2, 3>;
+    //    using SubTupleAtIndex5Size3 = SubTuple<TupleT, 5, 3>;
     //
     //    /////////////////////////////////////////////////////////
     //    // Yields the following (all types in "TupleT" from
-    //    // index 2 till the end - the default arg for "Count"
-    //    // is "size_t_npos" which ensures this):
+    //    // index 6 till the end of "TupleT" - the default arg
+    //    // for "Count" is "size_t_npos" which ensures this):
     //    //
-    //    //    std::tuple<long, float, double, std::string_view>
+    //    //    std::tuple<long double, std::string, MyClassType>
     //    /////////////////////////////////////////////////////////
-    //    using TupleAtIndex2TillEnd = SubTuple_t<TupleT, 2>;
+    //    using SubTupleAtIndex6TillEnd = SubTuple<TupleT, 2>;
     //
     //    //////////////////////////////////////////////////////////
-    //    // Yields an empty tuple because "Count" arg is zero (0)
+    //    // Yields an empty tuple because "Count" arg is zero (0).
+    //    // The index itself (2) is therefore irrelevant here (when
+    //    // "Count" is zero an empty tuple always results regardless
+    //    // of the index).
     //    //
     //    //    std::tuple<>
     //    //////////////////////////////////////////////////////////
-    //    using EmptyTuple = SubTuple_t<TupleT, 2, 0>;
+    //    using SubTupleAtIndex2Size0 = SubTuple<TupleT, 2, 0>;
+    //
+    //    //////////////////////////////////////////////////////////
+    //    // Passing the size of the tuple itself in this example
+    //    // (9). Always yields an empty tuple since the index is
+    //    // one beyond the end of "TupleT" itself:
+    //    //
+    //    //    std::tuple<>
+    //    //////////////////////////////////////////////////////////
+    //    using SubTupleOneBeyondEnd = SubTuple<TupleT,
+    //                                          std::tuple_size_v<TupleT>>; // 9
     //////////////////////////////////////////////////////////////////
     template <TUPLE_C TupleT,
               std::size_t I,
               std::size_t Count = size_t_npos>
     REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
-    using SubTuple_t = typename Private::SUB_TUPLE_T_IMPL<TupleT,
-                                                          I,
-                                                          Count>::Type;
+    using SubTuple = typename Private::SUB_TUPLE_T_IMPL<TupleT,
+                                                        I,
+                                                        Count>::Type;
     // Done with this (for private use of above template only) ...
     #undef SUB_TUPLE_T_IMPL
 
@@ -3923,27 +4516,55 @@ namespace StdExt
     //////////////////////////////////////////////////////////////////
     namespace Private
     {
-        template <typename TupleT,
-                  std::size_t I,
+        template <TUPLE_C TupleT, // Guaranteed to be a "std::tuple" by design or we never arrive here
+                  std::size_t I, // See requires comment below
                   std::size_t Count,
-                  typename NewTypesTupleT>
+                  TUPLE_C NewTypesTupleT> // Guaranteed to be a "std::tuple" by design or we never arrive here
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I) // Guaranteed to hold by design or we never arrive
+                                                               // here ("I" always <= "std::tuple_size_v<TupleT>")
         class TupleModifyTupleImplArgsValidated
         {
+            // See this macro for details
+            #if !defined(USE_CONCEPTS)
+                ///////////////////////////////////////////////////
+                // Sanity checks only. All 3 guaranteed to hold by
+                // design or we never come through here otherwise.
+                // Kicks in if concepts not supported, otherwise
+                // corresponding concepts kick in in the template
+                // declaration above instead (macro for TUPLE_C
+                // above resolves to the "typename" keyword when
+                // concepts aren't supported and
+                // REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE
+                // resolves to whitespace, and the following
+                // "static_asserts" are then used instead).
+                ///////////////////////////////////////////////////
+                STATIC_ASSERT_IS_TUPLE(TupleT)
+                STATIC_ASSERT_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
+                STATIC_ASSERT_IS_TUPLE(NewTypesTupleT)
+            #endif
+
+            //////////////////////////////////////////////////////////
+            // Lesser of "Count" or the number of types remaining in
+            // "TupleT" from index "I" to the last type in "TupleT"
+            // inclusive (i.e., std::tuple_size_v<TupleT> - I)
+            //////////////////////////////////////////////////////////
             static constexpr std::size_t ClampedCount = MinOfCountOrTupleTypesRemaining_v<TupleT, I, Count>;
 
         public:
-            using Type = decltype(std::tuple_cat(std::declval<SubTuple_t<TupleT, 0, I>>(), // std::tuple of all types in "TupleT" from index 0 INclusive
-                                                                                           // to "I" EXclusive (if I is zero then returned tuple is empty)
+            using Type = decltype(std::tuple_cat(std::declval<SubTuple<TupleT, 0, I>>(), // std::tuple of all types in "TupleT" from index 0 INclusive
+                                                                                         // to "I" EXclusive (if I is zero then returned tuple is empty)
                                                  std::declval<NewTypesTupleT>(),
-                                                 std::declval<SubTuple_t<TupleT, I + ClampedCount>>())); // std::tuple of all types in "TupleT" from
-                                                                                                         // index "I + Count" INclusive to the end
-                                                                                                         // (last type) in "TupleT" INclusive ("Count"
-                                                                                                         // is cut off at the end of "TupleT" if it
-                                                                                                         // exceeds it - if "I" equals the size of
-                                                                                                         // "TupleT" then returned tuple is empty)
+                                                 std::declval<SubTuple<TupleT, I + ClampedCount>>())); // "std::tuple" of all types in "TupleT" from
+                                                                                                       // index "I + ClampedCount" INclusive to the
+                                                                                                       // end of "TupleT" inclusive (i.e., the last
+                                                                                                       // type in "TupleT"). If "I" equals the size
+                                                                                                       // of "TupleT" then "ClampedCount" will always
+                                                                                                       // be zero by design and the returned tuple
+                                                                                                       // will therefore be empty.
         };
 
     #if defined(USE_CONCEPTS)
+        // For internal use only (we #undef it further below)
         #define TUPLE_MODIFY_TUPLE_IMPL TupleModifyTupleImplArgsValidated
     #else
         // Primary template
@@ -3951,7 +4572,7 @@ namespace StdExt
                   std::size_t I,
                   std::size_t Count,
                   typename NewTypesTupleT,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         class TupleModifyTupleImpl
         {
             /////////////////////////////////////////////////////////
@@ -3978,10 +4599,10 @@ namespace StdExt
         }; // class TupleModifyTupleImpl
 
         // Specialization of above template
-        template <TUPLE_C TupleT,
+        template <typename TupleT,
                   std::size_t I,
                   std::size_t Count,
-                  TUPLE_C NewTypesTupleT>
+                  typename NewTypesTupleT>
         class TupleModifyTupleImpl<TupleT,
                                    I,
                                    Count,
@@ -3992,7 +4613,7 @@ namespace StdExt
             // Primary template
             template <std::size_t InnerI, // Same as template arg "I" in the outer (parent) "TupleModifyTupleImpl" class
                       typename InnerNewTypesTupleT, // Same as template arg "NewTypesTupleT" in the outer (parent) "TupleModifyTupleImpl" class
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct TypeImpl
             {
                 // By design (sanity checks only, should always succeed)
@@ -4069,6 +4690,7 @@ namespace StdExt
             using Type = typename TypeImpl<I, NewTypesTupleT>::Type;
         }; // class TupleModifyTupleImpl
 
+        // For internal use only (we #undef it further below)
         #define TUPLE_MODIFY_TUPLE_IMPL TupleModifyTupleImpl
     #endif // #if defined(USE_CONCEPTS)
     } // namespace Private
@@ -4265,10 +4887,10 @@ namespace StdExt
     //   /////////////////////////////////////////////////////
     //   using TupleT_WithTypesDeletedAtIndex1Size2 = TupleDelete_t<TupleT, 1, 2>;
     ///////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             std::size_t I,
-             std::size_t Count,
-             TUPLE_C NewTypesTupleT
+    template <TUPLE_C TupleT,
+              std::size_t I,
+              std::size_t Count,
+              TUPLE_C NewTypesTupleT
             >
     REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
     using TupleModifyTuple_t = typename Private::TUPLE_MODIFY_TUPLE_IMPL<TupleT,
@@ -4278,23 +4900,208 @@ namespace StdExt
     // Done with this (for private use of above template only) ...
     #undef TUPLE_MODIFY_TUPLE_IMPL
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // TupleModify_t. Identical to "TupleModifyTuple_t" just above but takes a
-    // parameter pack for the last arg instead of a "std::tuple". Just converts
-    // that parameter pack to a "std::tuple" however and defers to template just
-    // above
-    ///////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             std::size_t I,
-             std::size_t Count,
-             typename... NewTypesT
-            >
+    ////////////////////////////////////////////////////////////////
+    // TupleModify_t. Identical to "TupleModifyTuple_t" just above
+    // but takes a parameter pack for the last arg instead of a
+    // "std::tuple". Just converts that parameter pack to a
+    // "std::tuple" however and defers to template just above
+    ////////////////////////////////////////////////////////////////
+    template <TUPLE_C TupleT,
+              std::size_t I,
+              std::size_t Count,
+              typename... NewTypesT
+             >
     REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
     // Defer to template just above
     using TupleModify_t = TupleModifyTuple_t<TupleT,
                                              I,
                                              Count,
-                                             std::tuple<NewTypesT...> > ;
+                                             std::tuple<NewTypesT...>
+                                            >;
+
+    // For internal use only (we #undef it further below)
+    #define TUPLE_REPLACE_TYPE TupleModify_t<TupleT, \
+                                             I, \
+                                             1, \
+                                             NewTypeT \
+                                            >
+
+    #if defined(USE_CONCEPTS)
+        // For internal use only (we #undef it further below)
+        #define TUPLE_REPLACE_TYPE_T_IMPL TUPLE_REPLACE_TYPE
+    #else
+        //////////////////////////////////////////////////////////////////
+        // For internal use only (implementation of "TupleReplaceType_t"
+        // declared just after this namespace - see this for details)
+        //////////////////////////////////////////////////////////////////
+        namespace Private
+        {
+            // Primary template
+            template <typename TupleT,
+                      std::size_t I,
+                      typename NewTypeT,
+                      typename = void> // Arg for internal use only (never explicitly passed)
+            struct TupleReplaceTypeImpl
+            {
+                /////////////////////////////////////////////////////////
+                // Always triggers at this point! (since specialization
+                // just below didn't kick in)
+                /////////////////////////////////////////////////////////
+                static_assert(AlwaysFalse_v<TupleT>,
+                              STATIC_ASSERT_IS_TUPLE_MSG(TupleT));
+
+                ///////////////////////////////////////////////////////
+                // Above "static_assert" always triggers so the
+                // following "Type" can be omitted. If omitted however
+                // then our call to access this type further below
+                // might result in an "undeclared type" error of some
+                // kind (since the type hasn't been declared). This
+                // will only lead to confusion since the above
+                // "static_assert" is the actual source of the problem
+                // (so it's the only error message users need to see).
+                // We therefore declare the following to eliminate any
+                // extraneous "undeclared type" error that might occur
+                // if it weren't declared.
+                ///////////////////////////////////////////////////////
+                using Type = std::tuple<>;
+            }; // class TupleReplaceTypeImpl
+
+            // Specialization of above template
+            template <typename TupleT,
+                      std::size_t I,
+                      typename NewTypeT>
+            struct TupleReplaceTypeImpl<TupleT,
+                                        I,
+                                        NewTypeT,
+                                        std::enable_if_t< IsTupleSpecialization_v<TupleT> >
+                                       >
+            {
+                // Primary template
+                template <std::size_t InnerI, // Same as template arg "I" in the outer (parent) "TupleReplaceTypeImpl" class
+                          typename = void> // Arg for internal use only (never explicitly passed)
+                struct TypeImpl
+                {
+                    // By design (sanity check only, should always succeed)
+                    static_assert(InnerI == I);
+
+                    /////////////////////////////////////////////////////////
+                    // Always triggers at this point! (since specialization
+                    // just below didn't kick in)
+                    /////////////////////////////////////////////////////////
+                    static_assert(AlwaysFalse_v<TupleT>,
+                                  STATIC_ASSERT_I_LESS_THAN_TUPLE_SIZE_MSG(TupleT, I));
+
+                    ///////////////////////////////////////////////////////
+                    // Above "static_assert" always triggers so the
+                    // following "Type" can be omitted. If omitted however
+                    // then our call to access this type further below
+                    // might result in an "undeclared type" error of some
+                    // kind (since the type hasn't been declared). This
+                    // will only lead to confusion since the above
+                    // "static_assert" is the actual source of the problem
+                    // (so it's the only error message users need to see).
+                    // We therefore declare the following to eliminate any
+                    // extraneous "undeclared type" error that might occur
+                    // if it weren't declared.
+                    ///////////////////////////////////////////////////////
+                    using Type = std::tuple<>;
+                }; // class TypeImpl
+
+                // Specialization of above template
+                template <std::size_t InnerI>
+                struct TypeImpl<InnerI, // Same as template arg "I" in the outer (parent) "TupleReplaceTypeImpl" class
+                                std::enable_if_t< IndexLessThanTupleSize_v<TupleT, InnerI> >
+                               >
+                {
+                    // By design (sanity check only, should always succeed)
+                    static_assert(InnerI == I);
+
+                    using Type = TUPLE_REPLACE_TYPE;
+                }; // class TypeImpl
+
+                //////////////////////////////////////////////////////////
+                // Passing "I" as a template arg rather than have
+                // "TypeImpl" rely on the latter directly. We need to
+                // pass it in as a template arg to prevent possible
+                // compiler warnings and/or errors from occurring when
+                // "TypeImpl" is specialized above (since having
+                // "TypeImpl" rely on "I" directly can run afoul of C++
+                // template arg dependency rules and/or the C++ two-phase
+                // template lookup rules - passing it as a template arg
+                // here circumvents those issues). Note that "I" can
+                // still be directly accessed within "TypeImpl" above,
+                // once the primary template or specialization of
+                // "TypeImpl" is actually selected by the compiler, but
+                // relying on it in the selection process itself is rife
+                // with issues (such as using them in the call to
+                // "std::enable_if_t" above - obscure and arcane errors
+                // can occur depending on how it's done but passing it in
+                // as a fresh template arg in the following call and
+                // relying on that instead in the template selection
+                // process above steers clear of these errors)
+                //////////////////////////////////////////////////////////
+                using Type = typename TypeImpl<I>::Type;
+            }; // class TupleReplaceTypeImpl
+
+            // For internal use only (we #undef it further below)
+            #define TUPLE_REPLACE_TYPE_T_IMPL typename Private::TupleReplaceTypeImpl<TupleT, \
+                                                                                     I, \
+                                                                                     NewTypeT>::Type
+        }; // namespace Private
+    #endif // #if defined(USE_CONCEPTS)
+
+    ////////////////////////////////////////////////////////////////
+    // TupleReplaceType_t. Alias identical to "TupleT" (a
+    // "std::tuple") after replacing the type at (zero-based) index
+    // "I" in "TupleT" with "NewTypeT". This template is just the
+    // special case of template "TupleModify_t" where only a single
+    // type needs be modified (replaced) in the tuple by another
+    // single type so only a single type can be passed for its
+    // "NewTypesT" template arg (not a parameter pack), and the
+    // "Count" template arg of "TupleModify_t" is always 1 (i.e.,
+    // only a *single* existing type in the tuple is replaced by
+    // another *single* type). To this end, unlike when calling
+    // "TupleModify_t" directly, which allows "I" to be set to
+    // "std::tuple_size_v<TupleT>", i.e., one beyond the end of its
+    // existing types so new types can be appended to "TupleT", the
+    // following template doesn't allow appending. "I" must
+    // therefore be less than "std::tuple_size_v<TupleT>" in order
+    // to target an existing type in "TupleT". Otherwise, if
+    // "I >= std::tuple_size_v<TupleT>" meaning it's targeting a
+    // non-existent type in "TupleT", then a compiler error will
+    // always occur instead (a constraints violation in C++20 or
+    // later or a "static_assert" otherwise).
+    //
+    // Example:
+    //
+    //     using TupleT = std::tuple<char,    // 0
+    //                               long,    // 1
+    //                               float,   // 2
+    //                               double>; // 3
+    //
+    //     ////////////////////////////////////////////////
+    //     // Replace the 3rd type in "TupleT", a "float",
+    //     // with a "bool". The resulting tuple is
+    //     // therefore:
+    //     //
+    //     //    std::tuple<char,    // 0
+    //     //               long,    // 1
+    //     //               bool,    // 2
+    //     //               double>  // 3
+    //     ////////////////////////////////////////////////
+    //     using TupleT_WithTypeReplacedAtIndex2 = TupleReplaceType_t<TupleT,
+    //                                                                2, // Zero-based
+    //                                                                bool>;
+    ////////////////////////////////////////////////////////////////
+    template <TUPLE_C TupleT,
+              std::size_t I,
+              typename NewTypeT
+             >
+    REQUIRES_I_LESS_THAN_TUPLE_SIZE(TupleT, I)
+    using TupleReplaceType_t = TUPLE_REPLACE_TYPE_T_IMPL;
+    // Done with these (for private use of above template only) ...
+    #undef TUPLE_REPLACE_TYPE_T_IMPL
+    #undef TUPLE_REPLACE_TYPE
 
     ///////////////////////////////////////////////////////////////////////////////
     // TupleInsertTuple_t. Alias identical to "TupleT" (a "std::tuple") after
@@ -4311,15 +5118,16 @@ namespace StdExt
     // "TupleAppendTuple_t" further below instead (which just defers to us,
     // passing "std::tuple_size_v<TupleT>" as described).
     ///////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             std::size_t I,
-             TUPLE_C TypesToInsertTupleT
-            >
+    template <TUPLE_C TupleT,
+              std::size_t I,
+              TUPLE_C TypesToInsertTupleT
+             >
     REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
     using TupleInsertTuple_t = TupleModifyTuple_t<TupleT,
                                                   I,
                                                   0, // Count
-                                                  TypesToInsertTupleT>; // NewTypesT
+                                                  TypesToInsertTupleT // NewTypesTupleT
+                                                 >;
 
     ///////////////////////////////////////////////////////////////////////////////
     // TupleInsert_t. Identical to "TupleInsertTuple_t" just above but takes a
@@ -4327,15 +5135,16 @@ namespace StdExt
     // that parameter pack to a "std::tuple" however and defers to template just
     // above.
     ///////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             std::size_t I,
-             typename... TypesToInsertT
-            >
+    template <TUPLE_C TupleT,
+              std::size_t I,
+              typename... TypesToInsertT
+             >
     REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
     // Defer to template just above
     using TupleInsert_t = TupleInsertTuple_t<TupleT,
                                              I,
-                                             std::tuple<TypesToInsertT...> >;
+                                             std::tuple<TypesToInsertT...>
+                                            >;
 
     ///////////////////////////////////////////////////////////////////////////////
     // TupleAppendTuple_t. Alias identical to "TupleT" (a "std::tuple") after
@@ -4349,12 +5158,12 @@ namespace StdExt
     // particular (the following call ultimately implements that example's
     // code).
     ///////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             TUPLE_C TypesToAppendTupleT
-            >
+    template <TUPLE_C TupleT,
+              TUPLE_C TypesToAppendTupleT
+             >
     using TupleAppendTuple_t = TupleInsertTuple_t<TupleT,
-                                                  std::tuple_size_v<TupleT>, // I
-                                                  TypesToAppendTupleT>;
+                                                  std::tuple_size_v<TupleT>, // I (one beyond the last type in "TupleT")
+                                                  TypesToAppendTupleT>; // TypesToInsertTupleT
 
     /////////////////////////////////////////////////////////////////////////////
     // TupleAppend_t. Identical to "TupleAppendTuple_t" just above but takes a
@@ -4362,9 +5171,9 @@ namespace StdExt
     // that parameter pack to a "std::tuple" however and defers to template just
     // above.
     /////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             typename... TypesToAppendT
-            >
+    template <TUPLE_C TupleT,
+              typename... TypesToAppendT
+             >
     // Defer to template just above
     using TupleAppend_t = TupleAppendTuple_t<TupleT,
                                              std::tuple<TypesToAppendT...>>;
@@ -4380,99 +5189,151 @@ namespace StdExt
     // "TupleModifyTuple_t". See example 4 in "TupleModifyTuple_t" for details
     // (the following call implements that example's code).
     ///////////////////////////////////////////////////////////////////////////////
-    template<TUPLE_C TupleT,
-             std::size_t I = 0,
-             std::size_t Count = size_t_npos>
+    template <TUPLE_C TupleT,
+              std::size_t I = 0,
+              std::size_t Count = size_t_npos
+             >
     REQUIRES_I_LESS_THAN_OR_EQUAL_TO_TUPLE_SIZE(TupleT, I)
     using TupleDelete_t = TupleModify_t<TupleT,
                                         I,
                                         Count>;
 
-    ////////////////////////////////////////////////////////////////////////////
-    // "IsForEachTupleTypeFunctor" (primary template). Determines if template arg
-    // "T" is a functor type whose "operator()" member has the following
-    // signature and is also callable in the context of whether "T" is "const"
-    // and/or "volatile" and or an lvalue or rvalue (read on):
+    ////////////////////////////////////////////////////////
+    // "IsForEachTupleTypeFunctor" (primary template).
+    // Determines if template arg "T" is a functor type
+    // whose "operator()" member has the following signature
+    // (though "std::size_t" isn't strictly enforceable -
+    // more on this later), and is also callable in the
+    // context of whether "T" is "const" and/or "volatile"
+    // and or an lvalue or rvalue (read on):    
     //
-    //     template <std::size_t I, typename TupleElementT>
+    //     template <std::size_t I,
+    //               typename TupleElementT>
     //     bool operator()() [const] [volatile] [&|&&];
     //
-    // If "T" contains this function AND it can also be called on an instance
-    // of "T" (again, read on), then "T" qualifies as a functor that can be
-    // passed to function template "ForEachTupleType()" declared later on. Note
-    // that the specialization just below does the actual work of checking for
-    // this. It simply invokes the above function template in an unevaluated
-    // context using "std::declval()" as follows:
+    // If "T" contains this function AND it can also be
+    // called on an instance of "T" (again, read on), then
+    // "T" qualifies as a functor that can be passed to
+    // function template "ForEachTupleType()" declared later
+    // on. Note that the specialization just below does the
+    // actual work of checking for this. It simply invokes
+    // the above function template in an unevaluated context
+    // using "std::declval()" as follows:
     //
-    //     T::operator<0, void>()
+    //     T::operator<0, int>()
     //
-    // If the call succeeds then "operator()" must not only exist as a member
-    // of "T" with a "bool" return type (we check for this as well), but it's
-    // also callable in the context of whether "T" is "const" and/or "volatile"
-    // and or an lvalue or rvalue. Note that to qualify as an lvalue for
-    // purposes of "IsForEachTupleTypeFunctor", "T" must be an lvalue reference
-    // such as "int &". To qualify as an rvalue, "T" must either be a
-    // non-reference type such as a plain "int" OR an rvalue reference such as
-    // "int &&". The behavior of what qualifies as an lvalue and rvalue for
-    // purposes of using "IsForEachTupleTypeFunctor" therefore follows the usual
-    // perfect forwarding rules for function template arguments (where an
-    // lvalue reference for "T" means the function's "T &&" argument collapses
-    // to an lvalue reference, and a non-reference type or rvalue reference
-    // type for "T" means the function's "T &&" argument is an rvalue reference
-    // - read up on perfect forwarding for details if you're not already
-    // familiar this).
+    // If the call succeeds then "operator()" must not only
+    // exist as a member of "T" with a "bool" return type
+    // (we check for this as well), but it's also callable
+    // in the context of whether "T" is "const" and/or
+    // "volatile" and or an lvalue or rvalue. Note that to
+    // qualify as an lvalue for purposes of
+    // "IsForEachTupleTypeFunctor", "T" must be an lvalue
+    // reference such as "int &". To qualify as an rvalue,
+    // "T" must either be a non-reference type such as a
+    // plain "int" OR an rvalue reference such as "int &&".
+    // The behavior of what qualifies as an lvalue and
+    // rvalue for purposes of using
+    // "IsForEachTupleTypeFunctor" therefore follows the
+    // usual perfect forwarding rules for function template
+    // arguments (where an lvalue reference for "T" means
+    // the function's "T &&" argument collapses to an lvalue
+    // reference, and a non-reference type or rvalue
+    // reference type for "T" means the function's "T &&"
+    // argument is an rvalue reference - read up on perfect
+    // forwarding for details if you're not already familiar
+    // this).
     //
-    // As an example, if "T" contains the above "operator()" template but it's
-    // not declared with the "const" qualifier but "T" itself is (declared
-    // "const"), then calling the function as shown above fails since you can't
-    // call a non-const member function using a constant object. The primary
-    // template therefore kicks in, inheriting from "std::false_type".
-    // Similarly, if "operator()" is declared with the "&&" reference qualifier
-    // (rare as this is in practice), but "T" is an lvalue reference, then
-    // again, the above call fails since you can't invoke a member function
-    // declared with the "&&" (rvalue) reference qualifier using an lvalue
-    // reference. Again, the primary template will therefore kick in (once
-    // again inheriting from "std::false_type"). The upshot is that not only
-    // must "operator()" exist as a member of "T", it must also be callable in
-    // the context of "T" itself (whether "T" is "const" and/or "volatile"
-    // and/or an lvalue reference, rvalue reference or non-reference - in all
-    // cases "operator()" must be properly declared to support calls based on
-    // the cv-qualifiers and/or lvalue/rvalue state of "T" itself as described
+    // As an example, if "T" contains the above "operator()"
+    // template but it's not declared with the "const"
+    // qualifier but "T" itself is (declared "const"), then
+    // calling the function as shown above fails since you
+    // can't call a non-const member function using a
+    // constant object. The primary template therefore kicks
+    // in, inheriting from "std::false_type". Similarly, if
+    // "operator()" is declared with the "&&" reference
+    // qualifier (rare as this is in practice), but "T" is
+    // an lvalue reference, then again, the above call fails
+    // since you can't invoke a member function declared
+    // with the "&&" (rvalue) reference qualifier using an
+    // lvalue reference. Again, the primary template will
+    // therefore kick in (once again inheriting from
+    // "std::false_type"). The upshot is that not only must
+    // "operator()" exist as a member of "T", it must also
+    // be callable in the context of "T" itself (whether "T"
+    // is "const" and/or "volatile" and/or an lvalue
+    // reference, rvalue reference or non-reference - in all
+    // cases "operator()" must be properly declared to
+    // support calls based on the cv-qualifiers and/or
+    // lvalue/rvalue state of "T" itself as described
     // above). If it is then the specialization kicks in and
-    // "IsForEachTupleTypeFunctor" therefore inherits from "std::true_type"
-    // (meaning "T" is a suitable functor type for passing as the 2nd template
-    // arg of function template "ForEachTupleType()").
-    ////////////////////////////////////////////////////////////////////////////
+    // "IsForEachTupleTypeFunctor" therefore inherits from
+    // "std::true_type" (meaning "T" is a suitable functor
+    // type for passing as the 2nd template arg of function
+    // template "ForEachTupleType()").
+    //
+    // Lastly, note that while the signature above requires
+    // that the template arg be of "std::size_t", until
+    // reflection is available in C++26, there is no current
+    // way to strictly enforce this for now. The type need
+    // not be "std::size_" that is, but any integral type
+    // such as "int" (so the following template will
+    // therefore return true in this case). While the
+    // template is intended for returning true only if the
+    // "T::operator()" member above takes a "std::size_t"
+    // template arg, the language currently provides no way
+    // to ensure that it actually is a "std::size_t" opposed
+    // to any other integral type.
+    ////////////////////////////////////////////////////////
     template <typename T,
-              typename = void> // Arg for internal use only (users should never explicitly pass it)
+              typename = void> // Arg for internal use only (never explicitly passed)
     struct IsForEachTupleTypeFunctor : std::false_type
     {
     };
 
-    /////////////////////////////////////////////////////////////////
-    // Specialization of "IsForEachTupleTypeFunctor" (primary)
-    // template just above. This specialization does all the work.
-    // See primary template above for details. Note that calls to
-    // "declval(T)" return "T &&" (unless "T" is void - see
-    // "declval()" docs) so the following call to this works
-    // according to the usual perfect forwarding rules in C++. That
-    // is, if "T" is an lvalue reference then "declval()" returns an
-    // lvalue reference (due to the C++ reference collapsing rules),
-    // otherwise "T" must be a non-reference or an rvalue reference
-    // so "declval" returns an rvalue reference (in either case). In
-    // all cases "declval()" therefore returns the same function
-    // argument type used in a perfect forwarding function. Such
-    // arguments are always of the type "T &&" which resolves to an
-    // lvalue reference only if "T" is an lvalue reference (again,
-    // due to the C++ reference collapsing rules), or an rvalue
-    // reference if "T" is a non-reference or rvalue reference.
-    // "declval()" therefore returns the exact same type as a
-    // perfectly forwarded argument after plugging in "T" which is
-    // what we require here (we're invoking "operator()" on that
-    // argument in the following call in an unevaluated context
-    // simply to make sure it can be invoked - the primary template
-    // kicks in via SFINAE otherwise).
-    /////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+    // Specialization of "IsForEachTupleTypeFunctor"
+    // (primary) template just above. This specialization
+    // does all the work. See primary template above for
+    // details. Note that calls to "declval(T)" return "T
+    // &&" (unless "T" is void - see "declval()" docs) so
+    // the following call to this works according to the
+    // usual perfect forwarding rules in C++. That is, if
+    // "T" is an lvalue reference then "declval()" returns
+    // an lvalue reference (due to the C++ reference
+    // collapsing rules), otherwise "T" must be a
+    // non-reference or an rvalue reference so "declval"
+    // returns an rvalue reference (in either case). In all
+    // cases "declval()" therefore returns the same function
+    // argument type used in a perfect forwarding function.
+    // Such arguments are always of the type "T &&" which
+    // resolves to an lvalue reference only if "T" is an
+    // lvalue reference (again, due to the C++ reference
+    // collapsing rules), or an rvalue reference if "T" is a
+    // non-reference or rvalue reference. "declval()"
+    // therefore returns the exact same type as a perfectly
+    // forwarded argument after plugging in "T" which is
+    // what we require here (we're invoking "operator()" on
+    // that argument in the following call in an unevaluated
+    // context simply to make sure it can be invoked - the
+    // primary template kicks in via SFINAE otherwise).
+    //
+    // Lastly, as described in the primary template (see its
+    // comments for details), our call to "std::size_t(0)"
+    // seen just below doesn't guarantee that
+    // "T::operator()" takes a "std::size_t" arg (so the
+    // call to "std::size_t()" is just to show our intent
+    // only). It can take any integral type ("int" or
+    // whatever) since C++ currently provides no way to
+    // specifically target a non-type template arg like
+    // "size_t" in a case like this (until reflection is
+    // available in C++26). Any integral type that can be
+    // created from zero (0) in this case (such as "int")
+    // will therefore also cause this specialization to kick
+    // in (though the intent is to explicitly target
+    // "size_t" but there is no way to currently enforce
+    // it).
+    ////////////////////////////////////////////////////////
     template <typename T>
     struct IsForEachTupleTypeFunctor<T,
                                      //////////////////////////////////////////////////////
@@ -4491,8 +5352,12 @@ namespace StdExt
                                      // be expecting a valid function parameter type so
                                      // who knows what it might do if we pass "void" which
                                      // isn't a legal function parameter type as noted).
+                                     // Note that handling this here isn't the cleanest
+                                     // way to do it (it's a bit dirty but I won't get
+                                     // into the details here), but we'll live with it for
+                                     // now (it's currently harmless).
                                      //////////////////////////////////////////////////////
-                                     std::enable_if_t<std::is_same_v<decltype(std::declval<T>().template operator()<std::size_t(0), int /* Don't pass "void" here, see comments just above */>()),
+                                     std::enable_if_t<std::is_same_v<decltype(std::declval<T>().template operator()<std::size_t(0), int /* Not passing "void" here, see comments just above */>()),
                                                                      bool
                                                                     >
                                                      >
@@ -4500,17 +5365,17 @@ namespace StdExt
     {
     };
 
-    /////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
     // Helper variable template for "IsForEachTupleTypeFunctor"
     // just above (with the usual "_v" suffix).
-    /////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
     template <typename T>
     inline constexpr bool IsForEachTupleTypeFunctor_v = IsForEachTupleTypeFunctor<T>::value;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -4534,32 +5399,44 @@ namespace StdExt
                                                                               "template <std::size_t I, typename TypeT>\n" \
                                                                               "bool operator()() const\n" \
                                                                               "\n" \
-                                                                              "The function should return true to continue iterating or false to " \
-                                                                              "stop iterating, similar to a \"break\" statement in a regular \"for\" " \
-                                                                              "loop. Note that the function must return a \"bool\" but otherwise " \
-                                                                              "must simply be invocable on an instance of " QUOTE_STRINGIFY(T) " (so " \
-                                                                              "whether it's declared \"const\", \"noexcept\", etc. is immaterial so " \
-                                                                              "long as it can be specialized on a \"std::size_t\" and an arbitrary " \
-                                                                               "type, and invoked on an instance of " QUOTE_STRINGIFY(T) " as noted.");
+                                                                              "The function should return true to continue iterating or false " \
+                                                                              "to stop iterating, similar to a \"break\" statement in a regular " \
+                                                                              "for loop. Note that the function must return a \"bool\" but " \
+                                                                              "otherwise must simply be invocable on an instance of " \
+                                                                              QUOTE_STRINGIFY(T) " (so whether it's declared \"const\", " \
+                                                                              "\"noexcept\", etc. is usually immaterial so long as it can be " \
+                                                                              "specialized on a \"std::size_t\" and an arbitrary type, and " \
+                                                                              "invoked on an instance of " QUOTE_STRINGIFY(T) " as noted - " \
+                                                                              "note however that in the rare case where your \"operator()\" " \
+                                                                              "member is declared with the \"&\" qualifier but you pass a " \
+                                                                              "temporary " QUOTE_STRINGIFY(T) " object, i.e., an \"rvalue\", " \
+                                                                              "then C++ requires your \"operator()\" member to also be " \
+                                                                              "declared \"const\" or a compiler error will always occur - " \
+                                                                              "if your \"operator()\" member is declared with the \"&&\" " \
+                                                                              "qualifier however then C++ requires that your " \
+                                                                              QUOTE_STRINGIFY(T) " object must *always* be an \"rvalue\" " \
+                                                                              "- passing an \"lvalue\" in this case will always result in a " \
+                                                                              "compiler error whether \"operator()\" is \"const\" or not).");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    // /////////////////////////////////////////////////////////////////////
-    // For C++17 only (though we're testing the following constant instead
-    // but read on) we'll rely on the "ProcessTupleType" functor declared
-    // just below which is used exclusively by function template
-    // "ForEachTupleType()" declared just afterwards. For C++20 and later
-    // however we'll rely on a lambda template instead (the equivalent of
-    // the struct just below but locally declared in function template
-    // "ForEachTupleType()" so it's cleaner). Note that lambda templates
-    // aren't supported until C++20 but we're relying on the following
-    // constant to test for it instead of checking CPP20_OR_LATER, just in
-    // case we're now running under an early version of C++20 where lambda
-    // templates aren't supported yet. The following is guaranteed never to
-    // be #defined in C++17 (by design), but it may not be #defined in
-    // early versions of C++20 either, if lambda templates aren't available
-    // yet (depending on the compiler).
-    // /////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+    // The following (LAMBDA_TEMPLATES_SUPPORTED) is always
+    // undefined in C++17 and normally #defined in C++20 or
+    // later (unless we're targeting an early version of
+    // C++20 that doesn't support lambda templates yet in
+    // which case it will also be #undefined). If not
+    // #defined (so C++17 or early versions of C++20 as
+    // just described)), then class "ProcessTupleType" is
+    // declared just below which will be used by template
+    // "ForEachTupleType()" declared just after this
+    // namespace. If the following *is* #defined however
+    // (so C++20 or later) then "ForEachTupleType()" will
+    // rely on a local lambda template instead (the
+    // equivalent of "ProcessTupleType" just below but
+    // locally declared in function template
+    // "ForEachTupleType()" so it's cleaner).
+    ////////////////////////////////////////////////////////
     #if !defined(LAMBDA_TEMPLATES_SUPPORTED)
         ///////////////////////////////////////////////////
         // For internal use only (by "ForEachTupleType()"
@@ -4570,19 +5447,32 @@ namespace StdExt
             /////////////////////////////////////////////////////////////
             // class ProcessTupleType. Private implementation class used
             // by function template "ForEachTupleType()" declared just
-            // after this private namespace. See this for details.  Note
+            // after this private namespace. See this for details. Note
             // that in the following class, "ForEachTupleTypeFunctorT"
             // is always the same template type passed to
             // "ForEachTupleType()", so either "T &" for the lvalue case
-            // or just plain "T" or "T &&" for the rvalue case (for the
-            // "rvalue" case however usually just plain "T" as per the
+            // or just plain "T" for the rvalue case (i.e., follows the
             // usual perfect forwarding rules when invoking such
             // functions via implicit type deduction).
-            ///////////////////////////////////////////////////////////
-            template <typename TupleT,
-                      typename ForEachTupleTypeFunctorT>
+            /////////////////////////////////////////////////////////////
+            template <TUPLE_C TupleT,
+                      FOR_EACH_TUPLE_TYPE_FUNCTOR_C ForEachTupleTypeFunctorT>
             class ProcessTupleType
             {
+                // See this macro for details
+                #if !defined(USE_CONCEPTS)
+                    //////////////////////////////////////////////////
+                    // Kicks in if concepts not supported, otherwise
+                    // corresponding concepts kick in in the template
+                    // declaration above instead (macros for these
+                    // above resolve to the "typename" keyword when
+                    // concepts aren't supported and the following
+                    // "static_asserts" are then used instead)
+                    //////////////////////////////////////////////////
+                    STATIC_ASSERT_IS_TUPLE(TupleT)
+                    STATIC_ASSERT_IS_FOR_EACH_TUPLE_TYPE_FUNCTOR(ForEachTupleTypeFunctorT)
+                #endif
+
             public:
                 /////////////////////////////////////////////////////////
                 // Constructor. Note that we always pass "functor" by a
@@ -4615,13 +5505,14 @@ namespace StdExt
                     // Note: Call to "std::forward()" here required to:
                     //
                     //    1) Perfect forward "m_Functor" back to "&" or "&&"
-                    //       accordingly
+                    //       accordingly (the latter case in particular)
                     //    2) In the "&&" case, invoke "operator()" in the
                     //       context of an rvalue (in particular, can't do
                     //       this on "m_Functor" directly, without invoking
                     //       "std::forward", since "m_Functor" is an lvalue
                     //       so the lvalue version of "operator()" would kick
-                    //       in in the following call instead!!)
+                    //       in in the following call instead - "std::forward"
+                    //       calls it in the correct "&&" context instead)
                     //////////////////////////////////////////////////////////
                     return std::forward<ForEachTupleTypeFunctorT>(m_Functor).template operator()<I, TupleElement_t>();
                 }
@@ -4637,53 +5528,56 @@ namespace StdExt
                 ForEachTupleTypeFunctorT &&m_Functor;
             };
         } // namespace Private
-    #endif // #if CPP17_OR_EARLIER
+    #endif // #if !defined(LAMBDA_TEMPLATES_SUPPORTED)
 
     /////////////////////////////////////////////////////////////////////////
-    // ForEachTupleType(). Iterates all tuple elements in "TupleT" where
+    // ForEachTupleType(). Iterates all tuple elements in "TupleT", where
     // "TupleT" is a "std::tuple" specialization, and invokes the given
     // "functor" for each. The effect of this function is that all types in
-    // "TupleT" are iterated or none if "TupleT" is empty. For each type in
-    // "TupleT", the given "functor" is invoked as noted. "functor" must be
-    // a functor with the following functor (template) signature (where
-    // items in square brackets are optional - note that an invalid functor
-    // will trigger the FOR_EACH_TUPLE_TYPE_FUNCTOR_C  concept in C++20 or
-    // later, or a "static_assert" in C++17, since we don't support earlier
-    // versions - compile fails either way)
+    // "TupleT" are iterated (assuming the functor doesn't "break" sooner -
+    // read on), or none if "TupleT" is empty. For each type in "TupleT",
+    // the given "functor" is invoked as noted. "functor" must be a functor
+    // with the following functor (template) signature, where items in
+    // square brackets are optional (i.e., function qualifiers and the
+    // no-except specification are immaterial). Note that an invalid functor
+    // will trigger the FOR_EACH_TUPLE_TYPE_FUNCTOR_C concept in C++20 or
+    // later, or a "static_assert" in C++17 (we don't support earlier
+    // versions).
     //
-    //     template <std::size_t I, typename TupleElementT>
+    //     template <std::size_t I,
+    //               typename TupleElementT>
     //     bool operator()() [const] [volatile] [ref-qualifier] [noexcept];
     //
     // Note that lambdas with this signature are also (therefore) supported
     // in C++20 or later (since lambda templates aren't supported in earlier
     // versions of C++ so you'll have to roll your own functor template if
-    // targeting C++17). Note that free functions or other non-static member
-    // functions besides "operator()" are not currently supported (but may
-    // be in a future release):
+    // targeting C++17).
     //
     //     Example
     //     -------
     //     ////////////////////////////////////////////////////////
     //     // Some tuple whose types you wish to iterate (display
     //     // in this example - see "displayTupleType" lambda
-    //     // below).
+    //     // just below).
     //     ////////////////////////////////////////////////////////
-    //     std::tuple<int, float, double> someTuple;
+    //     using SomeTuple = std::tuple<int, float, double>;
     //
-    //     /////////////////////////////////////////////////////////////////
-    //     // Lambda that will be invoked just below, once for each type in
-    //     // "someTuple()" above (where template arg "I" is the zero-based
-    //     // "Ith" index of the type in "someTuple", and "TupleElementT" is
-    //     // its type). Note that lambda templates are supported in C++20
-    //     // and later only. For C++17 (this header doesn't support earlier
-    //     // versions), you need to roll your own functor instead (with a
-    //     // template version of "operator()" equivalent to this lambda)
-    //     /////////////////////////////////////////////////////////////////
+    //     //////////////////////////////////////////////////////////
+    //     // Lambda that will be invoked just below, once for each
+    //     // type in "SomeTuple" above (where template arg "I" is
+    //     // the zero-based "Ith" index of the type in "SomeTuple",
+    //     // and "TupleElementT" is its type). Note that lambda
+    //     // templates are supported in C++20 and later only. For
+    //     // C++17 (this header doesn't support earlier versions),
+    //     // you need to roll your own functor instead (with a
+    //     // template version of "operator()" equivalent to this
+    //     // lambda)
+    //     //////////////////////////////////////////////////////////
     //     const auto displayTupleType = []<std::size_t I, typename TupleElementT>()
     //                                   {
     //                                       /////////////////////////////////////////////////////////
     //                                       // Display the type of the (zero-based) "Ith" type in
-    //                                       // "someTuple" using the following format (shown here
+    //                                       // "SomeTuple" using the following format (shown here
     //                                       // for "I" equals zero so "TupleElementT" is therefore
     //                                       // an "int", but whatever "I" and "TupleElementT" are
     //                                       // on each iteration - note that we increment zero-based
@@ -4693,7 +5587,7 @@ namespace StdExt
     //                                       //    1) int
     //                                       //
     //                                       // Note that we never come through here if the tuple
-    //                                       // represented by "someTuple" is empty.
+    //                                       // represented by "SomeTuple" is empty.
     //                                       /////////////////////////////////////////////////////////
     //                                       tcout << (I + 1) << _T(") ") << TypeName_v<TupleElementT> << _T("\n");
     //
@@ -4705,30 +5599,33 @@ namespace StdExt
     //                                       return true;
     //                                   };
     //
-    //     ///////////////////////////////////////////////////////////////
-    //     // Iterate all tuple elements in "someTuple" meaning once for
-    //     // each type in "someTuple()" above. Invokes "displayTupleType"
-    //     // above for each. Outputs the following:
+    // 
+    //     //////////////////////////////////////////////////////////
+    //     // Iterate all tuple elements in "SomeTuple" meaning once
+    //     // for each type in "SomeTuple()" above. Invokes
+    //     // "displayTupleType" above for each. Outputs the
+    //     // following:
     //     //
     //     //     1) int
     //     //     2) float
     //     //     3) double
     //     //
-    //     // Note that "ForEachTupleType()" returns true if the functor
-    //     // you pass ("displayTupleType" in this example) returns true
-    //     // or false otherwise (useful if your functor needs to "break"
-    //     // like a normal "for" loop for any reason - iteration
-    //     // immediately stops if it returns false and the following
-    //     // therefore returns false). Always returns true in the above
-    //     // example (and typically in most real-world code as well)
-    //     ///////////////////////////////////////////////////////////////
-    //     ForEachTupleType<decltype(someTuple)>(displayTupleType);
+    //     // Note that "ForEachTupleType()" returns true if the
+    //     // functor you pass ("displayTupleType" in this example)
+    //     // returns true or false otherwise (useful if your
+    //     // functor needs to "break" like a normal "for" loop for
+    //     // any reason - iteration immediately stops if it returns
+    //     // false and the following therefore returns false).
+    //     // Always returns true in the above example.
+    //     //////////////////////////////////////////////////////////
+    //     ForEachTupleType<decltype(SomeTuple)>(displayTupleType);
+    //
     /////////////////////////////////////////////////////////////////////////
     template <TUPLE_C TupleT,
               FOR_EACH_TUPLE_TYPE_FUNCTOR_C ForEachTupleTypeFunctorT>
     inline constexpr bool ForEachTupleType(ForEachTupleTypeFunctorT&& functor)
     {
-        // See this constant for details
+        // See this macro for details
         #if !defined(USE_CONCEPTS)
             //////////////////////////////////////////////////
             // Kicks in if concepts not supported, otherwise
@@ -4742,104 +5639,115 @@ namespace StdExt
             STATIC_ASSERT_IS_FOR_EACH_TUPLE_TYPE_FUNCTOR(ForEachTupleTypeFunctorT)
         #endif
 
-        /////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////
         // IMPORTANT
         // ---------
-        // (Note: You need not read this (very) long explanation since
-        // we've correctly worked around it as described below, but I've
-        // included it here for posterity).
+        // (Note: You need not read this (very) long explanation
+        // since we've correctly worked around the issue as
+        // described below, but I've included it here for
+        // posterity).
         //
-        // The following call checks for zero as seen (true only when
-        // "TupleT" is empty), in order to completely bypass the call to
-        // "ForEach()" seen further below (when "TupleT" isn't empty).
-        // There's no need to call "ForEach()" further below if the
-        // tuple is empty since there's nothing to iterate. Note however
-        // that the latter call to "ForEach()" itself will also handle
-        // an empty tuple, since it will immediately return true if its
-        // "N" template arg is zero (0). The following check for an
-        // empty tuple would therefore seem to be redundant
-        // (unnecessary), since "ForEach()" also correctly deals with
-        // the situation. However, there's a subtle issue at play here
-        // that requires us not to call "ForEach()" when the tuple is in
-        // fact empty. Doing so would mean that the "operator()"
-        // template member of the "processTupleType" functor we're
-        // passing to "ForEach" below will be specialized on zero (its
-        // "std::size_t" template arg will be zero), even though it will
-        // never actually be called by "ForEach()" (since the tuple is
-        // empty). "operator()" is still specialized on zero however
-        // because when "ForEach()" is stamped out on the template args
-        // we pass it, "IsForEachFunctor_v" is called to check if the
-        // 2nd template arg of "ForEach()" is a valid functor type. This
-        // occurs via a "static_assert" in C++17 or a concept in C++20
-        // or later, but in either case "IsForEachFunctor_v" is called
-        // and the implementation for this stamps out a copy of the
-        // functor's "operator()" template arg, again, doing so with
-        // template arg zero (0). "operator()" isn't actually called at
-        // this time however, only stamped out (specialized on template
-        // arg zero), simply to make sure the functor type being passed
-        // is valid. If not then "IsForEachFunctor_v" will return false
-        // and the "static_assert" in C++17 or concept in C++20 or later
-        // will correctly trap the situation at compile time (i.e., an
-        // invalid type is being passed for the 2nd template arg of
-        // "ForEach"). However, if the 1st template arg of "ForEach",
-        // namely "N" (the number of iterations it will be called for),
-        // is zero itself, then although the functor's "operator()"
-        // template member will never be called since "N" is zero as
-        // noted (so there will be no iterations), "IsForEachFunctor_v"
+        // The following call checks for zero as seen (true only
+        // when "TupleT" is empty), in order to completely bypass
+        // the call to "ForEach()" seen further below (when
+        // "TupleT" isn't empty). There's no need to call
+        // "ForEach()" further below if the tuple is empty since
+        // there's nothing to iterate. Note however that the
+        // latter call to "ForEach()" itself will also handle an
+        // empty tuple, since it will immediately return true if
+        // its "N" template arg is zero (0). The following check
+        // for an empty tuple would therefore seem to be redundant
+        // (unnecessary), since "ForEach()" also correctly deals
+        // with the situation. However, there's a subtle issue at
+        // play here that requires us not to call "ForEach()" when
+        // the tuple is in fact empty. Doing so would mean that
+        // the "operator()" template member of the
+        // "processTupleType" functor we're passing to "ForEach"
+        // below will be specialized on zero (its "std::size_t"
+        // template arg will be zero), even though it will never
+        // actually be called by "ForEach()" (since the tuple is
+        // empty). "operator()" is still specialized on zero
+        // however because when "ForEach()" is stamped out on the
+        // template args we pass it, "IsForEachFunctor_v" is
+        // called to check if the 2nd template arg of "ForEach()"
+        // is a valid functor type. This occurs via a
+        // "static_assert" in C++17 or a concept in C++20 or
+        // later, but in either case "IsForEachFunctor_v" is
+        // called and the implementation for this stamps out a
+        // copy of the functor's "operator()" template arg, again,
+        // doing so with template arg zero (0). "operator()" isn't
+        // actually called at this time however, only stamped out
+        // (specialized on template arg zero), simply to make sure
+        // the functor type being passed is valid. If not then
+        // "IsForEachFunctor_v" will return false and the
+        // "static_assert" in C++17 or concept in C++20 or later
+        // will correctly trap the situation at compile time
+        // (i.e., an invalid type is being passed for the 2nd
+        // template arg of "ForEach"). However, if the 1st
+        // template arg of "ForEach", namely "N" (the number of
+        // iterations it will be called for), is zero itself, then
+        // although the functor's "operator()" template member
+        // will never be called since "N" is zero as noted (so
+        // there will be no iterations), "IsForEachFunctor_v"
         // itself will still stamp out "operator()" with its
-        // "std::size_t" template arg set to zero (0) as just described.
-        // Note that "IsForEachFunctor_v" has no choice but to stamp out
-        // "operator()" since there's no other way in C++ for it do its
-        // job at this writing (check if a type is a functor with a
-        // template member, in this case "operator()" with a
-        // "std::size_t" template arg).
+        // "std::size_t" template arg set to zero (0) as just
+        // described. Note that "IsForEachFunctor_v" has no choice
+        // but to stamp out "operator()" since there's no other
+        // way in C++ for it do its job at this writing (check if
+        // a type is a functor with a template member, in this
+        // case "operator()" with a "std::size_t" template arg).
         //
         // There's a problem with this situation however. Our
-        // (identical) implementation of "operator()" seen in both the
-        // lambda below (for C++20 and later), or in class
+        // (identical) implementation of "operator()" seen in both
+        // the lambda below (for C++20 and later), or in class
         // "Private::ProcessTupleType" (C++17 only), both call
         // "std::tuple_element_t<I, TupleT>", but if the "TupleT"
-        // template are we're passing to this is empty, then it's
-        // illegal to call it for any index including zero (since the
-        // tuple is empty so even index zero is out of bounds). Template
-        // "I" in this call (zero) is therefore an invalid index so
-        // compilation will therefore fail (but not in C++17 for reasons
-        // unknown - read on). The upshot is that when dealing with an
-        // empty tuple, i.e., the "TupleT" template arg of the function
+        // template arg we're passing to this is empty, then it's
+        // illegal to call it for any index including zero (since
+        // the tuple is empty so even index zero is out of
+        // bounds). Template arg "I" in this call (zero) is
+        // therefore an invalid index so compilation will
+        // therefore fail (but not in C++17 for reasons unknown -
+        // read on). The upshot is that when dealing with an empty
+        // tuple, i.e., the "TupleT" template arg of the function
         // you're now reading is empty, we can't call "ForEach()"
-        // because even though it won't iterate the functor it's being
-        // passed (since the "N" template arg of "ForEach()" will be
-        // zero in this case), the call to "IsForEachFunctor_v" that
-        // occurs merely by stamping out "ForEach()" will cause the call
-        // to "std::tuple_element_t<I, TupleT>" in our functor to choke
-        // during compilation (since it's stamped out with its "I"
-        // template arg set to zero but the "TupleT" template arg is
-        // empty so "I" is an illegal index). Again, this occurs even
-        // though the code is never actually called, but it's illegal
-        // even to stamp it out in this case.
+        // because even though it won't iterate the functor it's
+        // being passed (since the "N" template arg of "ForEach()"
+        // will be zero in this case), the call to
+        // "IsForEachFunctor_v" that occurs merely by stamping out
+        // "ForEach()" will cause the call to
+        // "std::tuple_element_t<I, TupleT>" in our functor to
+        // choke during compilation (since it's stamped out with
+        // its "I" template arg set to zero but the "TupleT"
+        // template arg is empty so "I" is an illegal index).
+        // Again, this occurs even though the code is never
+        // actually called by "ForEach", but it's illegal even to
+        // stamp it out in this case.
         //
-        // Please note that as previously mentioned, this situation only
-        // occurs in C++20 or later. In this case the lambda seen in the
-        // code below would trigger the problem without explicit action
-        // to circumvent it (which the following "if constexpr" does),
-        // but in C++17 the problem doesn't occur. In C++17 the same
-        // code seen in the lambda below exists but in
-        // "Private::ProcessTupleType::operator()" instead (the lambda
-        // below targets C++20 or later only), but for reasons unknown
-        // (I haven't investigated), in C++17 no compilation error
-        // occurs on the call to "std::tuple_element_t<I, TupleT>" (as
-        // described). It's likely (presumably) not being stamped out
-        // in this case. Testing shows however that if we allowed the
-        // same code to be compiled in C++20, instead of the lambda
-        // below (that we actually rely on in C++20 or later), it will
+        // Please note that as previously mentioned, this
+        // situation only occurs in C++20 or later. In this case
+        // the lambda seen in the code below would trigger the
+        // problem unless we take explicit action to circumvent it
+        // (which the following "if constexpr" does), but in C++17
+        // the problem doesn't occur. In C++17 the same code seen
+        // in the lambda below exists but in
+        // "Private::ProcessTupleType::operator()" instead (the
+        // lambda below targets C++20 or later only), but for
+        // reasons unknown (I haven't investigated), in C++17 no
+        // compilation error occurs on the call to
+        // "std::tuple_element_t<I, TupleT>" (as described). It's
+        // likely (presumably) not being stamped out in this case.
+        // Testing shows however that if we allowed the same code
+        // to be compiled in C++20 instead of the lambda below
+        // (that we actually rely on in C++20 or later), it will
         // also fail. IOW, this whole situation surrounding
-        // "std::tuple_element_t<I, TupleT>" only starts surfacing in
-        // C++20 so something clearly has changed between C++17 and
-        // C++20 (since what compiled without error in C++17 now fails
-        // in C++20). This should be investigated but it's a moot point
-        // for now since the following "if constexpr" statement prevents
-        // the issue altogether.
-        /////////////////////////////////////////////////////////////////
+        // "std::tuple_element_t<I, TupleT>" only starts surfacing
+        // in C++20 so something clearly has changed between C++17
+        // and C++20 (since what compiled without error in C++17
+        // now fails in C++20). This should be investigated but
+        // it's a moot point for now since the following "if
+        // constexpr" statement prevents the issue altogether.
+        ///////////////////////////////////////////////////////////
         if constexpr (std::tuple_size_v<TupleT> != 0)
         {
             // Lambda templates not supported until C++20
@@ -4851,7 +5759,7 @@ namespace StdExt
                 // earlier below). Each iteration invokes "functor",
                 // where processing stops after all types in "TupleT"
                 // have been processed or "functor" returns false,
-                // whichever comes first  (false only returned if
+                // whichever comes first (false only returned if
                 // "functor" wants to break like a normal "for" loop,
                 // which rarely happens in practice so we usually
                 // iterate all tuple types in "TupleT")
@@ -4905,7 +5813,7 @@ namespace StdExt
                 // this case).
                 ////////////////////////////////////////////////////////////
                 const Private::ProcessTupleType<TupleT, ForEachTupleTypeFunctorT> processTupleType(std::forward<ForEachTupleTypeFunctorT>(functor));
-            #endif
+            #endif // #if defined(LAMBDA_TEMPLATES_SUPPORTED)
 
             ///////////////////////////////////////////////////////////////
             // Defer to this function template further above, passing the
@@ -4949,7 +5857,7 @@ namespace StdExt
         // and "IsAbominableFunction_v" will return false regardless).
         /////////////////////////////////////////////////////////////////////////
         template <typename T,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         struct FunctionHasQualifiers : std::true_type
         {
         };
@@ -5156,7 +6064,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5180,16 +6088,16 @@ namespace StdExt
     inline constexpr bool IsFreeFunctionPointer_v = std::is_pointer_v<T> && // Note: Returns false for non-static member
                                                                             // pointers (to functions or data) as well as
                                                                             // for abominable functions (since pointers to
-                                                                            // abominable functions aren't legal in the
-                                                                            // language so "T" can never be one). Returns
-                                                                            // true for static member pointers however (to
-                                                                            // functions or data).
-                                                    std::is_function_v<std::remove_pointer_t<T>>; // Note: "std::remove_pointer_t" doesn't remove
-                                                                                                  // the pointer for non-static member pointers so
-                                                                                                  // "std::is_function_v" will always return false
-                                                                                                  // for such pointers (but it's irrelevant here
-                                                                                                  // anyway since the call just above always returns
-                                                                                                  // false for such pointers as well)
+                                                                            // abominable functions aren't legal in C++
+                                                                            // so "T" can never be one). Returns true for
+                                                                            // static member pointers however (to functions
+                                                                            // or data).
+                                                    std::is_function_v< std::remove_pointer_t<T> >; // Note: "std::remove_pointer_t" doesn't remove
+                                                                                                    // the pointer for non-static member pointers so
+                                                                                                    // "std::is_function_v" will always return false
+                                                                                                    // for such pointers (but it's irrelevant here
+                                                                                                    // anyway since the call just above always returns
+                                                                                                    // false for such pointers as well)
 
     ///////////////////////////////////////////////////////////////////////
     // IsAbominableFunction_v. Checks if template arg "T" is an abominable
@@ -5217,7 +6125,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5254,49 +6162,50 @@ namespace StdExt
     namespace Private
     {
         template <typename T>
-        inline constexpr bool IsFreeOrMemberFunctionPointer_v = IsFreeFunctionPointer_v<T> ||
-                                                                std::is_member_function_pointer_v<T>;
+        inline constexpr bool IsFreeFunctionOrMemberFunctionPointer_v = IsFreeFunction_v<T> ||
+                                                                        std::is_member_function_pointer_v<T>;
 
         #if defined(USE_CONCEPTS)
             template <typename T>
-            concept FreeOrMemberFunctionPointer_c = IsFreeOrMemberFunctionPointer_v<T>;
+            concept FreeFunctionOrMemberFunctionPointer_c = IsFreeFunctionOrMemberFunctionPointer_v<T>;
 
             // For internal use only (we #undef both later)
-            #define FREE_OR_MEMBER_FUNCTION_POINTER_C StdExt::Private::FreeOrMemberFunctionPointer_c
-            #define STATIC_ASSERT_IS_FREE_OR_MEMBER_FUNCTION_POINTER(T)
+            #define FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER_C StdExt::Private::FreeFunctionOrMemberFunctionPointer_c
+            #define STATIC_ASSERT_IS_FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER(T)
         #else
             // For internal use only (we #undef both later)
-            #define FREE_OR_MEMBER_FUNCTION_POINTER_C typename
-            #define STATIC_ASSERT_IS_FREE_OR_MEMBER_FUNCTION_POINTER(T) static_assert(StdExt::Private::IsFreeOrMemberFunctionPointer_v<T>, \
-                                                                                      QUOTE_STRINGIFY(T) " must be a free or member " \
-                                                                                      "function pointer");
+            #define FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER_C typename
+            #define STATIC_ASSERT_IS_FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER(T) static_assert(StdExt::Private::IsFreeFunctionOrMemberFunctionPointer_v<T>, \
+                                                                                               QUOTE_STRINGIFY(T) " must be a free function or member " \
+                                                                                               "function pointer");
         #endif // #if defined(USE_CONCEPTS)
     } // namespace Private
 
     ///////////////////////////////////////////////////////////////////
     // "IsNonOverloadedFunctor" (primary template ). Primary template
     // inherits from "std::false_type" if "T" is *not* a
-    // non-overloaded, non-static functor. Otherwise, if it is a
-    // non-overloaded, non-static functor then the specialization just
-    // below kicks in instead (inheriting from "std::true_type"). In
-    // this case (i.e., the specialization kicks in) then by
-    // definition "T" must be a class or struct with a non-overloaded,
-    // non-static member function called "operator()". This will
-    // usually be non-static but static versions of "operator()" were
-    // legalized in C++23 though this template only handles (detects)
-    // non-static functors. Note that if non-static "T::operator()"
-    // exists but is overloaded then the primary template will kick in
-    // since which "operator()" to use becomes ambiguous. In this case
-    // you'll have to target the specific "operator()" overload you're
-    // interested by taking its address and doing a "static_cast" to
-    // the exact signature you're interested in (in order to
-    // disambiguate it for whatever purpose you require). You can't
-    // rely on this template IOW since it will fail to identify "T" as
-    // a functor due to the ambiguity (hence the template's name - it
-    // can detect non-overloaded functors only).
+    // non-overloaded, non-static operator() functor. Otherwise, if it
+    // is a non-overloaded, non-static operator functor then the
+    // specialization just below kicks in instead (inheriting from
+    // "std::true_type"). In this case (i.e., the specialization kicks
+    // in) then by definition "T" must be a class or struct with a
+    // non-overloaded, non-static member function called "operator()".
+    // This will usually be non-static but static versions of
+    // "operator()" were legalized in C++23 though this template only
+    // handles (detects) non-static operator() functors. Note that if
+    // non-static "T::operator()" exists but is overloaded then the
+    // primary template will kick in since which "operator()" to use
+    // becomes ambiguous. In this case you'll have to target the
+    // specific "operator()" overload you're interested by taking its
+    // address and doing a "static_cast" to the exact signature you're
+    // interested in (in order to disambiguate it for whatever purpose
+    // you require). You can't rely on this template IOW since it will
+    // fail to identify "T" as a functor due to the ambiguity (hence
+    // the template's name - it can detect non-overloaded functors
+    // only).
     ///////////////////////////////////////////////////////////////////
     template <typename T,
-              typename = void> // Arg for internal use only (users should never explicitly pass it)
+              typename = void> // Arg for internal use only (never explicitly passed)
     struct IsNonOverloadedFunctor : std::false_type
     {
     };
@@ -5308,10 +6217,11 @@ namespace StdExt
     /////////////////////////////////////////////////////////////////
     template <typename T>
     struct IsNonOverloadedFunctor<T,
-                                  std::enable_if_t< AlwaysTrue_v<decltype(&T::operator())> &&  // True if "T" is a class with a non-overloaded "operator()" member
-                                                    std::is_member_function_pointer_v<decltype(&T::operator())> // True if "operator()" is a *non-static* member function
-                                                                                                                // (static versions were legalized in C++23 but we don't
-                                                                                                                // detect those here, only non-static versions)
+                                  std::enable_if_t< std::is_member_function_pointer_v<decltype(&T::operator())> // True if "T" is a class with a non-overloaded,
+                                                                                                                // non-static "operator()" member function (static
+                                                                                                                // versions of "operator()" were legalized in C++23
+                                                                                                                // but we don't detect those here, only non-static
+                                                                                                                // versions)
                                                   >
                                  > : std::true_type
     {
@@ -5333,36 +6243,37 @@ namespace StdExt
     #else
         #define NON_OVERLOADED_FUNCTOR_C typename
         #define STATIC_ASSERT_IS_NON_OVERLOADED_FUNCTOR(T) static_assert(StdExt::IsNonOverloadedFunctor_v<T>, \
-                                                                         "\"T\" must be a non-overloaded, non-static functor (i.e., " \
-                                                                         "a class or struct with a non-overloaded, non-static " \
-                                                                         "member function called operator \"operator()\")");
+                                                                         "\"T\" must be a non-overloaded, non-static operator() " \
+                                                                         "functor (i.e., a class or struct with a non-overloaded, " \
+                                                                         "non-static member function called operator \"operator()\")");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
     ///////////////////////////////////////////////////////////////////
     // "IsNonOverloadedStaticFunctor" (primary template ). Primary
     // template inherits from "std::false_type" if "T" is *not* a
-    // non-overloaded, static functor. Otherwise, if it is a
-    // non-overloaded, static functor then the specialization just
-    // below kicks in instead (inheriting from "std::true_type"). In
-    // this case (i.e., the specialization kicks in) then by
-    // definition "T" must be a class or struct with a non-overloaded,
-    // static member function called "operator()". This will usually
-    // be non-static but static versions of "operator()" were
-    // legalized in C++23, which this template detects (never
-    // non-static functors). Note that if static "T::operator()"
-    // exists but is overloaded then the primary template will kick in
-    // since which "operator()" to use becomes ambiguous. In this case
-    // you'll have to target the specific "operator()" overload you're
-    // interested by taking its address and doing a "static_cast" to
-    // the exact signature you're interested in (in order to
-    // disambiguate it for whatever purpose you require). You can't
-    // rely on this template IOW since it will fail to identify "T" as
-    // a functor due to the ambiguity (hence the template's name - it
-    // can detect non-overloaded functors only).
+    // non-overloaded, static operator() functor. Otherwise, if it is
+    // a non-overloaded, static operator() functor then the
+    // specialization just below kicks in instead (inheriting from
+    // "std::true_type"). In this case (i.e., the specialization kicks
+    // in) then by definition "T" must be a class or struct with a
+    // non-overloaded, static member function called "operator()".
+    // This will usually be non-static but static versions of
+    // "operator()" were legalized in C++23, which this template
+    // detects (never non-static operator() functors). Note that if
+    // static "T::operator()" exists but is overloaded then the
+    // primary template will kick in since which "operator()" to use
+    // becomes ambiguous. In this case you'll have to target the
+    // specific "operator()" overload you're interested by taking its
+    // address and doing a "static_cast" to the exact signature you're
+    // interested in (in order to disambiguate it for whatever purpose
+    // you require). You can't rely on this template IOW since it will
+    // fail to identify "T" as a functor due to the ambiguity (hence
+    // the template's name - it can detect non-overloaded functors
+    // only).
     ///////////////////////////////////////////////////////////////////
     template <typename T,
-              typename = void> // Arg for internal use only (users should never explicitly pass it)
+              typename = void> // Arg for internal use only (never explicitly passed)
     struct IsNonOverloadedStaticFunctor : std::false_type
     {
     };
@@ -5374,10 +6285,10 @@ namespace StdExt
     ///////////////////////////////////////////////////////////////
     template <typename T>
     struct IsNonOverloadedStaticFunctor<T,
-                                        std::enable_if_t< AlwaysTrue_v<decltype(&T::operator())> && // True if "T" is a class with a non-overloaded "operator()" member
-                                                          IsFreeFunctionPointer_v<decltype(&T::operator())> // True if "operator()" is a *static* member function
-                                                                                                            // (static versions of "operator()" were legalized in
-                                                                                                            // C++23 - we only detect static versions of this here,
+                                        std::enable_if_t< IsFreeFunctionPointer_v<decltype(&T::operator())> // True if "T" is a class with a non-overloaded,
+                                                                                                            // static "operator()" member function (static
+                                                                                                            // versions of "operator()" were legalized in
+                                                                                                            // C++23 - we only detect static versions here,
                                                                                                             // not non-static versions)
                                                         >
                                        > : std::true_type
@@ -5400,9 +6311,9 @@ namespace StdExt
     #else
         #define NON_OVERLOADED_STATIC_FUNCTOR_C typename
         #define STATIC_ASSERT_IS_NON_OVERLOADED_STATIC_FUNCTOR(T) static_assert(StdExt::IsNonOverloadedStaticFunctor_v<T>, \
-                                                                                "\"T\" must be a non-overloaded, static functor (i.e., " \
-                                                                                "a class or struct with a non-overloaded, static " \
-                                                                                "member function called operator \"operator()\"). Note " \
+                                                                                "\"T\" must be a non-overloaded, static operator() " \
+                                                                                "functor (i.e., a class or struct with a non-overloaded, " \
+                                                                                "static member function called \"operator()\"). Note " \
                                                                                 "that static versions of \"operator()\" were legalized " \
                                                                                 "in C++23.");
     #endif // #if defined(USE_CONCEPTS)
@@ -5422,7 +6333,7 @@ namespace StdExt
     // library never does).
     ////////////////////////////////////////////////////////
     template <typename T>
-    inline constexpr bool IsStdFunctionSpecialization_v = IsSpecialization_v<T, std::function>;
+    inline constexpr bool IsStdFunctionSpecialization_v = IsSpecializationOf_v<T, std::function>;
 #endif
 
     #if defined(USE_CONCEPTS)
@@ -5440,35 +6351,62 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    /////////////////////////////////////////////////////////////////
-    // StdFunctionTemplateArg_t. Returns the type that template arg
-    // T, which must be a "std::function" specialization, was
-    // specialized on (i.e., returns the function type that was
-    // passed as the template arg to "std::function" itself, which
-    // is the function type that it wraps). Legal types that can be
-    // passed to "std::function" are types that satisfy
-    // "std::is_function" excluding the following:
-    //
-    //   1) noexcept functions
-    //   2) Variadic functions
-    //   3) Abominable functions
-    //   4) Functions with calling conventions that differ from the
-    //      default (so if a calling convention is explicitly
-    //      present in some function then it must match the default
-    //      calling convention or all bets are off). Calling
-    //      conventions aren't part of the C++ standard itself so
-    //      "std::function" doesn't officially handle any that
-    //      differ from the default on the calling platform.
-    //
-    // Note that some compilers may allow "std::function" to be
-    // specialized on the excluded functions above but it's not
-    // sanctioned by the C++ standard itself (so developers
-    // shouldn't normally pass such functions since it's technically
-    // unsupported in C++ even if some compilers permit it).
-    /////////////////////////////////////////////////////////////////
-    template <STD_FUNCTION_C T>
-    using StdFunctionTemplateArg_t = TemplateArg_t<T, std::function>;
+    ////////////////////////////////////////////////////////
+    // Variable template returning true if "T" is a
+    // "std::function" specialization or "false" otherwise.
+    // Note that "std::function" derivatives always return
+    // false, since in the general case, types derived from
+    // a specialization don't qualify as the specialization
+    // itself, they only inherit from it (subtle but
+    // meaningful difference). "std::function" derivatives
+    // aren't normally valid in C++ anyway, since the
+    // "std::function" destructor isn't virtual so
+    // developers shouldn't normally derive from it (this
+    // library never does).
+    ////////////////////////////////////////////////////////
+    template <typename T,
+              typename = void> // Arg for internal use only (never explicitly passed)
+    struct IsValidStdFunctionSpecialization : std::false_type
+    {
+    };
 
+    template <typename T>
+    struct IsValidStdFunctionSpecialization<T,
+                                            std::enable_if_t<IsStdFunctionSpecialization_v<T> && // Make sure "T" is a "std::function"
+                                                                                                 // specialization
+                                                             AlwaysTrue_v<typename T::result_type> // If check above is true then "T::result_type"
+                                                                                                   // is present only if "T" is defined. If undefined
+                                                                                                   // then the "std::function" wasn't specialized on
+                                                                                                   // a valid function type suitable for passing to
+                                                                                                   // "std::function" (so we're not dealing with a
+                                                                                                   // valid "std::function" type and SFINAE fails)
+                                                            >
+                                           >
+                                           : std::true_type
+    {
+    };
+
+    template <typename T>
+    inline constexpr bool IsValidStdFunctionSpecialization_v = IsValidStdFunctionSpecialization<T>::value;
+#endif
+
+    #if defined(USE_CONCEPTS)
+        #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+            template <typename T>
+            concept ValidStdFunction_c = IsValidStdFunctionSpecialization_v<T>;
+        #endif
+
+        #define VALID_STD_FUNCTION_C StdExt::ValidStdFunction_c
+        #define VALID_STATIC_ASSERT_IS_STD_FUNCTION(T)
+    #else
+        #define VALID_STD_FUNCTION_C typename
+        #define VALID_STATIC_ASSERT_IS_STD_FUNCTION(T) static_assert(StdExt::IsValidStdFunctionSpecialization_v<T>, \
+                                                                     QUOTE_STRINGIFY(T) " is a \"std::function\" specialization " \
+                                                                     "but undefined because its template arg is not a valid " \
+                                                                     "function type for passing to \"std::function\"");
+    #endif // #if defined(USE_CONCEPTS)
+
+#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
     ///////////////////////////////////////////////////////////////////////////
     // Declarations mostly associated with struct "FunctionTraits" declared
     // later on (the latter struct itself plus its various base classes and
@@ -5507,18 +6445,17 @@ namespace StdExt
     // a compiler-specific "function template not defined" error of some kind
     // for C++17 - both are SFINAE-friendly). Lastly, please note that calling
     // conventions like "stdcall", etc. may be replaced by compilers with
-    // "cdecl" under certain circumstances, in particular when compiling for
-    // 64 bit environments (opposed to 32 bit). That is, if you declare a
-    // function with a particular calling convention other than "cdecl"
-    // itself, your compiler might change it to "cdecl" depending on your
-    // compile-time environment (though exceptions may exist however, such as
-    // the "vectorcall" calling convention which remains unchanged in some 64
-    // bit environments). "FunctionTraits" will therefore reflect this so its
-    // "CallingConvention" member will correctly indicate "cdecl", not the
-    // calling convention your function is actually declared with (since the
-    // compiler changed it). Note that a given compiler may or may not produce
-    // warnings about this situation when it quietly replaces your calling
-    // convention with "cdecl".
+    // "cdecl" under certain circumstances, such as when compiling for 64
+    // bits. That is, if you declare a function with a particular calling
+    // convention other than "cdecl" itself, your compiler might change it to
+    // "cdecl" depending on your target build  (though exceptions may exist
+    // however, such as the "vectorcall" calling convention which normally
+    // remains unchanged in 64 bit builds). "FunctionTraits" will therefore
+    // reflect this so its "CallingConvention" member will correctly indicate
+    // "cdecl", not the calling convention your function is actually declared
+    // with (since the compiler changed it). Note that a given compiler may or
+    // may not produce warnings about this situation when it quietly replaces
+    // your calling convention with "cdecl".
     //
     //     Example
     //     -------
@@ -5594,14 +6531,16 @@ namespace StdExt
     //        keyword
     //     3) The class (or struct) of a static member function
     //
-    // IMPORTANT: The techniques below are almost entirely based on Raymond
-    // Chen's work from MSFT, but I've modified them to deal with various
-    // issues that he didn't (like handling member functions among other
-    // things). Surprisingly his work only deals with free functions (again,
-    // I added support for member functions), but there were also some other
-    // issues. Note that Raymond wrote a series of 7 articles in his
-    // (well-known) blog showing how he developed this code. The articles are
-    // as follows (in the order he posted them):
+    // NOTE: Raymond Chen from MSFT also tackled this situation and was the
+    // inspiration behind the code below, though I've employed a somewhat
+    // different technique than his to handle calling conventions (simpler I
+    // believe but modeled after his), as well as added support for non-static
+    // member functions among other things. Surprisingly his work only deals
+    // with free functions (again, I added support for non-static member
+    // functions), but there were also some other issues. Note that Raymond
+    // wrote a series of 7 articles in his (well-known) blog showing how he
+    // developed his code. The articles are as follows (in the order he posted
+    // them - kudos to him for his work):
     //
     //     Deconstructing function pointers in a C++ template
     //     https://devblogs.microsoft.com/oldnewthing/20200713-00/?p=103978
@@ -5623,23 +6562,32 @@ namespace StdExt
     //
     //     Deconstructing function pointers in a C++ template, returning to enable_if
     //     https://devblogs.microsoft.com/oldnewthing/20200721-00/?p=103995
-    //
-    // Unfortunately he didn't consolidate all this into one long article to
-    // make it easier to read (they're just individual blogs), nor post his
-    // code in a downloadable file for immediate use. Anyone implementing his
-    // code therefore has to copy and paste it but also has to read through
-    // the articles to understand things (in order to make it production-ready).
-    //
-    // Note that he also doesn't #include the few standard C++ headers his
-    // code relies on either but none of this matters to anyone using the code
-    // below. All the work's been done so you don't need to understand the
-    // details, just how to use the "FunctionTraits" template itself (see
-    // example further above)
     ///////////////////////////////////////////////////////////////////////////
 
     // For internal use only
     namespace Private
     {
+        class AnyClass
+        {
+        };
+
+        // Primary template
+        template <bool FreeFunc>
+        struct TestFunc
+        {
+            using Type = void ();
+        };
+
+        // Partial specialization of above template
+        template <>
+        struct TestFunc<false>
+        {
+            using Type = void (AnyClass::*)();
+        };
+
+        template <bool FreeFunc>
+        using TestFunc_t = typename TestFunc<FreeFunc>::Type;
+
         //////////////////////////////////////////////////
         // Helper variable returning "true" if "T" is a
         // non-static member function pointer with no
@@ -5654,7 +6602,7 @@ namespace StdExt
 
         //////////////////////////////////////////////
         // Concept for above template (see following
-        // #defined constant for details)
+        // #defined macro for details)
         //////////////////////////////////////////////
         #if defined(USE_CONCEPTS)
             template <typename T>
@@ -5692,7 +6640,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5741,7 +6689,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5785,7 +6733,7 @@ namespace StdExt
 
         //////////////////////////////////////////////
         // Concept for above template (see following
-        // #defined constant for details)
+        // #defined macro for details)
         //////////////////////////////////////////////
         #if defined(USE_CONCEPTS)
             template <typename T>
@@ -5813,7 +6761,7 @@ namespace StdExt
 
         //////////////////////////////////////////////
         // Concept for above template (see following
-        // #defined constant for details)
+        // #defined macro for details)
         //////////////////////////////////////////////
         #if defined(USE_CONCEPTS)
             template <typename T>
@@ -5839,12 +6787,12 @@ namespace StdExt
     } // namespace Private
 
     template <typename T>
-    inline constexpr bool IsTraitsStdFunction_v = IsStdFunctionSpecialization_v< std::remove_reference_t<T> >;
+    inline constexpr bool IsTraitsStdFunction_v = IsValidStdFunctionSpecialization_v< std::remove_reference_t<T> >;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5858,7 +6806,10 @@ namespace StdExt
         #define TRAITS_STD_FUNCTION_C typename
         #define STATIC_ASSERT_IS_TRAITS_STD_FUNCTION(T) static_assert(StdExt::IsTraitsStdFunction_v<T>, \
                                                                       QUOTE_STRINGIFY(T) " must be a \"std::function\" " \
-                                                                      "specialization or a reference to one");
+                                                                      "specialization or a reference to one (and the " \
+                                                                      "\"std::function\" must be defined, i.e., it must ", \
+                                                                      "be specialized on a valid function type suitable " \
+                                                                      "for passing as the template arg to \"std::function\")");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5889,7 +6840,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5939,7 +6890,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -5956,55 +6907,6 @@ namespace StdExt
                                                                         "static functor or a reference to one (i.e., a " \
                                                                         "class or struct with a non-overloaded, static " \
                                                                         "function call operator \"operator()\")");
-    #endif // #if defined(USE_CONCEPTS)
-
-#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    ///////////////////////////////////////////////////////////////////
-    // IsTraitsNonStaticOrStaticFunctor_v. Variable template set to
-    // "true" if "T" is either of the following or false otherwise:
-    //
-    //   1) A non-static or static functor (usually the former but
-    //      "static" versions of "operator()" were legalized in C++23
-    //      so they also qualify)
-    //   2) A reference to 1 above
-    //
-    // See "struct IsNonOverloadedFunctor" primary template earlier
-    // for details on what constitutes a non-static functor (the usual
-    // and expected C++ definition of a "functor", i.e., "T" must be a
-    // class or struct with a non-static member function called
-    // "operator()" but in this case its "operator()" can be static as
-    // well (the latter was legalized in C++23). For our purposes here
-    // however it can't be overloaded or the following is guaranteed
-    // to return false (we don't support overloaded functors by design
-    // but again, see the "struct IsNonOverloadedFunctor" primary
-    // template for details).
-    ///////////////////////////////////////////////////////////////////
-    template <typename T>
-    inline constexpr bool IsTraitsNonStaticOrStaticFunctor_v = IsTraitsFunctor_v<T> ||
-                                                               IsTraitsStaticFunctor_v<T>;
-#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-
-    //////////////////////////////////////////////
-    // Concept for above template (see following
-    // #defined constant for details)
-    //////////////////////////////////////////////
-    #if defined(USE_CONCEPTS)
-        #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-            template <typename T>
-            concept TraitsNonStaticOrStaticFunctor_c = IsTraitsNonStaticOrStaticFunctor_v<T>;
-        #endif
-
-        #define TRAITS_NON_STATIC_OR_STATIC_FUNCTOR_C StdExt::TraitsNonStaticOrStaticFunctor_c
-        #define STATIC_ASSERT_IS_TRAITS_NON_STATIC_OR_STATIC_FUNCTOR(T)
-    #else
-        #define TRAITS_NON_STATIC_OR_STATIC_FUNCTOR_C typename
-        #define STATIC_ASSERT_IS_TRAITS_NON_STATIC_OR_STATIC_FUNCTOR(T) static_assert(StdExt::IsTraitsNonStaticOrStaticFunctor_v<T>, \
-                                                                                      QUOTE_STRINGIFY(T) " must be a non-overloaded, " \
-                                                                                      "non-static or static functor or a reference to " \
-                                                                                      "one (i.e., a class or struct with a non-overloaded, " \
-                                                                                      "non-static or static function call operator " \
-                                                                                      "\"operator()\", usually non-static but static " \
-                                                                                      "were legalized in C++23 so are also supported)");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -6122,7 +7024,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -6181,7 +7083,8 @@ namespace StdExt
         // "regcall" calling convention only available on Clang and
         // Intel compilers (among the ones we currently support)
         /////////////////////////////////////////////////////////////
-        #if defined(CLANG_COMPILER) || defined(INTEL_COMPILER)
+        #if defined(CLANG_COMPILER) || \
+            defined(INTEL_COMPILER)
             ////////////////////////////////////////////////////////////////////
             // See https://clang.llvm.org/docs/AttributeReference.html#regcall
             // See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-10/c-c-calling-conventions.html
@@ -6211,7 +7114,8 @@ namespace StdExt
         //     Bug 89485 - Support vectorcall calling convention on windows
         //     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89485
         /////////////////////////////////////////////////////////////
-        #if defined(CLANG_COMPILER) || defined(INTEL_COMPILER)
+        #if defined(CLANG_COMPILER) || \
+            defined(INTEL_COMPILER)
             // See https://clang.llvm.org/docs/AttributeReference.html#regcall
             // See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-10/c-c-calling-conventions.html
             #define STDEXT_CC_VECTORCALL __attribute__((vectorcall))
@@ -6222,10 +7126,10 @@ namespace StdExt
         // Note: Shouldn't be possible to come through here
         // at this writing since the same #error message
         // would have already been displayed earlier (when
-        // the compiler constants just above were #defined
-        // in "CompilerVersions.h")
+        // the compiler macros just above were #defined in
+        // "CompilerVersions.h")
         /////////////////////////////////////////////////////
-        #error "Unsupported compiler (GCC, Microsoft, Clang and Intel are the only ones supported at this writing)"
+        #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
     #endif
 
     ///////////////////////////////////////////////////////////////////
@@ -6289,73 +7193,148 @@ namespace StdExt
     ///////////////////////////////////////////////////////////////////
     #define STDEXT_CC_VARIADIC STDEXT_CC_CDECL
 
+#if defined(GCC_COMPILER)
+    //////////////////////////////////////////////////////////////
+    // DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS and
+    // DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS macros. Use
+    // the former to disable GCC warnings like the following
+    // which it's explicitly designed for (for builds where the
+    // calling convention isn't relevant, such as
+    // STDEXT_CC_STDCALL in a 64 bit x86 build - the compiler
+    // just replaces it with STDEXT_CC_CDECL instead but produces
+    // this warning):
+    //
+    //    "warning: 'stdcall' attribute ignored [-Wattributes]"
+    //
+    // Therefore call the macro before any explicit use of a
+    // calling convention in a function, normally one of our
+    // STDEXT_CC_? macros #defined above. If the calling
+    // convention isn't relevant depending on the target build
+    // then the macro will suppress the above warning. Call the
+    // corresponding
+    // DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS when done to
+    // restore things (i.e., re-enable the warning if it was
+    // enabled before calling
+    // DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS).
+    //
+    //     Example:
+    //     -------
+    // 
+    //     //////////////////////////////////////////////////
+    //     // Disable the above warning that would otherwise
+    //     // result from the presence of STDEXT_CC_STDCALL
+    //     // in the following function if that calling
+    //     // convention isn't relevant for the target
+    //     // build. The compiler replaces it with the
+    //     // STDEXT_CC_CDECL calling convention instead
+    //     // (which might not be relevant itself for the
+    //     // target build but for all intents and purposes
+    //     // it can be thought of as relevant - for C++
+    //     // purposes it can be considered the default
+    //     // calling convention whether it's actually
+    //     // relevant for the target build or not).
+    //     //////////////////////////////////////////////////
+    //     DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS 
+    // 
+    //     ///////////////////////////////////////////////
+    //     // Calling convention would trigger the warning
+    //     // described previously if not relevant for the
+    //     // build but warning now suppressed from above
+    //     // macro
+    //     ///////////////////////////////////////////////
+    //     int STDEXT_CC_STDCALL SomeFunc()
+    // 
+    //     ///////////////////////////////////////////////
+    //     // Re-enable the disabled warning above if it
+    //     // was previously enabled (usually the case
+    //     // unless someone had already disabled it
+    //     // before macro call above in which case it
+    //     // will remain disabled)
+    //     ///////////////////////////////////////////////
+    //     DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS
+    //
+    // IMPORTANT
+    // ---------
+    // If the user promotes this warning to an error via the
+    // following GCC command line option:
+    //
+    //     -Werror=attributes
+    //
+    // Then the following temporarily overrides it (the desired
+    // behavior for our purposes, since we always want to
+    // suppress the warning even if the user promotes it to an
+    // error, and DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS
+    // will ensure it's promoted back to an error again if this
+    // was in effect).
+    //////////////////////////////////////////////////////////////
+    #define DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS GCC_DIAGNOSTIC_PUSH \
+                                                               _Pragma("GCC diagnostic ignored \"-Wattributes\"")
+    #define DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS GCC_DIAGNOSTIC_POP
+#elif defined (MICROSOFT_COMPILER)
+    ///////////////////////////////////////////////////////////
+    // See GCC version of these macros just above for details.
+    // Microsoft doesn't normally display warnings for
+    // unsupported calling conventions however, it just
+    // quietly replaces them with STDEXT_CC_CDECL as described
+    // for GCC above (so there are no warnings to suppress -
+    // the following therefore just resolves to whitespace)
+    ///////////////////////////////////////////////////////////
+    #define DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS
+    #define DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS
+#elif defined(CLANG_COMPILER) || \
+      defined(INTEL_COMPILER)
+    ////////////////////////////////////////////////////////////
+    // See GCC version of these macros further above for
+    // details. Following is the identical version for Clang
+    // and Intel (Intel version effectively relies on Clang
+    // itself). Disables both of these warnings:
+    //
+    //    "warning: 'stdcall' calling convention is not supported for this target [-Wignored-attributes]"
+    //    "warning: unknown attribute 'stdcall' ignored [-Wunknown-attributes]"
+    //
+    // The behavior is the same as the GCC version described
+    // further above otherwise (so it also overrides warnings
+    // promoted to errors via the Clang
+    // "-Werror=ignored-attributes" compiler option, analogous
+    // to GCC described further above)
+    ////////////////////////////////////////////////////////////
+    #define DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS CLANG_OR_INTEL_DIAGNOSTIC_PUSH \
+                                                               _Pragma("clang diagnostic ignored \"-Wignored-attributes\"") \
+                                                               _Pragma("clang diagnostic ignored \"-Wunknown-attributes\"")
+
+    #define DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS CLANG_OR_INTEL_DIAGNOSTIC_POP
+#else
+    /////////////////////////////////////////////////////
+    // Note: Shouldn't be possible to come through here
+    // at this writing since the same #error message
+    // would have already been displayed earlier (when
+    // the compiler macros just above were #defined in
+    // "CompilerVersions.h")
+    /////////////////////////////////////////////////////
+    #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
+#endif
+
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    #if defined(GCC_COMPILER)
-        ///////////////////////////////////////////////////////////////////
-        // When targeting 64 bit builds the above STDEXT_CC_? calling
-        // conventions are usually ignored (automatically replaced by the
-        // compiler with STDEXT_CC_CDECL), except for STDEXT_CC_CDECL
-        // itself of course (obviously not replaced with itself), and
-        // STDEXT_CC_VECTORCALL or STDEXT_CC_REGCALL (they aren't replaced
-        // in 64 bits builds on the compilers that support them - GCC
-        // supports neither, MSFT supports STDEXT_CC_VECTORCALL but not
-        // STDEXT_CC_REGCALL, and Clang and Intel support both). It's also
-        // possible that some calling conventions may not be supported
-        // depending on other compiler options though I haven't looked
-        // into this. The bottom line is that this can result in many
-        // annoying warnings about unsupported calling convention
-        // attributes (in 64 bit builds in particular) so we'll
-        // temporarily turn these warnings off here and back on later
-        // (only if they were already on).
-        ///////////////////////////////////////////////////////////////////
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wattributes" // E.g., "warning: 'stdcall' attribute ignored [-Wattributes]"
-                                                      // See https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Diagnostic-Pragmas.html#Diagnostic-Pragmas
-
-    // For Clang see https://clang.llvm.org/docs/UsersManual.html#controlling-diagnostics-via-pragmas
-    // Note that Intel also relies on Clang as described in the comments just below
-    #elif defined(CLANG_COMPILER) || \
-          defined(INTEL_COMPILER)
-
-        /////////////////////////////////////////////////
-        // According to the Intel DPC++/C++ docs here:
-        //
-        //   Error Handling
-        //   https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2023-0/error-handling.html
-        //
-        // It says:
-        //
-        //    For a summary of warning and error options,
-        //    see the Clang documentation.
-        //
-        // Where "Clang documentation" is this link:
-        //
-        //   https://clang.llvm.org/docs/UsersManual.html#options-to-control-error-and-warning-messages
-        //
-        // Hence the following works for Intel as well
-        // (for the DPC++/C++ compiler which is what we
-        // support, not the "Classic" Intel compiler
-        // which they've deprecated and replaced with
-        // the DPC++/C++ compiler - we don't support
-        // the "Classic" compiler)
-        /////////////////////////////////////////////////
-
-        //////////////////////////////////////////////////////
-        // See GCC_COMPILER call to its own "diagnostic push"
-        // above (comments there apply here as well)
-        //////////////////////////////////////////////////////
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wignored-attributes" // E.g., "warning: 'stdcall' calling convention is not
-                                                                // supported for this target [-Wignored-attributes]"
-                                                                // See https://clang.llvm.org/docs/DiagnosticsReference.html#wignored-attributes
-        #pragma clang diagnostic ignored "-Wunknown-attributes" // E.g., "warning: unknown attribute 'stdcall' ignored
-                                                                // [-Wunknown-attributes]". Not normally encountered
-                                                                // however. All calling conventions above are legal in
-                                                                // Clang but ignoring this warning just in case. See
-                                                                // https://clang.llvm.org/docs/DiagnosticsReference.html#wunknown-attributes
-        #pragma clang diagnostic ignored "-Wambiguous-ellipsis" // E.g., "warning: '...' in this location creates a
-                                                                // C-style varargs function[-Wambiguous - ellipsis]
-    #endif
+    //////////////////////////////////////////////////////
+    // See the definition of the following above for
+    // details, in particular the version compiled for
+    // GCC (whose comments provide the details - the
+    // version for all other compilers are analogous).
+    // Turning off these warnings here to suppress the
+    // many annoying warning messages that might
+    // otherwise occur for calling conventions that
+    // aren't relevant for a given build (in any code
+    // that follows which explicitly applies a calling
+    // convention to a function). Again, see GCC version
+    // of the following macro for details. Note that we
+    // call DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS
+    // later on to re-enable these warnings again if
+    // they're currently enabled (usually the case by
+    // default unless they were disabled for the given
+    // build when it started - if so they'll remain
+    // disabled).
+    //////////////////////////////////////////////////////
+    DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS
 
     enum class CallingConvention
     {
@@ -6366,8 +7345,9 @@ namespace StdExt
         // depends on it. Dirty but we'll live with it (makes
         // life easier for our purposes). Note that if adding new
         // calling conventions (very rare), make sure "Last" is
-        // updated below (doing so changes the enum for existing
-        // users however but so be it - usually harmless though)
+        // updated below (though doing so changes the enum for
+        // existing users but usually harmless so we'll live with
+        // it)
         ///////////////////////////////////////////////////////////
         Cdecl,
         Stdcall,
@@ -6411,117 +7391,111 @@ namespace StdExt
         return callingConventions[static_cast<std::size_t>(callingConvention)];
     }
 
-    // For internal use only
-    namespace Private
-    {
-        class AnyClass
+    // See comment in corresponding #else below
+    #if 1
+        ////////////////////////////////////////////////////////////////////
+        // CallingConventionReplacedWithCdecl(). For the given
+        // "CallingConventionV" template arg, returns true if the compiler
+        // will change a function with the latter calling convention to the
+        // "cdecl" calling convention or false otherwise (for a free
+        // function if "IsFreeFunc" is "true" or a non-static member
+        // function if "false"). Note that compilers (the ones we support
+        // anyway) will change a function's explicitly declared calling
+        // convention to "cdecl" if it's not supported for the target build
+        // (based on its hardware and architecture bitness - all calling
+        // conventions supported by a given compiler will always be
+        // supported when targeting x86-32 but if targeting x86-64 they're
+        // only supported if the particular calling convention is
+        // meaningful there - for non-x86 hardware however they are never
+        // supported since these calling conventions are relevant to x86
+        // only). The following tests for this by simply taking an
+        // arbitrary function type and assigning it the calling convention
+        // you pass ("CallingConventionV"), and comparing this function's
+        // type to the same function but with the "cdecl" calling
+        // convention instead. Since their calling conventions are
+        // different, the types should normally test unequal since a
+        // function's calling convention is considered part of a function's
+        // type on most mainstream C++ compilers (the ones we support for
+        // sure). If two function types are identical in every respect
+        // except for the calling convention then they're not considered
+        // equal since the calling conventions don't match. In this case we
+        // therefore return false meaning the compiler didn't replace the
+        // calling convention with "cdecl" (i.e., it respects
+        // "CallingConventionV" when explicitly declared on a function).
+        // OTOH, if the two function types do test equal, then the compiler
+        // must have changed the function with "CallingConventionV" to the
+        // "cdecl" calling convention, i.e., it doesn't respect the given
+        // "CallingConventionV" when explicitly declared on a function
+        // (because it changed it to "cdecl"). True is therefore returned
+        // meaning if "CallingConventionV" is declared on a function then
+        // it's not respected since the compiler replaces it with "cdecl"
+        // instead (though even "cdecl" itself may not be a meaningful
+        // calling convention for the target build but for C++ purposes
+        // it's always considered meaningful - it can always be thought of
+        // as the baseline calling convention). Please note however that
+        // false is always returned by design if you pass
+        // "CallingConvention::Cdecl" itself for the "CallingConventionV"
+        // arg, since for the intended purpose of this function, we don't
+        // consider that the compiler replaces a function that's already
+        // "cdecl" with itself (it's already "cdecl" so we don't consider
+        // it replaced).
+        //
+        // For further details, see the (very) long comments preceding the
+        // call to the following function in the partial specialization of
+        // "FreeFunctionTraits" later on.
+        ////////////////////////////////////////////////////////////////////
+        template <CallingConvention CallingConventionV,
+                  bool IsFreeFunc>
+        inline constexpr bool CallingConventionReplacedWithCdecl() noexcept
         {
-        };
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // CallingConventionReplacedWithCdecl(). For the given "CallingConventionT"
-    // template arg, returns true if the compiler will change a function with
-    // the latter calling convention to the "cdecl" calling convention or false
-    // otherwise (for a free function if "IsFreeFunc" is "true" or a non-static
-    // member function if "false"). Note that compilers (the ones we support
-    // anyway) will sometimes change a function's explicitly declared calling
-    // convention to "cdecl" depending on the target platform or compiler
-    // options in effect, in particular when compiling for 64 bit versus 32
-    // bit. The following tests for this by simply taking an arbitrary function
-    // type and assigning it the calling convention you pass ("CallingConventionT"),
-    // and comparing this function's type to the same function but with the
-    // "cdecl" calling convention instead. Since their calling conventions are
-    // different, the types should normally test *not* equal since a function's
-    // calling convention is considered part of a function's type (on most
-    // platforms including all those we support). If two function types are
-    // identical in every respect except for the calling convention then
-    // they're not considered equal since the calling conventions don't match.
-    // In this case we therefore return false meaning the compiler didn't
-    // replace the calling convention with "cdecl" (i.e., it respects
-    // "CallingConventionT" when explicitly declared on a function). OTOH, if
-    // the two function types do test equal, then the compiler must have
-    // changed the function with the "CallingConventionT" calling convention to
-    // the "cdecl" calling convention, i.e., it doesn't respect the given
-    // "CallingConventionT" when explicitly declared on a function (because it
-    // changed it to "cdecl"). True is therefore returned meaning functions
-    // explicitly declared with the "CallingConventionT" calling convention
-    // aren't respected since the compiler replaces that calling convention
-    // with "cdecl". Please note however that false is always returned by
-    // design if you pass "CallingConvention::Cdecl" itself for the
-    // "CallingConventionT" arg, since for the intended purpose of this
-    // function, the compiler doesn't replace a function that's already "cdecl"
-    // with "cdecl" (since it's already "cdecl" we don't consider it replaced).
-    /////////////////////////////////////////////////////////////////////////////
-    template <CallingConvention CallingConventionT,
-              bool IsFreeFunc>
-    inline constexpr bool CallingConventionReplacedWithCdecl() noexcept
-    {
-        // Free or static member function ...
-        if constexpr (IsFreeFunc)
-        {
-            if constexpr (CallingConventionT == CallingConvention::Cdecl)
+            if constexpr (CallingConventionV == CallingConvention::Cdecl)
             {
-                ///////////////////////////////////////////////////////////////////
-                // STDEXT_CC_CDECL never replaced with itself (for the purposes
-                // of this function - it's already "cdecl" so it's not considered
-                // replaced)
-                ///////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////
+                // STDEXT_CC_CDECL never replaced with itself (for the
+                // purposes of this function - it's already "cdecl" so
+                // it's not considered replaced)
+                ////////////////////////////////////////////////////////
                 return false;
             }
-            // For internal use only (#undefined further below)
-            #define IS_REPLACED_WITH_CDECL(CC) std::is_same_v<void CC (), void STDEXT_CC_CDECL ()>
-            else if constexpr (CallingConventionT == CallingConvention::Stdcall)
+            // Free or static member function ...
+            else if constexpr (IsFreeFunc)
             {
-                return IS_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL);
-            }
-            else if constexpr (CallingConventionT == CallingConvention::Fastcall)
-            {
-                return IS_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL);
-            }
-            else if constexpr (CallingConventionT == CallingConvention::Vectorcall)
-            {
-                #if defined(STDEXT_CC_VECTORCALL)
-                    return IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
-                #else
-                    /////////////////////////////////////////////////////////////
-                    // Always triggers by design! (note that the 1st arg below
-                    // is designed to be dependent on a template arg to prevent
-                    // "static_assert" from always triggering even when we don't
-                    // come through here - just how C++ works, though in this
-                    // particular context passing false directly will actually
-                    // be fine on some compilers but testing shows it's not
-                    // always the case on others, possibly depending on the
-                    // version)
-                    /////////////////////////////////////////////////////////////
-                    static_assert(AlwaysFalse_v<decltype(CallingConventionT)>,
-                                  "\"CallingConvention::Vectorcall\" not supported by "
-                                  "this compiler (so it makes no sense to pass it)");
-                    return true;
-                #endif
-            }
-            else if constexpr (CallingConventionT == CallingConvention::Thiscall)
-            {
-                /////////////////////////////////////////////////////////////
-                // Always triggers by design! (note that the 1st arg below
-                // is designed to be dependent on a template arg to prevent
-                // "static_assert" from always triggering even when we don't
-                // come through here - just how C++ works, though in this
-                // particular context, passing false directly will actually
-                // be fine on some compilers but testing shows it's not
-                // always the case on others, possibly depending on the
-                // version)
-                /////////////////////////////////////////////////////////////
-                static_assert(AlwaysFalse_v<decltype(CallingConventionT)>,
-                              "\"CallingConvention::Thiscall\" not supported for "
-                              "free functions (so it makes no sense to pass it)");
-                return true;
-            }
-            else if constexpr (CallingConventionT == CallingConvention::Regcall)
-            {
-                #if defined(STDEXT_CC_REGCALL)
-                    return IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
-                #else
+                // For internal use only (#undefined further below)
+                #define IS_CC_REPLACED_WITH_CDECL(CC) \
+                     std::is_same_v<void CC (), \
+                                    void STDEXT_CC_CDECL ()>
+
+                if constexpr (CallingConventionV == CallingConvention::Stdcall)
+                {
+                    return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL);
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Fastcall)
+                {
+                    return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL);
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Vectorcall)
+                {
+                    #if defined(STDEXT_CC_VECTORCALL)
+                        return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
+                    #else
+                        /////////////////////////////////////////////////////////////
+                        // Always triggers by design! (note that the 1st arg below
+                        // is designed to be dependent on a template arg to prevent
+                        // "static_assert" from always triggering even when we don't
+                        // come through here - just how C++ works, though in this
+                        // particular context passing false directly will actually
+                        // be fine on some compilers but testing shows it's not
+                        // always the case on others, possibly depending on the
+                        // version)
+                        /////////////////////////////////////////////////////////////
+                        static_assert(AlwaysFalse_v<decltype(CallingConventionV)>,
+                                      "\"CallingConvention::Vectorcall\" not supported by "
+                                      "this compiler (so it makes no sense to pass it)");
+                        return true;
+                    #endif
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Thiscall)
+                {
                     /////////////////////////////////////////////////////////////
                     // Always triggers by design! (note that the 1st arg below
                     // is designed to be dependent on a template arg to prevent
@@ -6532,86 +7506,15 @@ namespace StdExt
                     // always the case on others, possibly depending on the
                     // version)
                     /////////////////////////////////////////////////////////////
-                    static_assert(AlwaysFalse_v<decltype(CallingConventionT)>,
-                                  "\"CallingConvention::Regcall\" not supported by "
-                                  "this compiler (so it makes no sense to pass it)");
+                    static_assert(AlwaysFalse_v<decltype(CallingConventionV)>,
+                                  "\"CallingConvention::Thiscall\" not supported for "
+                                  "free functions (so it makes no sense to pass it)");
                     return true;
-                #endif
-            }
-            #undef IS_REPLACED_WITH_CDECL // Done with this (for internal use only)
-            else
-            {
-                /////////////////////////////////////////////////////////////
-                // Always triggers by design! (note that the 1st arg below
-                // is designed to be dependent on a template arg to prevent
-                // "static_assert" from always triggering even when we don't
-                // come through here - just how C++ works, though in this
-                // particular context, passing false directly will actually
-                // be fine on some compilers but testing shows it's not
-                // always the case on others, possibly depending on the
-                // version)
-                /////////////////////////////////////////////////////////////
-                static_assert(AlwaysFalse_v<decltype(CallingConventionT)>, \
-                              "Unknown \"CallingConventionT\"");
-                return true;
-            }
-        }
-        // Non-static member function ...
-        else
-        {
-            if constexpr (CallingConventionT == CallingConvention::Cdecl)
-            {
-                /////////////////////////////////////////////////////////////
-                // STDEXT_CC_CDECL never replaced with itself (for purposes
-                // of this function), and it's always supported regardless
-                // (so it never gets replaced, let alone with itself)
-                /////////////////////////////////////////////////////////////
-                return false;
-            }
-            else
-            {
-                // For internal use only (#undefined further below)
-                #define IS_REPLACED_WITH_CDECL(CC) \
-                    std::is_same_v<void (CC Private::AnyClass::*)(), \
-                                   void (STDEXT_CC_CDECL Private::AnyClass::*)()>
-
-                if constexpr (CallingConventionT == CallingConvention::Stdcall)
-                {
-                    return IS_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL);
                 }
-                else if constexpr (CallingConventionT == CallingConvention::Fastcall)
-                {
-                    return IS_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL);
-                }
-                else if constexpr (CallingConventionT == CallingConvention::Vectorcall)
-                {
-                    #if defined(STDEXT_CC_VECTORCALL)
-                        return IS_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
-                    #else
-                        /////////////////////////////////////////////////////////////
-                        // Always triggers by design! (note that the 1st arg below
-                        // is designed to be dependent on a template arg to prevent
-                        // "static_assert" from always triggering even when we don't
-                        // come through here - just how C++ works, though in this
-                        // particular context, passing false directly will actually
-                        // be fine on some compilers but testing shows it's not
-                        // always the case on others, possibly depending on the
-                        // version)
-                        /////////////////////////////////////////////////////////////
-                        static_assert(AlwaysFalse_v<decltype(CallingConventionT)>,
-                                      "\"CallingConvention::Vectorcall\" not supported by "
-                                      "this compiler (so it makes no sense to pass it)");
-                        return true;
-                    #endif
-                }
-                else if constexpr (CallingConventionT == CallingConvention::Thiscall)
-                {
-                    return IS_REPLACED_WITH_CDECL(STDEXT_CC_THISCALL);
-                }
-                else if constexpr (CallingConventionT == CallingConvention::Regcall)
+                else if constexpr (CallingConventionV == CallingConvention::Regcall)
                 {
                     #if defined(STDEXT_CC_REGCALL)
-                        return IS_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
+                        return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
                     #else
                         /////////////////////////////////////////////////////////////
                         // Always triggers by design! (note that the 1st arg below
@@ -6623,13 +7526,93 @@ namespace StdExt
                         // always the case on others, possibly depending on the
                         // version)
                         /////////////////////////////////////////////////////////////
-                        static_assert(AlwaysFalse_v<decltype(CallingConventionT)>,
+                        static_assert(AlwaysFalse_v<decltype(CallingConventionV)>,
                                       "\"CallingConvention::Regcall\" not supported by "
                                       "this compiler (so it makes no sense to pass it)");
                         return true;
                     #endif
                 }
-                #undef IS_REPLACED_WITH_CDECL// Done with this (for internal use only)
+                #undef IS_CC_REPLACED_WITH_CDECL // Done with this (for internal use only)
+                else
+                {
+                    /////////////////////////////////////////////////////////////
+                    // Always triggers by design! (note that the 1st arg below
+                    // is designed to be dependent on a template arg to prevent
+                    // "static_assert" from always triggering even when we don't
+                    // come through here - just how C++ works, though in this
+                    // particular context, passing false directly will actually
+                    // be fine on some compilers but testing shows it's not
+                    // always the case on others, possibly depending on the
+                    // version)
+                    /////////////////////////////////////////////////////////////
+                    static_assert(AlwaysFalse_v<decltype(CallingConventionV)>, \
+                                  "Unknown \"CallingConventionV\"");
+                    return true;
+                }
+            }
+            // Non-static member function ...
+            else
+            {
+                // For internal use only (#undefined further below)
+                #define IS_CC_REPLACED_WITH_CDECL(CC) \
+                    std::is_same_v<void (CC Private::AnyClass::*)(), \
+                                   void (STDEXT_CC_CDECL Private::AnyClass::*)()>
+
+                if constexpr (CallingConventionV == CallingConvention::Stdcall)
+                {
+                    return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL);
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Fastcall)
+                {
+                    return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL);
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Vectorcall)
+                {
+                    #if defined(STDEXT_CC_VECTORCALL)
+                        return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
+                    #else
+                        /////////////////////////////////////////////////////////////
+                        // Always triggers by design! (note that the 1st arg below
+                        // is designed to be dependent on a template arg to prevent
+                        // "static_assert" from always triggering even when we don't
+                        // come through here - just how C++ works, though in this
+                        // particular context, passing false directly will actually
+                        // be fine on some compilers but testing shows it's not
+                        // always the case on others, possibly depending on the
+                        // version)
+                        /////////////////////////////////////////////////////////////
+                        static_assert(AlwaysFalse_v<decltype(CallingConventionV)>,
+                                      "\"CallingConvention::Vectorcall\" not supported by "
+                                      "this compiler (so it makes no sense to pass it)");
+                        return true;
+                    #endif
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Thiscall)
+                {
+                    return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_THISCALL);
+                }
+                else if constexpr (CallingConventionV == CallingConvention::Regcall)
+                {
+                    #if defined(STDEXT_CC_REGCALL)
+                        return IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
+                    #else
+                        /////////////////////////////////////////////////////////////
+                        // Always triggers by design! (note that the 1st arg below
+                        // is designed to be dependent on a template arg to prevent
+                        // "static_assert" from always triggering even when we don't
+                        // come through here - just how C++ works, though in this
+                        // particular context, passing false directly will actually
+                        // be fine on some compilers but testing shows it's not
+                        // always the case on others, possibly depending on the
+                        // version)
+                        /////////////////////////////////////////////////////////////
+                        static_assert(AlwaysFalse_v<decltype(CallingConventionV)>,
+                                      "\"CallingConvention::Regcall\" not supported by "
+                                      "this compiler (so it makes no sense to pass it)");
+                        return true;
+                    #endif
+                }
+                #undef IS_CC_REPLACED_WITH_CDECL// Done with this (for internal use only)
                 else
                 {
                     ////////////////////////////////////////////////////////////
@@ -6641,13 +7624,157 @@ namespace StdExt
                     // testing shows it's not always the case on others,
                     // possibly depending on the version)
                     ////////////////////////////////////////////////////////////
-                    static_assert(AlwaysFalse_v<decltype(CallingConventionT)>,
-                                  "Unknown \"CallingConventionT\"");
+                    static_assert(AlwaysFalse_v<decltype(CallingConventionV)>,
+                                  "Unknown \"CallingConventionV\"");
                     return true;
                 }
             }
         }
-    }
+    ///////////////////////////////////////////////////
+    // For possible future use only. Alternative to
+    // code just above but compilation fails in
+    // MSVC x64 at this writing for unknown reasons
+    // (almost certainly an MSVC bug, and works in all
+    // other compilers - investigate when time permits
+    ///////////////////////////////////////////////////
+    #else
+        ////////////////////////////////////////////////////////////////////
+        // CallingConventionReplacedWithCdecl_v (primary template though it
+        // never kicks in for legal values of our template args - a
+        // specialization for every legal combination of template args
+        // kicks in instead, and the primary template only kicks in for
+        // illegal combinations which always results in a compiler error -
+        // see explanation in code below). For the given
+        // "CallingConventionV" template arg, returns true if the compiler
+        // will change a function with the latter calling convention to the
+        // "cdecl" calling convention or false otherwise (for a free
+        // function if "IsFreeFunc" is "true" or a non-static member
+        // function if "false"). Note that compilers (the ones we support
+        // anyway) will change a function's explicitly declared calling
+        // convention to "cdecl" if it's not supported for the target build
+        // (based on its hardware and architecture bitness - all calling
+        // conventions supported by a given compiler will always be
+        // supported when targeting x86-32, but if targeting x86-64 they're
+        // be supported if the particular calling convention is meaningful
+        // there - for non-x86 hardware however they are never supported
+        // since these calling conventions are relevant to x86 only). The
+        // following tests for this by simply taking an arbitrary function
+        // type and assigning it the calling convention you pass
+        // ("CallingConventionV"), and comparing this function's type to
+        // the same function but with the "cdecl" calling convention
+        // instead. Since their calling conventions are different, the
+        // types should normally test unequal since a function's calling
+        // convention is considered part of a function's type on most
+        // mainstream C++ compilers (the ones we support for sure). If two
+        // function types are identical in every respect except for the
+        // calling convention then they're not considered equal since the
+        // calling conventions don't match. In this case we therefore
+        // return false meaning the compiler didn't replace the calling
+        // convention with "cdecl" (i.e., it respects "CallingConventionV"
+        // when explicitly declared on a function). OTOH, if the two
+        // function types do test equal, then the compiler must have
+        // changed the function with "CallingConventionV" to the "cdecl"
+        // calling convention, i.e., it doesn't respect the given
+        // "CallingConventionV" when explicitly declared on a function
+        // because it changed it to "cdecl". True is therefore returned
+        // meaning if "CallingConventionV" is declared on a function then
+        // it's not respected since the compiler replaces it with "cdecl"
+        // instead (though even "cdecl" itself may not be a meaningful
+        // calling convention for the target build but for C++ purposes
+        // it's always considered meaningful - it can always be thought of
+        // as the baseline calling convention). Please note however that
+        // false is always returned by design if you pass
+        // "CallingConvention::Cdecl" itself for "CallingConventionV",
+        // since for the intended purpose of this function, we don't
+        // consider that the compiler replaces a function that's already
+        // "cdecl" with itself (it's already "cdecl" so we don't consider
+        // it replaced).
+        //
+        // For further details, see the (very) long comments preceding the
+        // call to the following function in the partial specialization of
+        // "FreeFunctionTraits" later on.
+        ////////////////////////////////////////////////////////////////////
+        template <CallingConvention CallingConventionV,
+                  bool IsFreeFunc>
+        //////////////////////////////////////////////////////
+        // Primary template but uninitialized by design so
+        // always results in a compiler error since the
+        // following is a "constexpr" variable that's not
+        // initialized. Our partial specializations below are
+        // always expected to kick in instead. If we come
+        // through the following instead then either
+        // "CallingConventionV" isn't supported by the target
+        // compiler, such as "CallingConvention::Vectorcall"
+        // on GCC (it doesn't support it), or it's set to
+        // "CallingConvention::Thiscall" and "IsFreeFunc" is
+        // true (which is never a legal combination - the
+        // "Thiscall" calling convention is only legal for
+        // non-static member functions so only when
+        // "IsFreeFunc" is false - if true then the caller is
+        // targeting a free function which isn't legal since
+        // the "Thiscall" calling convention isn't designed
+        // for free function). In both cases above the
+        // template arg(s) aren't supported due to either of
+        // the above reasons so a compiler error will always
+        // occur as noted above (we should never come through
+        // here unless someone is passing unsupported/illegal
+        // template args as described).
+        //////////////////////////////////////////////////////
+        constexpr bool CallingConventionReplacedWithCdecl_v = false;
+
+        template <bool IsFreeFunc>
+        constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Cdecl, IsFreeFunc> = false;
+
+        // For internal use only (#undefined further below)
+        #define IS_CC_REPLACED_WITH_CDECL(CC) \
+                std::is_same_v<void CC (), \
+                               void STDEXT_CC_CDECL ()>
+
+        template <>
+        constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Stdcall, true> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL);
+
+        template <>
+        constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Fastcall, true> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL);
+
+        #if defined(STDEXT_CC_VECTORCALL)
+            template <>
+            constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Vectorcall, true> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
+        #endif
+
+        #if defined(STDEXT_CC_REGCALL)
+            template <>
+            constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Regcall, true> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
+        #endif
+
+        #undef IS_CC_REPLACED_WITH_CDECL
+
+        /////
+
+        #define IS_CC_REPLACED_WITH_CDECL(CC) \
+                    std::is_same_v<void (CC Private::AnyClass::*)(), \
+                                   void (STDEXT_CC_CDECL Private::AnyClass::*)()>
+
+        template <>
+        constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Stdcall, false> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_STDCALL);
+
+        template <>
+        constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Fastcall, false> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_FASTCALL);
+
+        #if defined(STDEXT_CC_VECTORCALL)
+            template <>
+            constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Vectorcall, false> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_VECTORCALL);
+        #endif
+
+        template <>
+        constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Thiscall, false> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_THISCALL);
+
+        #if defined(STDEXT_CC_REGCALL)
+            template <>
+            constexpr bool CallingConventionReplacedWithCdecl_v<CallingConvention::Regcall, false> = IS_CC_REPLACED_WITH_CDECL(STDEXT_CC_REGCALL);
+        #endif
+
+        #undef IS_CC_REPLACED_WITH_CDECL
+    #endif
 
     /////////////////////////////////////////////////////////////
     // Refers to the optional "&" or "&&" ref-qualifiers that
@@ -6912,8 +8039,7 @@ namespace StdExt
     // function return type.
     //////////////////////////////////////////////////////////////
     template <typename T,
-              typename = void // Arg for internal use only (users should never explicitly pass it)
-             >
+              typename = void> // Arg for internal use only (never explicitly passed)
     struct IsValidReturnType : std::false_type
     {
     };
@@ -6924,7 +8050,7 @@ namespace StdExt
     //////////////////////////////////////////////////////////////////
     template <typename T>
     struct IsValidReturnType<T,
-                             std::void_t< T () >
+                             std::void_t< T () > // Fails SFINAE if "T" isn't a valid return type
                             >
                             : std::true_type
     {
@@ -6967,73 +8093,140 @@ namespace StdExt
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    ////////////////////////////////////////////////////////////////
-    // "IsValidFunctionArgTypesTuple" (primary template ). Primary
-    // template inherits from "std::false_type" if either of the
-    // following 2 checks fail (meaning "T" either isn't a
-    // "std::tuple" specialization - see 1 below - or it is but it's
-    // specialized on at least one type that's not a valid C++
-    // parameter type - see 2 below). If both checks succeed then
-    // our partial specialization just below kicks in instead
-    // (inheriting from "std::true_type").
-    //
-    // 1) "T" is an (optionally cv-qualified) "std::tuple"
-    //    specialization
-    // 2) The types that "T" is specialized on (its tuple types)
-    //    *all* qualify as valid C++ function arg (parameter) types.
-    //    Note that almost all types in C++ are valid (can be used
-    //    as function parameter types) with rare exceptions, most
-    //    notably "void" (you can't create a function parameter type
-    //    of type "void"). Its presence in a parameter list of type
-    //    "(void)" means an empty parameter list but "void" itself
-    //    in that context is not an actual parameter, and if other
-    //    parameter types are present in addition to "void" it's
-    //    outright illegal. Other illegal parameter types can also
-    //    exist, such as an abominable function type, but they would
-    //    very rarely be encountered normally. Free (Non-abominable)
-    //    function types however, while not legal parameter types,
-    //    are considered valid, since they decay into function
-    //    pointer types instead (no different than when you declare
-    //    function pointers as parameter types). Array types are also
-    //    valid since they decay into pointers as well (to the type
-    //    of the array's elements, no different than when you
-    //    declare arrays as parameter types). In any case, the
-    //    following primary template kicks in if any of the types in
-    //    "T" are illegal similar to when they're illegal in your
-    //    own function declarations (or if "T" isn't even a
-    //    "std::tuple" via 1 above).
-    ////////////////////////////////////////////////////////////////
-    template <typename T,
-              typename = std::remove_cv_t<T>, // Arg for internal use only (users should never explicitly pass it)
-              typename = void // Arg for internal use only (users should never explicitly pass it)
-             >
-    struct IsValidFunctionArgTypesTuple : std::false_type
-    {
-    };
 
-    /////////////////////////////////////////////////////////////////
-    // Specialization of "IsValidFunctionArgTypesTuple" (primary)
-    // template just above. This specialization does all the work.
-    // It kicks in if *both* of the following hold (see primary
-    // template for details):
+    ////////////////////////////////////////////////////////
+    // For internal use only (implementation of
+    // "IsValidFunctionArgTypesTuple" declared after this
+    // namespace)
+    ////////////////////////////////////////////////////////
+    namespace Private
+    {
+        ////////////////////////////////////////////////////////////////
+        // "IsValidFunctionArgTypesTupleImpl" (primary template ).
+        // Primary template inherits from "std::false_type" if either
+        // of the following 2 checks fail (meaning "T" either isn't a
+        // "std::tuple" specialization - see 1 below - or it is but
+        // it's specialized on at least one type that's not a valid C++
+        // parameter type - see 2 below). If both checks succeed then
+        // our partial specialization just below kicks in instead
+        // (inheriting from "std::true_type").
+        //
+        // 1) "T" is an (optionally cv-qualified) "std::tuple"
+        //    specialization (note that we don't explicitly check for a
+        //    cv-qualified "T" however, since cv-qualifiers are
+        //    guaranteed to have already been removed by design before
+        //    arriving here - "StdExt::IsValidFunctionArgTypesTuple"
+        //    does this before invoking us)
+        // 2) The types that "T" is specialized on (its tuple types)
+        //    *all* qualify as valid C++ function arg (parameter)
+        //    types. Note that almost all types in C++ are valid (can
+        //    be used as function parameter types) with rare
+        //    exceptions, most notably "void" (you can't create a
+        //    function parameter type of type "void"). Its presence in
+        //    a parameter list of type "(void)" means an empty
+        //    parameter list but "void" itself in that context is not
+        //    an actual parameter, and if other parameter types are
+        //    present in addition to "void" it's outright illegal.
+        //    Other illegal parameter types can also exist, such as an
+        //    abominable function type, but they would very rarely be
+        //    encountered normally. Free (non-abominable) function
+        //    types however, while not legal parameter types, are
+        //    considered valid, since they decay into function pointer
+        //    types instead (no different than when you declare
+        //    function pointers as parameter types). Array types are
+        //    also valid since they decay into pointers as well (to the
+        //    type of the array's elements, no different than when you
+        //    declare arrays as parameter types). In any case, the
+        //    following primary template kicks in if any of the types
+        //    in "T" are illegal similar to when they're illegal in
+        //    your own function declarations (or if "T" isn't even a
+        //    "std::tuple" via 1 above).
+        ////////////////////////////////////////////////////////////////
+        template <typename T,
+                  typename = void> // Arg for internal use only (never explicitly passed)
+        struct IsValidFunctionArgTypesTupleImpl : std::false_type
+        {
+        };
+
+        /////////////////////////////////////////////////////////////////
+        // Specialization of "IsValidFunctionArgTypesTupleImpl"
+        // (primary) template just above. This specialization does all
+        // the work. It kicks in if *both* of the following hold (see
+        // primary template for details):
+        //
+        // 1) "T" is an (optionally cv-qualified) "std::tuple"
+        //    specialization  (note that we don't explicitly check for a
+        //    cv-qualified "T" however, since cv-qualifiers are
+        //    guaranteed to have already been removed by design before
+        //    arriving here - "StdExt::IsValidFunctionArgTypesTuple"
+        //    does this before invoking us)
+        // 2) The types that "T" is specialized on (its tuple types)
+        //    *all* qualify as valid C++ function arg (parameter) types,
+        //    including when the tuple is empty (has no types so the
+        //    function arg list will simply be empty in this case). See
+        //    primary template for further details ("void" will fail if
+        //    present in the tuple for instance - it's not a valid
+        //    function arg type even though "(void)" normally represents
+        //    an empty parameter list - in the context of this template
+        //    however "void" is treated as an actual parameter type
+        //    which isn't legal).
+        /////////////////////////////////////////////////////////////////
+        template <typename... Ts>
+        struct IsValidFunctionArgTypesTupleImpl<std::tuple<Ts...>,
+                                                std::void_t< void (Ts...) > // Fails SFINAE if "Ts" contains one or more
+                                                                            // illegal function parameter types (such as
+                                                                            // "void" which can't be used to create an
+                                                                            // empty arg list here even if it's the only
+                                                                            // type in "Ts" - "void" isn't a legal
+                                                                            // function parameter type)
+                                               >
+                                               : std::true_type
+        {
+        };
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // "IsValidFunctionArgTypesTuple". Inherits from "std::true_type"
+    // if the following 2 checks hold or "std::false_type" otherwise
+    // (in the latter case "T" either isn't a "std::tuple"
+    // specialization - see 1 below - or it is but it's specialized
+    // on at least one type that's not a valid C++ parameter type -
+    // see 2 below). If both checks succeed then the struct inherits
+    // from "std::true_type" meaning "T" is a "std::tuple" AND all
+    // the types it's specialized on qualify as valid C++ parameter
+    // types).
     //
     // 1) "T" is an (optionally cv-qualified) "std::tuple"
     //    specialization
     // 2) The types that "T" is specialized on (its tuple types)
     //    *all* qualify as valid C++ function arg (parameter) types,
-    //    including when the tuple is empty (has no types so the
-    //    function arg list will simply be empty in this case). See
-    //    primary template for further details ("void" will fail if
-    //    present in the tuple for instance - it's not a valid
-    //    function arg type).
-    /////////////////////////////////////////////////////////////////
-    template <typename T,
-              typename... Ts>
-    struct IsValidFunctionArgTypesTuple<T,
-                                        std::tuple<Ts...>,
-                                        std::void_t< void (Ts...) >
-                                       >
-                                       : std::true_type
+    //    including when "T" is an empty tuple (meaning an empty
+    //    function parameter list - a tuple specialized on "void"
+    //    isn't valid for this - read on). Note that almost all types
+    //    in C++ are valid (can be used as function parameter types)
+    //    with rare exceptions, most notably "void" (you can't create
+    //    a function parameter type of type "void"). Its presence in
+    //    a parameter list of type "(void)" means an empty parameter
+    //    list but "void" itself in that context is not an actual
+    //    parameter, and if other parameter types are present in
+    //    addition to "void" it's outright illegal. Other illegal
+    //    parameter types can also exist, such as an abominable
+    //    function type, but they would very rarely be encountered
+    //    normally. Free (non-abominable) function types however,
+    //    while not legal parameter types, are considered valid,
+    //    since they decay into function pointer types instead (no
+    //    different than when you declare function pointers as
+    //    parameter types). Array types are also valid since they
+    //    decay into pointers as well (to the type of the array's
+    //    elements, no different than when you declare arrays as
+    //    parameter types). In any case, the following template
+    //    inherits from "std::false_type" as noted if any of the
+    //    types in "T" are illegal similar to when they're illegal in
+    //    your own function declarations (or if "T" isn't even a
+    //    "std::tuple" via 1 above).
+    //////////////////////////////////////////////////////////////////
+    template <typename T>
+    struct IsValidFunctionArgTypesTuple : std::bool_constant< Private::IsValidFunctionArgTypesTupleImpl< std::remove_cv_t<T> >::value >
     {
     };
 
@@ -7144,7 +8337,7 @@ namespace StdExt
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -7174,19 +8367,20 @@ namespace StdExt
         // "FunctionTraits" (we won't declare them). Only read
         // traits will be available. Note that there's usually
         // little reason for users to #define the following
-        // constant however, unless they never use function write
-        // traits (usually the case for most - read traits is far
-        // more common), and just want to eliminate the overhead
-        // of function write traits (fair enough though the
-        // overhead isn't that significant - write traits *are*
-        // required to support the library's function detection
-        // templates declared later on however). Note that most
-        // users will likely never #define the following so write
-        // traits will always be available by default (unless
-        // they're compiling in VC++ from Microsoft Visual Studio
-        // 2017 where write traits aren't supported due to bugs
-        // in that compiler - see test for #defined constant
-        // MSVC_FROM_VISUAL_STUDIO_2017 just below)
+        // macro however, unless they never use function write
+        // traits (usually the case for most - read traits is
+        // far more common), and just want to eliminate the
+        // overhead of function write traits (fair enough though
+        // the overhead isn't that significant - write traits
+        // *are* required to support some of the library's
+        // function detection templates declared later on
+        // however). Note that most users will likely never
+        // #define the following so write traits will always be
+        // available by default (unless they're compiling in
+        // VC++ from Microsoft Visual Studio 2017 where write
+        // traits aren't supported due to bugs in that compiler
+        // - see test for #defined macro
+        //   MSVC_FROM_VISUAL_STUDIO_2017 just below)
         /////////////////////////////////////////////////////////
         #if !defined(REMOVE_FUNCTION_WRITE_TRAITS)
             //////////////////////////////////////////////////////
@@ -7199,7 +8393,7 @@ namespace StdExt
             //////////////////////////////////////////////////////
             #if !defined(MSVC_FROM_VISUAL_STUDIO_2017)
                 //////////////////////////////////////////////////////////
-                // #define the following constant which is tested for
+                // #define the following macro which is tested for
                 // throughout the remainder of this file. Since we're
                 // #defining it here function write traits will therefore
                 // be supported for all compilers other than VC++ from
@@ -7212,15 +8406,14 @@ namespace StdExt
                 // compiler only meaning that function write traits will
                 // be available in all compilers we support except VC++
                 // from Visual Studio 2017. In that version they'll be
-                // preprocessed out based on the following constant being
+                // preprocessed out based on the following macro being
                 // #undefined so they won't exist at all (and therefore
                 // won't be available to end users). Only function read
                 // traits will therefore be available in versions of VC++
                 // from Visual Studio 2017. Function write traits will
                 // only be available in versions of VC++ from Visual
                 // Studio 2019 or later (as well as all non-Microsoft
-                // compilers). Note that this constant is for internal
-                // use only (we #undef it later).
+                // compilers).
                 //////////////////////////////////////////////////////////
                 #define FUNCTION_WRITE_TRAITS_SUPPORTED
             #endif
@@ -7229,82 +8422,74 @@ namespace StdExt
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
         // Forward declaration of "struct FunctionTraitsBase"
         template <TRAITS_FREE_OR_MEMBER_FUNCTION_C F,
+                  typename FunctionOriginTypeT,
+                  FunctionOrigin FunctionOriginV,
                   IS_FUNCTION_C RawTypeT,
                   typename ReturnTypeT,
-                  CallingConvention CallingConventionT,
+                  CallingConvention CallingConventionV,
                   IS_CLASS_OR_VOID_C MemberFunctionClassT,
-                  bool IsVariadicT,
-                  bool IsConstT,
-                  bool IsVolatileT,
-                  FunctionReference FunctionReferenceT,
-                  bool IsNoexceptT,
+                  bool IsVariadicV,
+                  bool IsConstV,
+                  bool IsVolatileV,
+                  FunctionReference FunctionReferenceV,
+                  bool IsNoexceptV,
                   typename... ArgsT>
         struct FunctionTraitsBase;
 
-        /////////////////////////////////////////////////////////////////////////
-        // "IsFunctionTraitsBaseImpl" used to implement "IsFunctionTraitsBase_v"
-        // just below. "Value" member of the following struct is set to "true"
-        // if "T" is a "FunctionTraitsBase" specialization or any derivative of
-        // one (normally the latter) or "false" otherwise.
-        /////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
+        // "IsFunctionTraitsBaseImpl". Used to implement "IsFunctionTraitsBase_v"
+        // declared just after this struct. "Value" member of the following struct
+        // is set to "true" if "T" is a "FunctionTraitsBase" specialization or any
+        // derivative of one (normally "FunctionTraits") or "false" otherwise.
+        ///////////////////////////////////////////////////////////////////////////
         template <typename T>
         struct IsFunctionTraitsBaseImpl
         {
         private:
             template <TRAITS_FREE_OR_MEMBER_FUNCTION_C F,
+                      typename FunctionOriginTypeT,
+                      FunctionOrigin FunctionOriginV,
                       IS_FUNCTION_C RawTypeT,
                       typename ReturnTypeT,
-                      CallingConvention CallingConventionT,
+                      CallingConvention CallingConventionV,
                       IS_CLASS_OR_VOID_C MemberFunctionClassT,
-                      bool IsVariadicT,
-                      bool IsConstT,
-                      bool IsVolatileT,
-                      FunctionReference FunctionReferenceT,
-                      bool IsNoexceptT,
+                      bool IsVariadicV,
+                      bool IsConstV,
+                      bool IsVolatileV,
+                      FunctionReference FunctionReferenceV,
+                      bool IsNoexceptV,
                       typename... ArgsT>
             static constexpr std::true_type Test(const FunctionTraitsBase<F,
+                                                                          FunctionOriginTypeT,
+                                                                          FunctionOriginV,
                                                                           RawTypeT,
                                                                           ReturnTypeT,
-                                                                          CallingConventionT,
+                                                                          CallingConventionV,
                                                                           MemberFunctionClassT,
-                                                                          IsVariadicT,
-                                                                          IsConstT,
-                                                                          IsVolatileT,
-                                                                          FunctionReferenceT,
-                                                                          IsNoexceptT,
+                                                                          IsVariadicV,
+                                                                          IsConstV,
+                                                                          IsVolatileV,
+                                                                          FunctionReferenceV,
+                                                                          IsNoexceptV,
                                                                           ArgsT...> &);
 
             static constexpr std::false_type Test(...);
 
             ///////////////////////////////////////////////////////////////
-            // Note: Template "U" in the following template is always the
-            // same as the "T" template arg for "IsFunctionTraitsBaseImpl"
-            // itself (since we always pass "T" to the following
-            // template), but we can't remove "U" from the following and
-            // rely on "T" directly in the "Process" specialization below.
-            // We need to pass "T" to this template and rely on "U"
-            // instead (again, we always pass "T" itself). If we eliminate
-            // "U" and rely directly on "T", and "T *" isn't legal (i.e. a
-            // pointer to "T" isn't legal, such as when "T" is an
-            // abominable function - see comments in the "Process"
-            // specialization below), then compilation of the "Process"
-            // specialization below will immediately fail because the call
-            // to "std::remove_cv_t><T *>" in the specialization below
-            // will be immediately processed when
-            // "IsFunctionTraitsBaseImpl" itself is compiled (due to the
-            // illegal pointer). "T" is already known at that time that is
-            // so it will be immediately plugged into "std::remove_cv_t><T
-            // *>" and compilation will therefore fail if "T *" is
-            // illegal. The use of "U" in the following however ensures
-            // that won't happen. Instead, "std::remove_cv_t><U *>" is
-            // effectively delay-compiled until "Process" itself is
-            // specialized so it will therefore be compiled in a proper
-            // SFINAE context (at that time). Compilation therefore won't
-            // fail. SFINAE will simply fail instead so the following
-            // primary template will then kick as required.
+            // "Process". Primary template. See specialization just below.
+            // Note that the "InnerT" template arg in the following is
+            // always the same as the "T" template arg of the parent
+            // "IsFunctionTraitsBaseImpl" struct itself (since we always
+            // pass "T" to the following template), but we can't remove
+            // "InnerT" from the following and rely on "T" directly in the
+            // "Process" specialization below. We need to pass "T" to this
+            // template and rely on "InnerT" instead (again, we always
+            // pass "T" itself). A compiler error will occur otherwise
+            // (due to esoteric C++ rules involving how specialization
+            // works but longer story).
             ///////////////////////////////////////////////////////////////
-            template <typename U,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+            template <typename InnerT,
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct Process : std::false_type
             {
             };
@@ -7320,7 +8505,7 @@ namespace StdExt
             //
             //   error C2764: 'F': template parameter not used or deducible in
             //   partial specialization
-            //   'StdExt::Private::IsFunctionTraitsBase<T>::Process<U,void>'
+            //   'StdExt::Private::IsFunctionTraitsBase<T>::Process<InnerT,void>'
             //
             // The same error is repeated for every template arg of
             // "FunctionTraitsBase" (none of them can be deduced when referring
@@ -7328,37 +8513,37 @@ namespace StdExt
             // The following technique works instead (though not as clean as the
             // above technique would be if it were supported).
             /////////////////////////////////////////////////////////////////////
-            template <typename U>
-            struct Process<U,
-                           ////////////////////////////////////////////////////////////////////
-                           // Invokes "Test" above, passing it a "U" instance (reference) via
-                           // the call to "declval" below so the "Test" overload returning
-                           // "std::true_type" will kick in if "U" itself is a
+            template <typename InnerT>
+            struct Process<InnerT,
+                           /////////////////////////////////////////////////////////////////////
+                           // Invokes "Test" above, passing it an "InnerT" instance via the
+                           // call to "declval" below so the "Test" overload returning
+                           // "std::true_type" will kick in only if "InnerT" itself is a
                            // "FunctionTraitsBase" specialization or derivative of one. The
                            // following "Process" specialization will therefore kick in which
-                           // inherits from "std::true_type" to indicate this (that "U" is a
-                           // "FunctionTraitsBase" specialization or derivative of one). OTOH,
-                           // the variadic overload of "Test" above will kick in instead if
-                           // "U" isn't a "FunctionTraitsBase" specialization or derivative,
-                           // and that overload returns "std::false_type" so SFINAE will
-                           // therefore fail in the following call. The primary template of
-                           // "Process" above will therefore kick in which inherits from
-                           // "std::false_type" indicating that "U" isn't a
+                           // inherits from "std::true_type" to indicate this (that "InnerT" is
+                           // a "FunctionTraitsBase" specialization or derivative of one).
+                           // OTOH, the variadic overload of "Test" above will kick in instead
+                           // if "InnerT" isn't a "FunctionTraitsBase" specialization or
+                           // derivative, and that overload returns "std::false_type" so SFINAE
+                           // will therefore fail in the following call. The primary template
+                           // of "Process" above will therefore kick in which inherits from
+                           // "std::false_type" indicating that "InnerT" isn't a
                            // "FunctionTraitsBase" specialization or derivative. This is the
-                           // usual reason SFINAE fails, because the variadic version of
-                           // "Test" above is invoked (meaning "U" isn't a
-                           // "FunctionTraitsBase" specialization or derivative of one), but
-                           // SFINAE can fail for other possible reasons as well (though rare
-                           // in practice). If "U" is a "FunctionTraitsBase" derivative for
-                           // instance but was derived from "FunctionTraitsBase" using the
+                           // usual reason SFINAE fails, because the variadic version of "Test"
+                           // above is invoked (meaning "InnerT" isn't a "FunctionTraitsBase"
+                           // specialization or derivative of one), but SFINAE can fail for
+                           // other possible reasons as well (though rare in practice). If
+                           // "InnerT" is a "FunctionTraitsBase" derivative for instance but
+                           // "InnerT" was derived from "FunctionTraitsBase" using the
                            // "private" or "protected" keyword, then the following will also
-                           // fail SFINAE simply because the "FunctionTraitsBase" class of "U"
-                           // is inaccessible (so the version of "Test" returning
+                           // fail SFINAE simply because the "FunctionTraitsBase" base class of
+                           // "InnerT" is inaccessible (so the version of "Test" returning
                            // "std::true_type" above won't kick in because of the
-                           // "inaccessibility" issue which will therefore cause SFINAE to
-                           // fail here). This means that the primary template will kick in
-                           // indicating that "U" is a "FunctionTraitsBase" derivative but the
-                           // "FunctionTraitsBase" base class of "U" isn't accessible
+                           // "inaccessibility" issue which will therefore cause SFINAE to fail
+                           // here). This means that the primary template will kick in
+                           // indicating that even though "InnerT" is a "FunctionTraitsBase"
+                           // derivative its "FunctionTraitsBase" base class isn't accessible
                            // (according to the usual C++ rules for accessing base classes
                            // derived via the private or protected keyword). In reality this
                            // scenario is extraordinarily unlikely to ever occur however so we
@@ -7368,55 +8553,55 @@ namespace StdExt
                            // we'll live with the limitation for now (assuming it even is a
                            // limitation - it's usually the desired behavior in fact). Trying
                            // to re-factor this code to rely on a more mainstream technique
-                           // based on passing "U" to "std::is_base_of" instead proved to be
-                           // difficult because of C++ issues deducing the template args of
+                           // based on passing "InnerT" to "std::is_base_of" instead proved to
+                           // be difficult because of C++ issues deducing the template args of
                            // "FunctionTraitsBase" - longer story but I couldn't find a way to
                            // do it (to my surprise). The call to "Test" below is the best
                            // technique I could find for now and while it will be reliable
-                           // under almost all real-world situation, it remains a potential
+                           // under almost all real-world situations, it remains a potential
                            // issue for the reason just described (i.e., "std::false_type"
-                           // results if the "FunctionTraitsBase" is inaccessible as just
-                           // described).
-                           //
-                           // In any case, note that SFINAE can also fail in the following
-                           // call for other (rare) reasons as well. If "U" is "void" for
-                           // instance, then even the variadic version of "Test" above won't
-                           // kick in so SFINAE immediately fails (since "void" can't be
-                           // converted to "..."). Or, as another example, "U" may not support
-                           // references for instance, i.e., "U &" and "U &&" might be
-                           // illegal, in particular if "U" is an abominable function, i.e., a
-                           // native C++ function type with the "const" and/or "volatile"
-                           // and/or & or && qualifiers. References (or pointers) to such
-                           // functions are illegal in C++ so the following will fail SFINAE
-                           // for that reason (since "U &&" itself is illegal when "U" is an
-                           // abominable function - our attempt to create "declval(U)" below
-                           // will therefore fail). That's fine for our purposes however since
-                           // "U" isn't a "FunctionTraitsBase" specialization or derivative of
-                           // one in this case anyway. It's an abominable function type or
-                           // possibly some other type that doesn't support references though
-                           // I'm not sure if any others exist in C++ (at the top of my head).
-                           // Our primary template therefore correctly kicks in in such cases
-                           // which correctly inherits from "std::false_type" since such types
-                           // are never "FunctionTraitsBase" specializations or derivatives of
-                           // them (i.e., if "U" is a "FunctionTraitsBase" specialization or
-                           // derivative of one then since "U" is just a struct then "U"
-                           // itself is always legal normally - any other type wouldn't be).
-                           ////////////////////////////////////////////////////////////////////
-                           std::enable_if_t< decltype(Test(std::declval<U>()))::value >
+                           // results if the "FunctionTraitsBase" base class is inaccessible as
+                           // just described). In any case, note that SFINAE can also fail in
+                           // the following call for other (rare) reasons as well. If "InnerT"
+                           // is "void" for instance, then even the variadic version of "Test"
+                           // above won't kick in so SFINAE immediately fails (since "void"
+                           // can't be converted to "..."). As another example, "InnerT" may
+                           // not support references for instance, i.e., "InnerT &" and "InnerT
+                           // &&" might be illegal, in particular if "InnerT" is an abominable
+                           // function, i.e., a native C++ function type with the "const"
+                           // and/or "volatile" and/or & or && qualifiers. References (or
+                           // pointers) to such functions are illegal in C++ so the following
+                           // will fail SFINAE for that reason (since "InnerT &&" itself is
+                           // illegal when "InnerT" is an abominable function - our attempt to
+                           // create "declval(InnerT)" below will therefore fail). That's fine
+                           // for our purposes however since "InnerT" isn't a
+                           // "FunctionTraitsBase" specialization or derivative of one in this
+                           // case anyway. It's an abominable function type or possibly some
+                           // other type that doesn't support references though I'm not sure if
+                           // any others exist in C++ (at the top of my head). Our primary
+                           // template therefore correctly kicks in in such cases which
+                           // correctly inherits from "std::false_type" since such types are
+                           // never "FunctionTraitsBase" specializations or derivatives of them
+                           // (i.e., if "InnerT" is a "FunctionTraitsBase" specialization or
+                           // derivative of one then since "InnerT" is just a struct then
+                           // "InnerT" itself is always legal normally - any other type
+                           // wouldn't be).
+                           /////////////////////////////////////////////////////////////////////
+                           std::enable_if_t< decltype(Test(std::declval<InnerT>()))::value >
                           >
                           : std::true_type
             {
             };
 
         public:
-            static constexpr bool Value = Process<std::remove_cv_t<T>>::value;
+            static constexpr bool Value = Process< std::remove_cv_t<T> >::value;
         }; // struct IsFunctionTraitsBaseImpl
 
-        ///////////////////////////////////////////////////////////////////
-        // Returns "true" if "T" is a "FunctionTraitsBase" specialization
-        // or any derivative of one (usually the latter) or "false"
-        // otherwise.
-        ///////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////
+        // Returns "true" if "T" is a "FunctionTraitsBase"
+        // specialization or any derivative of one (normally
+        // "FunctionTraits") or "false" otherwise.
+        /////////////////////////////////////////////////////
         template <typename T>
         inline constexpr bool IsFunctionTraitsBase_v = IsFunctionTraitsBaseImpl<T>::Value;
 
@@ -7462,43 +8647,61 @@ namespace StdExt
             };
         #endif // #if defined(USE_CONCEPTS)
 
+        ///////////////////////////////////////////////////////////////////////////
+        // struct FunctionTraitsBase. Top-most base class of all "FunctionTraits"
+        // derivatives. All function read traits are stored in the following
+        // struct, i.e., the read traits for template arg "F" of "FunctionTraits"
+        // are ultimately stored in the following struct (unless a derivative of
+        // the following struct overrides (hides) one or more of these traits if
+        // required but at this writing only "struct AbominableFunctionTraits"
+        // does so)
+        ///////////////////////////////////////////////////////////////////////////
         template <TRAITS_FREE_OR_MEMBER_FUNCTION_C F, // Function's full type. Use the "FunctionType_t"
                                                       // member in the class to return this.
                   #undef TRAITS_FREE_OR_MEMBER_FUNCTION_C // Done with this just above (for internal use only)
+                  typename FunctionOriginTypeT, // Function's origin type. Use the "FunctionOriginType_t"
+                                                // member in the class to return this (enum just below
+                                                // identifies it)
+                  FunctionOrigin FunctionOriginV, // Function's origin (enum). Use the "FunctionOrigin_v member"
+                                                  // in the class to return this (type just above is the origin)
                   IS_FUNCTION_C RawTypeT, // Function's raw (native) C++ type (raw version of "F" above). Use
                                           // the "RawType_t" member in the class to return this.
-                  typename ReturnTypeT, // Function's return type (use the "ReturnType_t" member to return this)
-                  CallingConvention CallingConventionT, // Function's calling convention implicitly or explicitly
+                  typename ReturnTypeT, // Function's return type. Use the "ReturnType_t" member in the class to
+                                        // return this.
+                  CallingConvention CallingConventionV, // Function's calling convention implicitly or explicitly
                                                         // declared in the function (enum corresponds to our
                                                         // #defined STDEXT_CC_? constants, whichever the function
                                                         // uses). Use the "CallingConvention_v" member in the class
                                                         // to return this.
-                  IS_CLASS_OR_VOID_C MemberFunctionClassT, // Applicable to non-static member functions only (use
-                                                           // the "MemberFunctionClass_t member in the class to
-                                                           // return this). Stores the class this non-static
+                  IS_CLASS_OR_VOID_C MemberFunctionClassT, // Applicable to non-static member functions only. Use
+                                                           // the "MemberFunctionClass_t" member in the class to
+                                                           // return this. Stores the class this non-static
                                                            // member function belongs to. Always "void" if not a
                                                            // non-static member function.
-                  bool IsVariadicT, // "true" if function is variadic (last arg is "...") or "false" otherwise
-                                    // (use the "IsVariadic_v" member in the class to return this)
-                  bool IsConstT, // Applicable to non-static member functions or abominable functions only (use
-                                 // the "IsConst_v" member in the class to return this). Set to "true" if a
+                  bool IsVariadicV, // "true" if function is variadic (last arg is "...") or "false" otherwise.
+                                    // Use the "IsVariadic_v" member in the class to return this.
+                  bool IsConstV, // Applicable to non-static member functions or abominable functions only. Use
+                                 // the "IsConst_v" member in the class to return this. Set to "true" if a
                                  // "const" member function or "false" otherwise. Always false for free functions.
-                  bool IsVolatileT, // Applicable to non-static member functions or abominable functions only (use
-                                    // the "IsVolatile_v" member in the class to return this). Set to "true" if a
+                  bool IsVolatileV, // Applicable to non-static member functions or abominable functions only. Use
+                                    // the "IsVolatile_v" member in the class to return this. Set to "true" if a
                                     // "volatile" member function or "false" otherwise. Always false for free functions.
-                  FunctionReference FunctionReferenceT, // Applicable to non-static member functions or abominable
-                                                        // functions only (use the "FunctionReference_v" member in the
-                                                        // class to return this). Set to the given "FunctionReference"
+                  FunctionReference FunctionReferenceV, // Applicable to non-static member functions or abominable
+                                                        // functions only. Use the "FunctionReference_v" member in the
+                                                        // class to return this. Set to the given "FunctionReference"
                                                         // enumerator if one is present in the function (& or &&).
                                                         // Always "FunctionReference::None" for free functions.
-                  bool IsNoexceptT, // "true" if the function is declared "noexcept" or "false" otherwise (use the
-                                    // "IsNoexcept_v" member in the class to return this)
-                  typename... ArgsT> // Function's arguments (types) in left-to-right order of declaration (as
-                                     // would be expected). Use the "ArgTypes_t" member in the class to return
-                                     // this (or the "ArgType_t" helper template to index into it).
+                  bool IsNoexceptV, // "true" if the function is declared "noexcept" or "false" otherwise. Use the
+                                    // "IsNoexcept_v" member in the class to return this
+                  typename... ArgsT> // Function's arguments (types) in left-to-right order of declaration in the
+                                     // function (as would be expected). Use the "ArgTypes_t" member in the class
+                                     // to return this but additional helper templates exist that can be used most
+                                     // of the time instead (that access "ArgTypes_t" for the most common scenarios,
+                                     // such as the "ArgType_t" helper template used to index into it, "IsArgTypeSame_v"
+                                     // for doing comparisons, among others).
         struct FunctionTraitsBase
         {
-            // See this constant for details
+            // See this macro for details
             #if !defined(USE_CONCEPTS)
                 //////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
@@ -7515,8 +8718,8 @@ namespace StdExt
             #endif
 
             ///////////////////////////////////////////////////////////////
-            // Template args "MemberFunctionClassT", "IsConstT",
-            // "IsVolatileT" and "FunctionReferenceT" only apply when "F"
+            // Template args "MemberFunctionClassT", "IsConstV",
+            // "IsVolatileV" and "FunctionReferenceV" only apply when "F"
             // is a non-static member function pointer (or a reference to
             // one). Otherwise we're dealing with a free function so
             // they're not applicable (so we make sure of this) ...
@@ -7528,79 +8731,107 @@ namespace StdExt
                                                          // In all free function cases the 4 conditions just below must
                                                          // hold (since they don't apply to free functions) ...
                           (std::is_void_v<MemberFunctionClassT> &&
-                           !IsConstT &&
-                           !IsVolatileT &&
-                           FunctionReferenceT == StdExt::FunctionReference::None));
+                           !IsConstV &&
+                           !IsVolatileV &&
+                           FunctionReferenceV == StdExt::FunctionReference::None));
 
             ///////////////////////////////////////////////////////////////////////
             // Function's full type. Same as template arg "F" used to instantiate
             // each "FunctionTraits" specialization (which all derive from
-            // "FunctionTraitsBase"). If the template arg "F" passed to
+            // "FunctionTraitsBase"). If template arg "F" passed to
             // "FunctionTraits" is a functor however (a class/struct with an
-            // "operator()" member), then the "F" we receive here isn't that
-            // functor (its class/struct), but the type of "operator()" in the
-            // functor. If the template arg "F" passed to "FunctionTraits" is a
-            // "std::function" specialization then the "F" we receive here isn't
-            // that specialization but the function type it was specialized on
+            // "operator()" member), then the "F" we receive here (in the template
+            // you're now reading) isn't that functor (its class/struct), but the
+            // type of "operator()" in the functor. If template arg "F" passed to
+            // "FunctionTraits" is a "std::function" specialization then the "F"
+            // we receive here isn't that specialization but the function type it
+            // was specialized on.
             ///////////////////////////////////////////////////////////////////////
             using FunctionType_t = F;
 
-            // Helper variable for above type (returns it as a WYSIWYG "tstring_view")
+            // Convenience helper for just above (returns it as a "tstring_view")
             static constexpr tstring_view FunctionTypeName_v = TypeName_v<FunctionType_t>;
+
+            // Function origin type
+            using FunctionOriginType_t = FunctionOriginTypeT;
+
+            // Enum corresponding to "FunctionOriginType_t" above (identifies it)
+            static constexpr FunctionOrigin FunctionOrigin_v = FunctionOriginV;
+
+            // Should never trigger by design (sanity check only)
+            static_assert(FunctionOrigin_v == FunctionOrigin::None ? std::is_void_v<FunctionOriginType_t> // Never "cv-qualified" void by design (always just 
+                                                                                                          // plain void) but we handle cv-qualifiers anyway
+                                                                   : !std::is_void_v<FunctionOriginType_t>);
+
+            // Convenience helper for "FunctionOriginType_t" above (returns it as a "tstring_view")
+            static constexpr tstring_view FunctionOriginTypeName_v = FunctionOrigin_v == FunctionOrigin::None ? tstring_view(_T("")) // Fundamental function type so there is no function
+                                                                                                                                     // origin (so just return an empty string)
+                                                                                                              : TypeName_v<FunctionOriginType_t>; // Function origin's type as a string
 
             ///////////////////////////////////////////////////////////////////////
             // Function's raw type. Same as template arg "F" used to instantiate
             // each "FunctionTraits" specialization (which all derive from
             // "FunctionTraitsBase"), but stripped of any references and pointers
             // (including for non-static member functions). The resulting type is
-            // therefore just the raw (native) C++ function type of "F". If the
-            // template arg "F" passed to "FunctionTraits" is a functor however (a
-            // class/struct with an "operator()" member), then the "F" we receive
-            // here isn't that functor (its class/struct), but the type of
-            // "operator()" in the functor. "RawTypeT" is therefore the raw type
-            // of "operator()". If the template arg "F" passed to "FunctionTraits"
-            // is a "std::function" specialization then the "F" we receive here
-            // isn't that specialization but the function type it was specialized
-            // on.
+            // therefore just the raw (native) C++ function type of "F" so it
+            // always satisfies "std::is_function". If the template arg "F" passed
+            // to "FunctionTraits" is a functor however (a class/struct with an
+            // "operator()" member), then the "F" we receive here (in the template
+            // you're now reading) isn't that functor (its class/struct), but the
+            // type of its "operator()" member. "RawTypeT" is therefore the raw
+            // type of "operator()". If the template arg "F" passed to
+            // "FunctionTraits" is a "std::function" specialization then the "F"
+            // we receive here isn't that specialization but the function type it
+            // was specialized on (so "RawTypeT" is therefore its raw type but
+            // since "std::function" can only legally be specialized on a raw
+            // type, the following will be the same as the "F" we receive here)
             ///////////////////////////////////////////////////////////////////////
             using RawType_t = RawTypeT;
 
-            // Helper variable for above type (returns it as a WYSIWYG "tstring_view")
+            // Convenience helper for just above (returns it as a "tstring_view")
             static constexpr tstring_view RawTypeName_v = TypeName_v<RawType_t>;
 
-            ////////////////////////////////////////////////////////////////////////
-            // Function's return type. The syntax for accessing this directly is a
-            // bit verbose however since you have to apply the "typename" keyword.
-            // You should therefore normally rely on the helper alias templates
-            // "ReturnType_t" or "FunctionTraitsReturnType_t" instead (declared
-            // later in this file). The former just defers to the latter and should
-            // usually be used (it's easier). See these for details (plus
-            // examples).
-            ////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////
+            // Function's return type. The syntax for accessing this directly is
+            // a bit verbose however since you have to apply the "typename"
+            // keyword. You should therefore normally rely on the helper alias
+            // templates "ReturnType_t" or "FunctionTraitsReturnType_t" instead
+            // (declared at "StdExt" scope later in this file). The former just
+            // defers to the latter and should usually be used (it's easier).
+            // See these for details.
+            //////////////////////////////////////////////////////////////////////
             using ReturnType_t = ReturnTypeT;
 
-            // Helper variable for above type (returns it as a WYSIWYG "tstring_view")
+            // Convenience helper for just above (returns it as a "tstring_view")
             static constexpr tstring_view ReturnTypeName_v = TypeName_v<ReturnType_t>;
 
+            // Helper template (common requirement for many users - WYSIWYG)
             template <typename T>
             static constexpr bool IsReturnTypeSame_v = std::is_same_v<ReturnType_t, T>;
 
-            static constexpr bool IsReturnTypeVoid_v = std::is_void_v<ReturnType_t>;
+            // Helper template (common requirement for many users - WYSIWYG)
+            static constexpr bool IsReturnTypeVoid_v = std::is_void_v<ReturnType_t>; // Note: Check ignores cv-qualifiers
 
         #if defined(STDEXT_SUPPORT_DEPRECATED)
+            ///////////////////////////////////////////////////////////
+            // Following variable name is deprecated (still supported
+            // but users should use the one just above instead -
+            // following just defers to it)
+            ///////////////////////////////////////////////////////////
             VARIABLE_DEPRECATED_DUE_TO_NAME_CHANGE(IsReturnTypeVoid_v)
             static constexpr bool IsVoidReturnType_v = IsReturnTypeVoid_v; // Defer to variable just above
         #endif
 
-            //////////////////////////////////////////////////////////
-            // "IsReturnTypeMatch_v" implementation declared further
-            // below (following #defined here so we can apply this
-            // line in both the concepts or "static_assert"
-            // implementations just below)
-            //////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            // For internal use only (we #undef it further below). Implements
+            // "IsReturnTypeMatch_v" declared a bit further below (following
+            // #defined here so we can apply this line in both the concepts
+            // or "static_assert" implementations of "IsReturnTypeMatch_v")
+            //////////////////////////////////////////////////////////////////
             #define IS_RETURN_TYPE_MATCH IsReturnTypeSame_v<typename FunctionTraitsBaseT::ReturnType_t>
 
     #if defined(USE_CONCEPTS)
+            // For internal use only (we #undef it further below)
             #define IS_RETURN_TYPE_MATCH_V_IMPL IS_RETURN_TYPE_MATCH
     #else
         ///////////////////////////////////////////////////////////
@@ -7609,7 +8840,7 @@ namespace StdExt
         ///////////////////////////////////////////////////////////
         private:
             template <typename FunctionTraitsBaseT,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct IsReturnTypeMatchImpl : StaticAssertInvalidFunctionTraitsBase<FunctionTraitsBaseT>
             {
             };
@@ -7622,6 +8853,7 @@ namespace StdExt
             {
             };
 
+            // For internal use only (we #undef it further below)
             #define IS_RETURN_TYPE_MATCH_V_IMPL IsReturnTypeMatchImpl<FunctionTraitsBaseT>::value
         public:
     #endif // #if defined(USE_CONCEPTS)
@@ -7632,111 +8864,136 @@ namespace StdExt
             #undef IS_RETURN_TYPE_MATCH_V_IMPL
             #undef IS_RETURN_TYPE_MATCH
 
-            /////////////////////////////////////////////////////////////////////////
-            // Function's calling convention (implicitly or explicitly declared in
-            // the function, usually the former but it doesn't matter). Note that if
-            // a calling convention isn't supported, usually based on your compiler
-            // options (target environment, etc.), then the compiler will replace it
-            // with the "cdecl" calling convention normally (so the following will
-            // reflect that). If you declare a function as "stdcall" for instance
-            // (or any other besides "cdecl"), and it's not supported based on your
-            // compiling options, then the compiler will replace it with "cdecl"
-            // instead (and you may or may not receive a compiler warning that this
-            // occurred depending on your platform and compiler options). Note that
-            // "cdecl" itself is always (realistically) supported by all compilers
-            // AFAIK (those we support at least but very likely all others as well)
-            /////////////////////////////////////////////////////////////////////////
-            static constexpr CallingConvention CallingConvention_v = CallingConventionT; // Adding "_v" suffix so name isn't identical to "enum class CallingConvention"
-                                                                                         // itself (to prevent confusion with the latter - also prevents an error in Clang
-                                                                                         // if declared with the same name, unless "enum class" is explicitly present in
-                                                                                         // the type itself but using a different variable name here eliminates the issue
-                                                                                         // altogether). Note BTW that we apply "_v" to all variable templates outside the
-                                                                                         // class but not for variable names inside (but making an exception in this case).
-                                                                                         // Maybe we should (and apply _t suffix to class aliases as well), but leaving
-                                                                                         // things as-is for now.
+            /////////////////////////////////////////////////////////////////////
+            // Function's calling convention (implicitly or explicitly
+            // declared in the function, usually the former but it's not
+            // relevant). Note that when building for certain architectures
+            // all compilers we support will replace the function's calling
+            // convention (if explicitly set) with the "cdecl" calling
+            // convention if the explicit calling convention has no meaning or
+            // relevance on that architecture. The following will therefore
+            // always reflect that. If you declare a function as "stdcall" for
+            // instance (or any other besides "cdecl"), and then compile for
+            // x64, then the compiler will replace "stdcall" with "cdecl"
+            // instead (and you may or may not receive a compiler warning that
+            // this occurred depending on your platform and compiler options).
+            // Other calling conventions might remain unaffected for the same
+            // architecture however, such as "vectorcall" and "regcall" on x64
+            // (assuming a given compiler supports them at all - GCC doesn't
+            // support "vectorcall" and "regcall" for instance, while
+            // Microsoft supports "vectorcall" but not "regcall).
+            /////////////////////////////////////////////////////////////////////
+            static constexpr CallingConvention CallingConvention_v = CallingConventionV; // Adding "_v" suffix so name isn't identical to "enum class CallingConvention"
+                                                                                         // itself (to prevent confusion with the latter but also prevents an error in
+                                                                                         // Clang if declared with the same name, unless "enum class" is explicitly
+                                                                                         // present in the type itself but using a different variable name here
+                                                                                         // eliminates the issue altogether).
 
-            // Helper variable for above variable (returns it as a WYSIWYG "tstring_view")
+            // Convenience helper for just above (returns it as a "tstring_view")
             static constexpr tstring_view CallingConventionName_v = CallingConventionToString(CallingConvention_v);
 
             //////////////////////////////////////////////////////////////////////
-            // Applicable to non-static member functions only. Stores the class
-            // (type) this non-static member function belongs to. Always "void"
-            // otherwise. Use the "FunctionClassification" member below to check
-            // this. Note that at this writing, the following isn't supported for
-            // static member functions (it's always void for them) since C++
-            // doesn't provide any way to distinguish between ordinary free
-            // functions (i.e., those declared at namespace scope) and static
-            // member functions (i.e., "free" functions declared at class scope).
-            // Both qualify as "free" functions and there's no way to determine
-            // the scope (namespace-based vs static so class-based)
+            // Applicable to non-static member functions only (always "void"
+            // otherwise). Stores the class (type) this non-static member
+            // function belongs to. You can use the "FunctionClassification_v"
+            // member further below to check this (the following returns non-void
+            // only if "FunctionClassification_v" returns
+            // "FunctionClassification::NonStaticMember"). Note that at this
+            // writing, the following isn't supported for static member functions
+            // (it's always void for them) since C++ doesn't provide any way to
+            // distinguish between ordinary free functions (i.e., those declared
+            // at namespace scope) and static member functions (i.e., "free"
+            // functions declared at class scope). Both qualify as "free"
+            // functions and there's no way to determine the scope
+            // (namespace-based vs static so class-based in the latter case).
+            // Hopefully reflection in C++26 will remedy this (situation will be
+            // reviewed again at that time).
             //////////////////////////////////////////////////////////////////////
             using MemberFunctionClass_t = MemberFunctionClassT;
 
-            // Helper variable for above type (returns it as a WYSIWYG "tstring_view")
-            static constexpr tstring_view MemberFunctionClassName_v = std::is_void_v<MemberFunctionClass_t> ? tstring_view(_T("")) // Free or abominable function (so there is no class)
+            // Convenience helper for just above (returns it as a "tstring_view")
+            static constexpr tstring_view MemberFunctionClassName_v = std::is_void_v<MemberFunctionClass_t> ? tstring_view(_T("")) // Free function (so there is no class)
                                                                                                             : TypeName_v<MemberFunctionClass_t>; // Non-static member function
 
             ///////////////////////////////////////////////////////////////////////
             // "true" if the function is variadic (last arg of function is "...")
-            // or "false" otherwise. Note that "..." refers to the old-school
+            // or "false" otherwise. Note that "..." here refers to the old-school
             // definition in C, so nothing to do with variadic template arguments
             // in C++.
             ///////////////////////////////////////////////////////////////////////
-            static constexpr bool IsVariadic_v = IsVariadicT;
+            static constexpr bool IsVariadic_v = IsVariadicV;
 
-            ////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////
             // Is non-static member function declared with the "const" keyword.
-            // Applicable to non-static member functions and abominable functions
-            // only (use the "FunctionClassification" member further below to check
-            // this). Always false otherwise (N/A in this case).
-            ////////////////////////////////////////////////////////////////////////
-            static constexpr bool IsConst_v = IsConstT;
+            // Applicable to non-static member functions only (use the
+            // "FunctionClassification_v" member further below if you need to
+            // check this). Always false otherwise (N/A in this case).
+            /////////////////////////////////////////////////////////////////////
+            static constexpr bool IsConst_v = IsConstV;
 
             ////////////////////////////////////////////////////////////////////////
             // Is non-static member function declared with the "volatile" keyword.
-            // Applicable to non-static member functions and abominable functions
-            // only (use the "FunctionClassification" member further below to check
+            // Applicable to non-static member functions only (use the
+            // "FunctionClassification_v" member further below if you need to check
             // this). Always false otherwise (N/A in this case).
             ////////////////////////////////////////////////////////////////////////
-            static constexpr bool IsVolatile_v = IsVolatileT;
+            static constexpr bool IsVolatile_v = IsVolatileV;
 
             //////////////////////////////////////////////////////////////////////
-            // Is non-static member function declared with a reference-qualifier (&
-            // or &&). Applicable to non-static member functions and abominable
-            // functions only (use the "FunctionClassification" member further
-            // below to check this). Always "FunctionReference::None" otherwise
-            // (N/A in this case).
+            // Is non-static member function declared with a reference-qualifier
+            // (& or &&). Applicable to non-static member functions only (use the
+            // "FunctionClassification_v" member further below if you need to
+            // check this). Always "FunctionReference::None" otherwise (N/A in
+            // this case).
             //////////////////////////////////////////////////////////////////////
-            static constexpr FunctionReference FunctionReference_v = FunctionReferenceT;
+            static constexpr FunctionReference FunctionReference_v = FunctionReferenceV;
 
-            // Helper variable for above variable (returns it as a WYSIWYG "tstring_view")
+            // Convenience helper for just above (returns it as a "tstring_view")
             template <bool UseAmpersands = true>
             static constexpr tstring_view FunctionReferenceName_v = FunctionReferenceToString(FunctionReference_v,
                                                                                               UseAmpersands);
 
             // "true" if the function is declared "noexcept" or "false" otherwise
-            static constexpr bool IsNoexcept_v = IsNoexceptT;
+            static constexpr bool IsNoexcept_v = IsNoexceptV;
 
             ///////////////////////////////////////////////////////////////////////
-            // Function's arguments (types) in left-to-right order of declaration
-            // (as would be expected). The syntax for accessing this directly is
-            // verbose however (using the "Args" struct below), so you should
-            // normally rely on the helper alias templates "ArgType_t" (usually),
-            // or less frequently "FunctionTraitsArgType_t" instead (both declared
-            // later in this file). The former just defers to the latter. See
-            // these for details (plus examples).
+            // Function's arguments (parameter types) in left-to-right order of
+            // declaration in the function (as would be expected). The syntax for
+            // accessing this from outside this struct is verbose however (using
+            // either the following "std::tuple" directly or any of the numerous
+            // helper templates that follow below). The "typename" and/or
+            // "template" keywords must always be applied which is ugly, so you
+            // should normally rely on the helper alias templates declared at
+            // "StdExt" scope later in this file instead (either
+            // "StdExt::ArgTypes_t" to access the following directly or any of the
+            // other "StdExt" helper templates used for accessing it - the latter
+            // however will usually meet the needs of most and are cleaner/less
+            // verbose so should be relied on normally).
             ///////////////////////////////////////////////////////////////////////
             using ArgTypes_t = std::tuple<ArgsT...>;
 
             ////////////////////////////////////////////////////////////
             // Number of arguments in the function. This is officially
             // called "arity" but the term is obscure so we'll stick
-            // with a name everyone can relate to.
+            // with a name everyone can relate to ("ArgCount_v")
             ////////////////////////////////////////////////////////////
             static constexpr std::size_t ArgCount_v = std::tuple_size_v<ArgTypes_t>;
 
+            ////////////////////////////////////////////////////////////////
+            // Convenience helper to determine if an arg list is completely
+            // empty, i.e., "(void)" or "()" (the latter is likely more
+            // prevalent though)
+            ////////////////////////////////////////////////////////////////
             static constexpr bool IsArgListEmpty_v = (ArgCount_v == 0 && !IsVariadic_v);
 
+            //////////////////////////////////////////////////////////////////
+            // Variable template to check if "I" is less than the function's
+            // arg count (i.e., it's a valid zero-based index into the
+            // function's args). Normally used for internal purposes only so
+            // not publicly documented by the library in the README.md file
+            // at the GitHub web site (though still declared public here if
+            // anyone wants to use it).
+            //////////////////////////////////////////////////////////////////
             template <std::size_t I /* Zero-based */>
             static constexpr bool IndexLessThanArgCount_v = (I < ArgCount_v);
 
@@ -7748,6 +9005,15 @@ namespace StdExt
                 #define REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_ARG_COUNT(I)
             #endif // #if defined(USE_CONCEPTS)
 
+            //////////////////////////////////////////////////////////////////
+            // Variable template to check if "I" is less than or equal to the
+            // function's arg count (i.e., it's either a valid zero-based
+            // index into the function's args or one beyond the last arg for
+            // those templates that support it). Normally used for internal
+            // purposes only so not publicly documented by the library in the
+            // README.md file at the GitHub web site (though still declared
+            // public here if anyone wants to use it).
+            //////////////////////////////////////////////////////////////////
             template <std::size_t I /* Zero-based */>
             static constexpr bool IndexLessThanOrEqualToArgCount_v = (I <= ArgCount_v);
 
@@ -7759,13 +9025,12 @@ namespace StdExt
                 #define REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I)
             #endif // #if defined(USE_CONCEPTS)
 
-            //////////////////////////////////////////////
-            // For "requires" clause in "ArgType_t" just
-            // below (as well as the library's helper
-            // templates for the latter, declared at
-            // namespace scope later on but which also
+            ////////////////////////////////////////////////////////////////
+            // For "requires" clause in "ArgType_t" declared a bit further
+            // below (as well as the library's helper templates for the
+            // latter, declared at namespace scope later on but which also
             // ultimately rely on it)
-            //////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////
             template <std::size_t I /* Zero-based */,
                       bool ReturnVoidIfInvalidIndex>
             static constexpr bool IndexLessThanArgCountOrReturnVoid_v = IndexLessThanArgCount_v<I> || ReturnVoidIfInvalidIndex;
@@ -7779,7 +9044,7 @@ namespace StdExt
                   #if !defined(USE_CONCEPTS)
                       bool ReturnVoidIfInvalidIndex,
                   #endif
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct ArgTypeImpl
             {
                 #if !defined(USE_CONCEPTS)
@@ -7817,6 +9082,11 @@ namespace StdExt
                 using Type = void;
             };
 
+            ////////////////////////////////////////////////////////
+            // Specialization of above (kicks in if zero-based "I"
+            // is a valid index into the function's args, i.e.,
+            // it's less than the function's arg count)
+            ////////////////////////////////////////////////////////
             template <std::size_t I
                   #if !defined(USE_CONCEPTS)
                       , bool ReturnVoidIfInvalidIndex
@@ -7858,10 +9128,10 @@ namespace StdExt
             ////////////////////////////////////////////////////////////////////////
             // ArgType_t. Helper alias for "ArgTypes_t" further above. Retrieves an
             // individual arg type from "ArgTypes_t" by passing its zero-based
-            // index. Called as per the following example but see IMPORTANT section
-            // below for a cleaner way (and also see function template
-            // "ForEachArg()" if you need to iterate all arg types instead of just
-            // accessing an individual arg type as the following does):
+            // index (template arg "I"). Called as per the following example but
+            // see IMPORTANT section below for a cleaner way (and also see function
+            // template "ForEachArg()" if you need to iterate all arg types instead
+            // of just accessing an individual arg type as the following does):
             //
             //  Example
             //  -------
@@ -7887,8 +9157,8 @@ namespace StdExt
             //       // instead (since "void" isn't a legal parameter type in C++ so
             //       // if returned it guarantees that "I" isn't valid). Note that
             //       // this is sometimes useful for SFINAE situations for instance,
-            //       // where you don't a compiler error to trigger when "I" is
-            //       // invalid (targets a non-existent arg), but for "void" to
+            //       // where you don't want a compiler error to trigger when "I"
+            //       // is invalid (targets a non-existent arg), but for "void" to
             //       // simply be returned instead (which you can even test for
             //       // if required using "std::is_void").
             //       //
@@ -7944,21 +9214,16 @@ namespace StdExt
                                                #endif
                                                   >::Type;
 
-            //////////////////////////////////////////////
-            // For "requires" clause in "ArgTypeName_v"
-            // just below (as well as the library's
-            // helper templates for the latter, declared
-            // at namespace scope later on but which also
-            // ultimately rely on it)
-            //////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            // For "requires" clause in "ArgTypeName_v" just below (as well
+            // as the library's helper templates for the latter, declared at
+            // namespace scope later on but which also ultimately rely on it)
+            //////////////////////////////////////////////////////////////////
             template <std::size_t I /* Zero-based */,
                       bool ReturnEmptyStringIfInvalidIndex>
             static constexpr bool IndexLessThanArgCountOrReturnEmptyString_v = IndexLessThanArgCountOrReturnVoid_v<I, ReturnEmptyStringIfInvalidIndex>;
 
-            //////////////////////////////////////////////////
-            // Helper variable for "ArgType_t above (returns
-            // it as a WYSIWYG "tstring_view")
-            //////////////////////////////////////////////////
+            // Convenience helper for "ArgType_t" above (returns it as a "tstring_view")
             template <std::size_t I /* Zero-based */,
                       bool ReturnEmptyStringIfInvalidIndex = false>
             #if defined(USE_CONCEPTS)
@@ -7967,13 +9232,11 @@ namespace StdExt
             static constexpr tstring_view ArgTypeName_v = IndexLessThanArgCount_v<I> || !ReturnEmptyStringIfInvalidIndex ? TypeName_v<ArgType_t<I, ReturnEmptyStringIfInvalidIndex>>
                                                                                                                          : tstring_view(_T(""));
 
-            ////////////////////////////////////////////////
-            // For "requires" clause in "IsArgTypeSame_v"
-            // just below (as well as the library's helper
-            // templates for the latter, declared at
-            // namespace scope later on but which also
-            // ultimately rely on it)
-            ////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            // For "requires" clause in "IsArgTypeSame_v" just below (as well
+            // as the library's helper templates for the latter, declared at
+            // namespace scope later on but which also ultimately rely on it)
+            //////////////////////////////////////////////////////////////////
             template <std::size_t I /* Zero-based */,
                       bool CompareWithVoidIfInvalidIndex>
             static constexpr bool IndexLessThanArgCountOrCompareWithVoid_v = IndexLessThanArgCountOrReturnVoid_v<I, CompareWithVoidIfInvalidIndex>;
@@ -7987,8 +9250,8 @@ namespace StdExt
             static constexpr bool IsArgTypeSame_v = std::is_same_v< ArgType_t<I, CompareWithVoidIfInvalidIndex>,
                                                                     std::conditional_t<std::is_void_v<T>, // If "T" is void then it might be cv-qualified
                                                                                                           // (though rare in practice) but we want to ignore
-                                                                                                          // these (and just compare with plain "void")
-                                                                                       void, // Remove the cv-qualifiers if any (usually not). If
+                                                                                                          // this (and just compare with plain "void")
+                                                                                       void, // Remove the cv-qualifiers if any (usually none). If
                                                                                              // call to "ArgType_t" above returns "void" then we'll
                                                                                              // be comparing it with "void", hence returning "true",
                                                                                              // not a cv-qualified "void" (such as "const void"), which
@@ -7999,45 +9262,46 @@ namespace StdExt
                                                                                        T
                                                                                       >
                                                                   >;
-            ////////////////////////////////////////////////
-            // For use by "IsArgTypeMatch_v" just below (as
-            // well as the library's helper templates for
-            // the latter, declared at namespace scope
-            // later on but which also ultimately rely on
-            // it). Used in a "requires" clause if C++20
-            // or later, or a "static_assert" in C++17.
-            ////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            // For use by "IsArgTypeMatch_v" declared a bit further below (as
+            // well as the library's helper templates for the latter,
+            // declared at namespace scope later on but which also ultimately
+            // rely on it). Used in a "requires" clause if C++20 or later, or
+            // a "static_assert" in C++17.
+            //////////////////////////////////////////////////////////////////
             template <FUNCTION_TRAITS_BASE_C FunctionTraitsBaseT,
                       std::size_t I /* Zero-based */,
                       bool ReturnFalseIfOneHasArgOtherDoesnt>
             static constexpr bool IndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v = (IndexLessThanArgCount_v<I> && FunctionTraitsBaseT::template IndexLessThanArgCount_v<I>) || // True if arg "I" exists in *both* functions
-                                                                                          ((IndexLessThanArgCount_v<I> || FunctionTraitsBaseT::template IndexLessThanArgCount_v<I>) && ReturnFalseIfOneHasArgOtherDoesnt); // "True" if arg "I" exists in one function only (not both)
-                                                                                                                                                                                                                           // AND "ReturnFalseIfOneHasArgOtherDoesnt" is true
+                                                                                          ((IndexLessThanArgCount_v<I> || FunctionTraitsBaseT::template IndexLessThanArgCount_v<I>) && ReturnFalseIfOneHasArgOtherDoesnt); // "True" if arg "I" exists in one function only (so invalid in)
+                                                                                                                                                                                                                           // the other) AND "ReturnFalseIfOneHasArgOtherDoesnt" is true
 
-            ///////////////////////////////////////////////////////
-            // "IsArgTypeMatch_v" implementation declared further
-            // below (following #defined here so we can apply
-            // this line in both the concepts or "static_assert"
-            // implementations just below)
-            ///////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            // For internal use only (we #undef it further below). Implements
+            // "IsArgTypeMatch_v" declared a bit further below (following
+            // #defined here so we can apply this line in both the concepts
+            // or "static_assert" implementations of "IsArgTypeMatch_v")
+            //////////////////////////////////////////////////////////////////
             #define IS_ARG_TYPE_MATCH IsArgTypeSame_v<I, \
                                                       typename FunctionTraitsBaseT::template ArgType_t<I, \
-                                                                                                       true /* ReturnVoidIfInvalidIndex */>, \
+                                                                                                       true /* ReturnVoidIfInvalidIndex */ \
+                                                                                                      >, \
                                                       true /* CompareWithVoidIfInvalidIndex */ \
                                                      >
 
     #if defined(USE_CONCEPTS)
+            // For internal use only (we #undef it further below)
             #define IS_ARG_TYPE_MATCH_V_IMPL IS_ARG_TYPE_MATCH
     #else
-        ////////////////////////////////////////////////////////
-        // "IsArgTypeMatch_v" (private) implementation. Latter
-        // variable declared just below this implementation.
-        ////////////////////////////////////////////////////////
         private:
+            ////////////////////////////////////////////////////////
+            // "IsArgTypeMatch_v" (private) implementation. Latter
+            // variable declared just below this implementation.
+            ////////////////////////////////////////////////////////
             template <typename FunctionTraitsBaseT,
                       std::size_t I /* Zero-based */,
                       bool ReturnFalseIfOneHasArgOtherDoesnt,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct IsArgTypeMatchImpl : StaticAssertInvalidFunctionTraitsBase<FunctionTraitsBaseT>
             {
             };
@@ -8078,6 +9342,7 @@ namespace StdExt
                               "exist to one that does).");
             };
 
+            // For internal use only (we #undef it further below)
             #define IS_ARG_TYPE_MATCH_V_IMPL IsArgTypeMatchImpl<FunctionTraitsBaseT, I, ReturnFalseIfOneHasArgOtherDoesnt>::value
         public:
     #endif // #if defined(USE_CONCEPTS)
@@ -8102,8 +9367,9 @@ namespace StdExt
                                                                                           std::remove_cv_t<ArgTypesToCompareTupleT>
                                                                                          > &&
                                                                            (AndVariadicT == AndVariadic::Ignore ||
-                                                                            static_cast<AndVariadic>(IsVariadic_v) == AndVariadicT) // "static_cast" here is dirty but convenient
-                                                                                                                                     // so we'll live with it (it's safe)
+                                                                            static_cast<AndVariadic>(IsVariadic_v) == AndVariadicT // "static_cast" here is dirty but convenient
+                                                                                                                                   // so we'll live with it (it's safe)
+                                                                           )
                                                                           )
                                                                          );
 
@@ -8113,17 +9379,18 @@ namespace StdExt
             static constexpr bool IsArgTypesSame_v = IsArgTypesSameTuple_v<std::tuple<ArgTypesToCompareT...>,
                                                                            AndVariadicT>;
 
-            ////////////////////////////////////////////////////////
-            // "IsArgTypesMatch_v" implementation declared further
-            // below (following #defined here so we can apply this
-            // line in both the concepts or "static_assert"
-            // implementations just below)
-            ////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            // For internal use only (we #undef it further below). Implements
+            // "IsArgTypesMatch_v" declared a bit further below (following
+            // #defined here so we can apply this line in both the concepts
+            // or "static_assert" implementations of "IsArgTypesMatch_v")
+            //////////////////////////////////////////////////////////////////
             #define IS_ARG_TYPES_MATCH IsArgTypesSameTuple_v<typename FunctionTraitsBaseT::ArgTypes_t, \
                                                              IgnoreVariadic ? AndVariadic::Ignore \
                                                                             : static_cast<AndVariadic>(FunctionTraitsBaseT::IsVariadic_v)> // "static_cast" here is dirty but convenient
-                                                                                                                                         // so we'll live with it (it's safe)
+                                                                                                                                           // so we'll live with it (it's safe)
     #if defined(USE_CONCEPTS)
+            // For internal use only (we #undef it further below)
             #define IS_ARG_TYPES_MATCH_V_IMPL IS_ARG_TYPES_MATCH
     #else
         /////////////////////////////////////////////////////////
@@ -8133,7 +9400,7 @@ namespace StdExt
         private:
             template <typename FunctionTraitsBaseT,
                       bool IgnoreVariadic,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct IsArgTypesMatchImpl : StaticAssertInvalidFunctionTraitsBase<FunctionTraitsBaseT>
             {
             };
@@ -8148,6 +9415,7 @@ namespace StdExt
             {
             };
 
+            // For internal use only (we #undef it further below)
             #define IS_ARG_TYPES_MATCH_V_IMPL IsArgTypesMatchImpl<FunctionTraitsBaseT, IgnoreVariadic>::value
         public:
     #endif // #if defined(USE_CONCEPTS)
@@ -8164,14 +9432,15 @@ namespace StdExt
             template <FOR_EACH_ARG_FUNCTOR_C ForEachArgFunctorT>
             static constexpr bool ForEachArg(ForEachArgFunctorT&& forEachArgFunctor)
             {
-                //////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////
                 // Defer to function template "ForEachTupleType()",
-                // specializing it on our "ArgTypes_t" member (i.e., the
-                // the "std::tuple" containing all non-variadic arg types
-                // for the function). All types in "ArgTypes_t" are
-                // therefore iterated, invoking "forEachArgFunctor" for
-                // each (we pass the latter to "ForEachTupleType()").
-                //////////////////////////////////////////////////////////
+                // specializing it on our "ArgTypes_t" member (i.e.,
+                // the "std::tuple" containing all non-variadic arg
+                // types for the function). All types in "ArgTypes_t"
+                // are therefore iterated, invoking "forEachArgFunctor"
+                // for each (we pass the latter to "ForEachTupleType()"
+                // here).
+                ////////////////////////////////////////////////////////
                 return ForEachTupleType<ArgTypes_t>(std::forward<ForEachArgFunctorT>(forEachArgFunctor));
             }
 
@@ -8184,7 +9453,7 @@ namespace StdExt
             // provides an override for the following variable (setting it to
             // "FunctionClassification::Abominable"). The following code will
             // therefore never directly encounter an abominable function at
-            // this writing and we "static_assert" on it just below.
+            // this writing so we "static_assert" on it just below.
             ///////////////////////////////////////////////////////////////////
             static constexpr FunctionClassification FunctionClassification_v = std::is_void_v<MemberFunctionClass_t> ? (!IsConst_v && !IsVolatile_v && FunctionReference_v == FunctionReference::None ? FunctionClassification::Free
                                                                                                                                                                                                       : FunctionClassification::Abominable)
@@ -8192,38 +9461,27 @@ namespace StdExt
             // See comments just above
             static_assert(FunctionClassification_v != FunctionClassification::Abominable);
 
-            //////////////////////////////////////////////////////////
-            // Overridden (hidden) where required in derived classes
-            // such as "FunctorTraits" (which sets this to
-            // "FunctionOrigin::Functor"). At this point however it's
-            // always "FunctionOrigin::None" (unless overridden in a
-            // derived class as just described).
-            //////////////////////////////////////////////////////////
-            static constexpr FunctionOrigin FunctionOrigin_v = FunctionOrigin::None;
-
-            /////////////////////////////////////////////////////////
-            // Default constructor. Deleted to prevent struct (and
-            // its derivatives) from being constructed since it's a
-            // traits class so no instance of the class is normally
-            // ever required. Deleting it here prevents accidental
-            // creation (including derivatives) and to some extent
-            // helps enforce the struct's intent (as a traits class
-            // so there's no reason to instantiate it normally and
-            // the following even prevents accidental instantiation
-            // - the struct's entire interface consists of "using"
-            // statements and "static constexpr" declarations only
-            // so no instance is therefore normally required). Some
-            // might argue that it's not a good idea however (for
-            // one reason or another) but for now we'll live with
-            // it (if an instance needs to be created it can be
-            // done via a call to "std::declval" but that's all).
-            /////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////
+            // Default constructor. Deleted to prevent struct (and its
+            // derivatives) from being constructed since it's a traits class
+            // so no instance of the class is normally ever required. Deleting
+            // it here prevents accidental creation (including derivatives)
+            // and to some extent helps enforce the struct's intent (as a
+            // traits class so there's no reason to instantiate it normally
+            // and the following even prevents accidental instantiation - the
+            // struct's entire interface consists of "using" statements and
+            // "static constexpr" declarations only so no instance is
+            // therefore normally required). Some might argue that it's not a
+            // good idea however (for one reason or another) but for now we'll
+            // live with it (if an instance needs to be created it can be done
+            // via a call to "std::declval" but that's all).
+            ///////////////////////////////////////////////////////////////////
             FunctionTraitsBase() = delete;
         }; // struct FunctionTraitsBase
 
         //////////////////////////////////////////////////////////////////
-        // See this constant for details. Following code is preprocessed
-        // out if function write traits not supported (since code is only
+        // See this macro for details. Following code is preprocessed out
+        // if function write traits not supported (since it's only
         // required to support function write traits at this writing,
         // never function read traits). Function write traits are
         // normally supported however so the following normally tests
@@ -8252,7 +9510,7 @@ namespace StdExt
                                                        >;
 
                 template <typename F1,
-                            typename F2>
+                          typename F2>
                 using MigrateVolatile = std::conditional_t<std::is_volatile_v<F1>,
                                                            std::add_volatile_t<F2>,
                                                            F2
@@ -8260,11 +9518,11 @@ namespace StdExt
 
             protected:
                 template <typename F1,
-                            typename F2>
-                using MigrateCv = MigrateVolatile<F1, MigrateConst<F1, F2>>;
+                          typename F2>
+                using MigrateCv = MigrateVolatile<F1, MigrateConst<F1, F2> >;
 
                 template <typename F1,
-                            typename F2>
+                          typename F2>
                 using MigrateRef = std::conditional_t< std::is_lvalue_reference_v<F1>,
                                                        std::add_lvalue_reference_t<F2>,
                                                        std::conditional_t<std::is_rvalue_reference_v<F1>,
@@ -8350,7 +9608,8 @@ namespace StdExt
                     // "undeclared type" error that might occur if it
                     // weren't declared (calling "ReplaceArgsTemplate" here
                     // with no template args which is fine for our purposes,
-                    // it goes unused anyway due to the "static_assert").
+                    // it goes unused anyway due to the "static_assert"
+                    // above).
                     /////////////////////////////////////////////////////////
                     using Type = ReplaceArgsTemplate<>;
                 };
@@ -8362,7 +9621,8 @@ namespace StdExt
                 // just above for details)
                 ///////////////////////////////////////////////////////////////////
                 template <template<typename...> class ReplaceArgsTemplate,
-                          VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
+                          VALID_FUNCTION_ARG_TYPE_C... NewArgsT
+                         >
                 struct ReplaceArgsTupleImpl<ReplaceArgsTemplate,
                                             std::tuple<NewArgsT...>
                                            >
@@ -8380,13 +9640,14 @@ namespace StdExt
                 // above for details.
                 ///////////////////////////////////////////////////////////
                 template <template<typename... NewArgsT> class ReplaceArgsTemplate,
-                          VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
+                          VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT
+                         >
                 using ReplaceArgsTupleImpl_t = typename ReplaceArgsTupleImpl<ReplaceArgsTemplate,
                                                                              std::remove_cv_t<NewArgsTupleT>>::Type;
             }; // class FunctionWriteTraitsHelper
 
             #if defined(USE_CONCEPTS)
-                // For internal use only (we #undef it later)
+                // For internal use only (we #undef both later)
                 #define DECLARE_REPLACE_RETURN_TYPE_IMPL(...)
                 #define REPLACE_RETURN_TYPE_IMPL(REPLACE_RETURN_TYPE_MACRO) REPLACE_RETURN_TYPE_MACRO
             #else
@@ -8445,10 +9706,10 @@ namespace StdExt
             /////////////////////////////////////////////////
             #if defined(STDEXT_CC_VECTORCALL)
                 // For internal use only (we #undef it later).
-                #define STDEXT_CC_VECTORCALL_REPLACE(CC) STDEXT_CC_VECTORCALL
+                #define STDEXT_CC_VECTORCALL_IF_SUPPORTED(CC) STDEXT_CC_VECTORCALL
             #else
                 // For internal use only (we #undef it later).
-                #define STDEXT_CC_VECTORCALL_REPLACE(CC) CC
+                #define STDEXT_CC_VECTORCALL_IF_SUPPORTED(CC) CC
             #endif
 
             //////////////////////////////////////////////
@@ -8457,10 +9718,10 @@ namespace StdExt
             //////////////////////////////////////////////
             #if defined(STDEXT_CC_REGCALL)
                 // For internal use only (we #undef it later).
-                #define STDEXT_CC_REGCALL_REPLACE(CC) STDEXT_CC_REGCALL
+                #define STDEXT_CC_REGCALL_IF_SUPPORTED(CC) STDEXT_CC_REGCALL
             #else
                 // For internal use only (we #undef it later).
-                #define STDEXT_CC_REGCALL_REPLACE(CC) CC
+                #define STDEXT_CC_REGCALL_IF_SUPPORTED(CC) CC
             #endif
 
             #if defined(USE_CONCEPTS)
@@ -8519,6 +9780,8 @@ namespace StdExt
         #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
 
         template <TRAITS_FREE_FUNCTION_C F,
+                  typename FunctionOriginTypeT,
+                  FunctionOrigin FunctionOriginV,
                   FREE_FUNCTION_C FreeFunctionT = RemovePtrRef_t<F>, // For "std::enable_if_t" purposes in our specializations. Just "F" above after
                                                                      // removing any reference from "F" if present and then any pointer if present.
                                                                      // "F" itself may be a raw function or a pointer to a function or a reference
@@ -8531,10 +9794,10 @@ namespace StdExt
                                                                      // since abominable functions (those with cv-qualifiers and/or ref-qualifiers)
                                                                      // are always (ultimately) processed as member function pointers by design so
                                                                      // they never come through here.
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         struct FreeFunctionTraits
         {
-            // See this constant for details
+            // See this macro for details
             #if !defined(USE_CONCEPTS)
                 //////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
@@ -8557,17 +9820,23 @@ namespace StdExt
             static_assert(AlwaysFalse_v<F>,
                           "No expected partial specialization exists for \"FreeFunctionTraits\", "
                           "usually because its \"FreeFunctionT\" template arg has an unsupported "
-                          "calling convention (though other rare reasons may be possible). Note "
-                          "that \"FreeFunctionT\" is just template arg \"F\" stripped down to the "
-                          "free function type it refers to (the result of removing any reference "
-                          "from \"F\" if present, and then any function pointer if present). \"F\" "
-                          "itself is therefore an unsupported type for use with this template, and "
-                          "more generally for \"FunctionTraits\" or any of its helper templates.");
+                          "calling convention, such as \"thiscall\", which is only legal for "
+                          "non-static member functions, not free functions (even though the "
+                          "compiler itself will normally just ignore \"thiscall\" on free "
+                          "functions, but this library doesn't since it's never legal). Other "
+                          "rare reasons for this error may also be possible but usually unlikely. "
+                          "Note that \"FreeFunctionT\" is just template arg \"F\" stripped down "
+                          "to the free function type it refers to (the result of removing any "
+                          "reference from \"F\" if present, and then any function pointer if "
+                          "present). \"F\" itself is therefore an unsupported type for use with "
+                          "this template, and more generally for \"FunctionTraits\" or any of its "
+                          "helper templates (again, usually because it has an unsupported calling "
+                          "convention).");
         }; // struct FreeFunctionTraits
 
         //////////////////////////////////////////////////////////////////
-        // See this constant for details. Following code is preprocessed
-        // out if function write traits not supported (since code is only
+        // See this macro for details. Following code is preprocessed out
+        // if function write traits not supported (since code is only
         // required to support function write traits at this writing,
         // never function read traits). Function write traits are
         // normally supported however so the following normally tests
@@ -8593,7 +9862,7 @@ namespace StdExt
                 template <IS_CLASS_OR_VOID_C NewClassT,
                           TRAITS_FREE_FUNCTION_OR_ABOMINABLE_FUNCTION_C F,
                           IS_FUNCTION_C RawTypeF,
-                          typename = void> // Arg for internal use only (users should never explicitly pass it)
+                          typename = void> // Arg for internal use only (never explicitly passed)
                 struct ReplaceMemberFunctionClassImpl
                 {
                     //////////////////////////////////////////////////
@@ -8711,14 +9980,14 @@ namespace StdExt
                 ////////////////////////////////////////////////
                 template <TRAITS_FREE_FUNCTION_C F,
                           FREE_FUNCTION_C NewF>
-                using MigratePointerAndRef = BaseClass::MigrateRef< F,
-                                                                    std::conditional_t< std::is_pointer_v< std::remove_reference_t<F> >, // Is "F" a function pointer or reference to one?
+                using MigratePointerAndRef = BaseClass::MigrateRef<F,
+                                                                   std::conditional_t< std::is_pointer_v< std::remove_reference_t<F> >, // Is "F" a function pointer or reference to one?
                                                                                                                                          // (if not then it's a function or reference to one)
-                                                                                        BaseClass::MigrateCv< std::remove_reference_t<F>,
-                                                                                                              std::add_pointer_t<NewF>
-                                                                                                            >,
-                                                                                        NewF
-                                                                                      >
+                                                                                       BaseClass::MigrateCv< std::remove_reference_t<F>,
+                                                                                                             std::add_pointer_t<NewF>
+                                                                                                           >,
+                                                                                       NewF
+                                                                                     >
                                                                   >;
             }; // class FreeFunctionWriteTraitsHelper
 
@@ -8747,9 +10016,9 @@ namespace StdExt
                                                              std::tuple<R STDEXT_CC_CDECL (ArgsT...) noexcept(IS_NOEXCEPT), \
                                                                         R STDEXT_CC_STDCALL (ArgsT...) noexcept(IS_NOEXCEPT), \
                                                                         R STDEXT_CC_FASTCALL (ArgsT...) noexcept(IS_NOEXCEPT), \
-                                                                        R STDEXT_CC_VECTORCALL_REPLACE(CC) (ArgsT...) noexcept(IS_NOEXCEPT), \
+                                                                        R STDEXT_CC_VECTORCALL_IF_SUPPORTED(CC) (ArgsT...) noexcept(IS_NOEXCEPT), \
                                                                         R CC (ArgsT...) noexcept(IS_NOEXCEPT), /* STDEXT_CC_THISCALL (not applicable to free functions) */ \
-                                                                        R STDEXT_CC_REGCALL_REPLACE(CC) (ArgsT...) noexcept(IS_NOEXCEPT) \
+                                                                        R STDEXT_CC_REGCALL_IF_SUPPORTED(CC) (ArgsT...) noexcept(IS_NOEXCEPT) \
                                                                        > \
                                                             > \
                                       >
@@ -8758,8 +10027,10 @@ namespace StdExt
             // function write traits to "struct FreeFunctionTraits"
             // below.
             ////////////////////////////////////////////////////////
-            #define DECLARE_FREE_FUNCTION_WRITE_TRAITS(CC, ELLIPSIS, IS_NOEXCEPT) \
+            #define DECLARE_FREE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, IS_NOEXCEPT) \
                 private: \
+                    using BaseClass = FREE_FUNCTION_TRAITS_BASE_CLASS(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, IS_NOEXCEPT); \
+\
                     template <FREE_FUNCTION_C NewF> \
                     using MigratePointerAndRef_t = typename BaseClass::template MigratePointerAndRef<F, NewF>; \
 \
@@ -8774,7 +10045,7 @@ namespace StdExt
                     template <VALID_RETURN_TYPE_C NewReturnTypeT> \
                     using ReplaceReturnType_t = MigratePointerAndRef_t< REPLACE_RETURN_TYPE_IMPL(FREE_FUNCTION_REPLACE_RETURN_TYPE(CC, ELLIPSIS, IS_NOEXCEPT)) >; \
 \
-                    template <StdExt::CallingConvention NewCallingConventionT> \
+                    template <CallingConvention NewCallingConventionT> \
                     using ReplaceCallingConvention_t = FREE_FUNCTION_REPLACE_CALLING_CONVENTION(CC, IS_NOEXCEPT); \
 \
                     template <IS_CLASS_OR_VOID_C NewClassT> \
@@ -8794,39 +10065,45 @@ namespace StdExt
                     /* Ultimately defers to template just above (we're passing it as the 1st arg here) */ \
                     using ReplaceArgsTuple_t = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs_t, NewArgsTupleT>; \
 \
-                    template<std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT> \
+                    template <std::size_t I /* Zero-based */, \
+                              std::size_t Count, \
+                              VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     /* Defers to template just above, passing the modified args (as a "std::tuple") which replaces the current args */ \
                     using ArgsModifyTuple_t = ReplaceArgsTuple_t< TupleModifyTuple_t<typename BaseClass::ArgTypes_t, I, Count, NewArgsTupleT> >; \
 \
-                    template<std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPE_C... NewArgsT> \
+                    template <std::size_t I /* Zero-based */, \
+                              std::size_t Count, \
+                              VALID_FUNCTION_ARG_TYPE_C... NewArgsT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     /* Defers to template just above */ \
                     using ArgsModify_t = ArgsModifyTuple_t<I, Count, std::tuple<NewArgsT...>>; \
 \
-                    template <std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C NewArgT> \
+                    template <std::size_t I /* Zero-based */, \
+                              VALID_FUNCTION_ARG_TYPE_C NewArgT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_ARG_COUNT(I) \
-                    /* Defers to template just above */ \
-                    using ReplaceArg_t = STATIC_ASSERT_T(STATIC_ASSERT_I_LESS_THAN_TUPLE_SIZE_F(typename BaseClass::ArgTypes_t, I), \
-                                                         (ArgsModify_t<I, 1, NewArgT>)); \
+                    using ReplaceArg_t = ReplaceArgsTuple_t< TupleReplaceType_t<typename BaseClass::ArgTypes_t, I, NewArgT> >; \
 \
-                    template<std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT> \
+                    template <std::size_t I /* Zero-based */, \
+                              VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     using ArgsInsertTuple_t = ReplaceArgsTuple_t< TupleInsertTuple_t<typename BaseClass::ArgTypes_t, I, ArgsToInsertTupleT> >; \
 \
-                    template<std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT> \
+                    template <std::size_t I /* Zero-based */, \
+                              VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     /* Defers to template just above */ \
                     using ArgsInsert_t = ArgsInsertTuple_t<I, std::tuple<ArgsToInsertT...> >; \
 \
-                    template<VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT> \
+                    template <VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT> \
                     using ArgsAppendTuple_t = ReplaceArgsTuple_t< TupleAppendTuple_t<typename BaseClass::ArgTypes_t, ArgsToAppendTupleT> >; \
 \
-                    template<VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT> \
+                    template <VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT> \
                     /* Defers to template just above */ \
                     using ArgsAppend_t = ArgsAppendTuple_t< std::tuple<ArgsToAppendT...> >; \
 \
-                    template<std::size_t I /* Zero-based */ = 0, std::size_t Count = size_t_npos> \
+                    template <std::size_t I /* Zero-based */ = 0, \
+                              std::size_t Count = size_t_npos> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     using ArgsDelete_t = ReplaceArgsTuple_t< TupleDelete_t<typename BaseClass::ArgTypes_t, I, Count> >; \
 \
@@ -8861,7 +10138,7 @@ namespace StdExt
 \
                     /*//////////////////////////////////////////////////////////////// \
                     // Note that we don't call "MigratePointerAndRef_t" here. Adding   \
-                    // "&" or "&&: turns it into an abominable function which can't    \
+                    // "&" or "&&" turns it into an abominable function which can't    \
                     // have pointers or references (not legal in C++).                 \
                     ////////////////////////////////////////////////////////////////*/ \
                     using AddLValueReference_t = R CC (ArgsT... ELLIPSIS) & noexcept(IS_NOEXCEPT); \
@@ -8882,24 +10159,30 @@ namespace StdExt
         #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
 
         template <TRAITS_FREE_FUNCTION_C F, // Function's full type
+                  typename FunctionOriginTypeT, // Function's origin (type)
+                  FunctionOrigin FunctionOriginV, // Function's origin (enum)
                   FREE_FUNCTION_C RawTypeT, // Function's raw (native) C++ type (raw version of "F" above)
                   typename ReturnTypeT, // Function's return type
-                  CallingConvention CallingConventionT, // Function's calling convention (implicitly or explicitly declared in the function)
-                  bool IsVariadicT, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
-                  bool IsNoexceptT, // "true" if the function is declared "noexcept" or "false" otherwise
+                  CallingConvention CallingConventionV, // Function's calling convention (see enum class "CallingConvention")
+                                                        // implicitly or explicitly declared in the function (enum corresponds
+                                                        // to our #defined STDEXT_CC_? constants, whichever the function uses)
+                  bool IsVariadicV, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
+                  bool IsNoexceptV, // "true" if function is declared "noexcept" or "false" otherwise
                   typename... ArgsT> // Function's arguments (types) in left-to-right order of declaration (as would be expected)
         struct FreeFunctionTraitsBase : public FunctionTraitsBase<F, // Function's full type
+                                                                  FunctionOriginTypeT, // Function's origin (type)
+                                                                  FunctionOriginV, // Function's origin (enum)
                                                                   RawTypeT, // Function's raw (native) C++ type (raw version of "F" above)
                                                                   ReturnTypeT, // Function's return type
-                                                                  CallingConventionT, // Function's calling convention (see enum class "CallingConvention")
+                                                                  CallingConventionV, // Function's calling convention (see enum class "CallingConvention")
                                                                                       // implicitly or explicitly declared in the function (enum corresponds
                                                                                       // to our #defined STDEXT_CC_? constants, whichever the function uses)
                                                                   void, // MemberFunctionClassT (we're a free function so not applicable - applies to non-static member functions only)
-                                                                  IsVariadicT, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
-                                                                  false, // IsConstT (we're a free function so not applicable - applies to non-static member functions or abominable functions only)
-                                                                  false, // IsVolatileT (we're a free function so not applicable - applies to non-static member functions or abominable functions only)
-                                                                  FunctionReference::None, // FunctionReferenceT (we're a free function so not applicable - applies to non-static member functions or abominable functions only)
-                                                                  IsNoexceptT, // "true" if the function is declared "noexcept" or "false" otherwise
+                                                                  IsVariadicV, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
+                                                                  false, // IsConstV (we're a free function so not applicable - applies to non-static member functions or abominable functions only)
+                                                                  false, // IsVolatileV (we're a free function so not applicable - applies to non-static member functions or abominable functions only)
+                                                                  FunctionReference::None, // FunctionReferenceV (we're a free function so not applicable - applies to non-static member functions or abominable functions only)
+                                                                  IsNoexceptV, // "true" if function is declared "noexcept" or "false" otherwise
                                                                   ArgsT...> // Function's arguments (types) in left-to-right order of declaration (as would be expected)
                                   #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
                                       , public FreeFunctionWriteTraitsHelper
@@ -8913,13 +10196,15 @@ namespace StdExt
         // "FunctionTraits" specializations for free functions
         // ultimately derive from this.
         ////////////////////////////////////////////////////////////////
-        #define FREE_FUNCTION_TRAITS_BASE_CLASS(CC, CALLING_CONVENTION, ELLIPSIS, IS_NOEXCEPT) \
+        #define FREE_FUNCTION_TRAITS_BASE_CLASS(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, IS_NOEXCEPT) \
             FreeFunctionTraitsBase<F, /* F */ \
+                                   FunctionOriginTypeT, /* FunctionOriginTypeT */ \
+                                   FunctionOriginV, /* FunctionOriginV */ \
                                    R CC (ArgsT... ELLIPSIS) noexcept(IS_NOEXCEPT), /* RawTypeT */ \
                                    R, /* ReturnTypeT */ \
-                                   CALLING_CONVENTION, /* CallingConventionT (value from "enum class CallingConvention") */ \
-                                   #ELLIPSIS[0] != '\0', /* IsVariadicT (#ELLIPSIS always resolves to "" if function isn't variadic or "..." otherwise) */ \
-                                   IS_NOEXCEPT, /* IsNoexceptT (true or false) */ \
+                                   CALLING_CONVENTION, /* CallingConventionV (value from "enum class CallingConvention") */ \
+                                   IS_VARIADIC, /* IsVariadicV (true or false) */ \
+                                   IS_NOEXCEPT, /* IsNoexceptV (true or false) */ \
                                    ArgsT... /* ArgsT */>
 
         //////////////////////////////////////////////////////////////////////////////
@@ -8940,89 +10225,231 @@ namespace StdExt
         // his work though I've modified his code for our needs including adding
         // support for non-static member functions further below)
         //////////////////////////////////////////////////////////////////////////////
-        #define MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ELLIPSIS, IS_NOEXCEPT) \
+        #define MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, IS_NOEXCEPT) \
             template <TRAITS_FREE_FUNCTION_C F, \
+                      typename FunctionOriginTypeT, \
+                      FunctionOrigin FunctionOriginV, \
                       typename R, \
                       typename... ArgsT> \
             struct FreeFunctionTraits<F, \
+                                      FunctionOriginTypeT, \
+                                      FunctionOriginV, \
                                       R CC (ArgsT... ELLIPSIS) noexcept(IS_NOEXCEPT), \
-                                      /*////////////////////////////////////////////////////////////////// \
-                                      // The following call to "CallingConventionReplacedWithCdecl"        \
-                                      // returns true if the calling convention of this partial            \
-                                      // specialization, such as the one for STDEXT_CC_STDCALL, is         \
-                                      // replaced with STDEXT_CC_CDECL by the compiler. This only occurs   \
-                                      // in 64 bit builds of all our target compilers at this writing      \
-                                      // (I'm not aware of any other time it might occur - it never        \
-                                      // occurs in 32 bit builds), and takes place for all calling         \
-                                      // conventions except STDEXT_CC_VECTORCALL and STDEXT_CC_REGCALL     \
-                                      // (on those compilers that support them - they aren't replaced by   \
-                                      // STDEXT_CC_CDECL in 64 bit builds). For those that are replaced,   \
-                                      // i.e., for those where "CallingConventionReplacedWithCdecl"        \
-                                      // returns true, then this "std::enable_if_t" will fail SFINAE       \
-                                      // since the condition we're checking for then evaluates to false    \
-                                      // (and so this partial specialization will be thrown away). The     \
-                                      // partial specialization for STDEXT_CC_CDECL will therefore kick    \
-                                      // in to handle things instead. It will handle STDEXT_CC_STDCALL     \
-                                      // functions for instance since they're now identical to             \
-                                      // STDEXT_CC_CDECL because the compiler changes them to              \
-                                      // STDEXT_CC_CDECL. Everything therefore works correctly. Note that  \
-                                      // the call below to "AlwaysTrue_v<F>" (which *always* returns true  \
-                                      // - that's its purpose), is required simply to ensure the above     \
-                                      // behaviour occurs during the 2nd phase of C++ template lookup      \
-                                      // (not the 1st phase). Read up on C++'s two-phase template lookup   \
-                                      // rules for details. We require evaluation of the above behaviour   \
-                                      // in the 2nd phase. Otherwise, if it occurs in the 1st phase and    \
-                                      // "CallingConventionReplacedWithCdecl above returns true as         \
-                                      // described (so the "std_enable_if_t" condition fails as            \
-                                      // described), then a redefinition error of the partial              \
-                                      // specialization for STDEXT_CC_STDCALL (or whatever) will occur     \
-                                      // since it's now a duplicate of the STDEXT_CC_CDECL partial         \
-                                      // specialization (again, because the compiler changes it to         \
-                                      // STDEXT_CC_CDECL). Our call to "AlwaysTrue_v<F>" here prevents     \
-                                      // that redefinition error by forcing evaluation into the 2nd phase  \
-                                      // of template lookup (because the latter call to "AlwaysTrue_v<F>"  \
-                                      // is now dependent on a template arg, "F", unlike                   \
-                                      // "CallingConventionReplacedWithCdecl" which has no dependencies    \
-                                      // on any template args and is therefore evaluated in the 1st        \
-                                      // phase). Note that even though the call to                         \
-                                      // "CallingConventionReplacedWithCdecl" will still return true       \
-                                      // during the 2nd phase, causing SFINAE failure of this              \
-                                      // "std_enable_if_t", the partial specialization will simply be      \
-                                      // thrown away in favor of the one for STDEXT_CC_CDECl (as           \
-                                      // described above). No redefinition error therefore occurs unlike   \
-                                      // when the above behavior occurs during the 1st phase (it now       \
-                                      // occurs during the 2nd phase instead due to the call to            \
-                                      // "AlwaysTrue_v<F>" - problem solved)                               \
-                                      //////////////////////////////////////////////////////////////////*/ \
-                                      std::enable_if_t<!CallingConventionReplacedWithCdecl<CALLING_CONVENTION, true>() && \
-                                                       AlwaysTrue_v<F> \
+                                      /*//////////////////////////////////////////////////////////////// \
+                                      // The following call to "CallingConventionReplacedWithCdecl()"    \
+                                      // returns true if the calling convention of the function being    \
+                                      // handled by this partial specialization, such as                 \
+                                      // STDEXT_CC_STDCALL (or whatever), is replaced with               \
+                                      // STDEXT_CC_CDECL by the compiler. This can occur for some or     \
+                                      // all calling conventions depending on the target build's         \
+                                      // architecture bitness (8, 16, 32 and 64 normally), and/or the    \
+                                      // target hardware itself (non-x86 normally - all our supported    \
+                                      // calling conventions are normally relevant to x86 only). In      \
+                                      // x86-64 builds for instance, only STDEXT_CC_VECTORCALL and       \
+                                      // STDEXT_CC_REGCALL are supported (on compilers that actually     \
+                                      // support them). All others like STDEXT_CC_STDCALL,               \
+                                      // STDEXT_CC_FASTCALL, etc. are replaced with STDEXT_CC_CDECL by   \
+                                      // the compiler instead (with a harmless compiler warning about    \
+                                      // an ignored attribute on GCC, Clang and Intel compilers but we   \
+                                      // temporarily suppressed these warnings earlier - note that       \
+                                      // Microsoft produces no such warning).                            \
+                                      //                                                                 \
+                                      // The bottom line is that when a particular calling convention    \
+                                      // isn't supported depending on the architecture bitness and/or    \
+                                      // hardware of the target build, any explicit use of that          \
+                                      // unsupported calling convention on a function will effectively   \
+                                      // be ignored by the compiler and replaced with STDEXT_CC_CDECL    \
+                                      // instead. Note however that even STDEXT_CC_CDECL itself may not  \
+                                      // represent an actual (meaningful) calling convention for the     \
+                                      // given architecture bitness and hardware, but for C++ purposes   \
+                                      // it always is. It can be thought of as the default calling       \
+                                      // convention even if no actual (meaningful) calling convention    \
+                                      // exists for the particular architecture bitness and/or hardware  \
+                                      // so it's therefore always supported in C++ itself. The           \
+                                      // following call to "CallingConventionReplacedWithCdecl()"        \
+                                      // therefore checks for this situation. It returns true if the     \
+                                      // calling convention for the function this particular             \
+                                      // specialization is handling is not a meaningful calling          \
+                                      // convention for the target architecture and/or hardware, or      \
+                                      // false otherwise (in which case it's not replaced by             \
+                                      // STDEXT_CC_CDECL because it is a meaningful calling              \
+                                      // convention). Note that false is always returned for             \
+                                      // STDEXT_CC_CDECL functions by design (regardless of the          \
+                                      // architecture bitness or hardware, even if STDEXT_CC_CDECL       \
+                                      // itself isn't a meaningful calling convention there - we don't   \
+                                      // consider that STDEXT_CC_CDECL ever replaces itself). For all    \
+                                      // other calling conventions however it will return true only if   \
+                                      // it's not a supported (meaningful) calling convention for the    \
+                                      // target build. This is normally the case for non-x86 builds      \
+                                      // (since the calling conventions we support are normally          \
+                                      // applicable to x86 hardware only). For x86 builds however, it    \
+                                      // always returns false for 32 bit builds (all our supported       \
+                                      // calling conventions are always supported there so are never     \
+                                      // replaced by STDEXT_CC_CDECL), may return true for 16 bit x86    \
+                                      // builds depending on the calling convention (though 16 bit       \
+                                      // builds are all but obsolete now), and always returns true for   \
+                                      // 64 bit x86 builds except for STDEXT_CC_VECTORCALL and           \
+                                      // STDEXT_CC_REGCALL (the only calling conventions supported for   \
+                                      // 64 bit x86 builds, assuming a given compiler actually supports  \
+                                      // those calling conventions - GCC supports neither so always      \
+                                      // returns true for both, and MSVC doesn't support regcall so      \
+                                      // always returns true for this). Therefore, in those cases where  \
+                                      // "CallingConventionReplacedWithCdecl()" actually returns true    \
+                                      // (meaning that the calling convention of the function this       \
+                                      // particular specialization is handling has been replaced with    \
+                                      // STDEXT_CC_CDECL by the compiler because it's not a meaningful   \
+                                      // calling convention for the given build's architecture bitness   \
+                                      // and/or hardware), then the "std::enable_if_t" below will fail   \
+                                      // SFINAE since it's checking the negation of                      \
+                                      // "CallingConventionReplacedWithCdecl()" which evaluates to       \
+                                      // false (and so this partial specialization will be thrown        \
+                                      // away). The partial specialization for STDEXT_CC_CDECL will      \
+                                      // therefore kick in to handle things instead (because the         \
+                                      // compiler effectively changed the function's calling convention  \
+                                      // to STDEXT_CC_CDECL for all intents and purposes). For           \
+                                      // instance, the STDEXT_CC_CDECL specialization will handle        \
+                                      // STDEXT_CC_STDCALL functions on an x86-64 build since the        \
+                                      // latter is now identical to STDEXT_CC_CDECL (again, because the  \
+                                      // compiler changed it to STDEXT_CC_CDECL). Everything therefore   \
+                                      // works correctly. If a given calling convention has no meaning   \
+                                      // on a particular architecture bitness and/or hardware, then      \
+                                      // "std::enable_if_t" below will fail and the specialization for   \
+                                      // STDEXT_CC_CDECL will kick in to handle it instead.              \
+                                      //                                                                 \
+                                      // Lastly (and very importantly!), note that the call below to     \
+                                      // "AlwaysTrue_v<F>" (which *always* returns true - that's its     \
+                                      // purpose), is required simply to ensure the above behaviour      \
+                                      // occurs during the 2nd phase of C++ template lookup (not the     \
+                                      // 1st phase). Read up on C++'s two-phase template lookup rules    \
+                                      // for details. We require evaluation of the above behaviour in    \
+                                      // the 2nd phase (read on) and because                             \
+                                      // "CallingConventionReplacedWithCdecl()" doesn't depend on any    \
+                                      // of the template args of the "FreeFunctionTraits" template       \
+                                      // itself, it's therefore evaluated in the 1st phase. The call to  \
+                                      // "AlwaysTrue_v<F>" below however, which does depend on a         \
+                                      // template arg of "FreeFunctionTraits", namely template arg "F",  \
+                                      // isn't evaluated until the 2nd phase of C++ template lookup,     \
+                                      // and therefore ensures the entire expression being passed to     \
+                                      // "std::enable_if_t" below isn't fully evaluated until the 2nd    \
+                                      // phase. Without the call to "AlwaysTrue_v<F>" to ensure this,    \
+                                      // the expression being passed to "std::enable_if_t", i.e., the    \
+                                      // lone call to "CallingConventionReplacedWithCdecl()" itself,     \
+                                      // would be entirely evaluated in the 1st phase so if the latter   \
+                                      // function returns true then it will result in a redefinition     \
+                                      // error of the "FreeFunctionTraits" partial specialization for    \
+                                      // that particular calling convention. For instance, when the      \
+                                      // partial specialization of "FreeFunctionTraits" for              \
+                                      // STDEXT_CC_STDCALL occurs in a x86-64 build,                     \
+                                      // "CallingConventionReplacedWithCdecl()" will return true         \
+                                      // because STDEXT_CC_STDCALL isn't supported (meaningful) in       \
+                                      // x86-64 so the compiler will replace STDEXT_CC_STDCALL with      \
+                                      // STDEXT_CC_CDECL as described previously. That means that all    \
+                                      // our partial specializations of "FreeFunctionTraits" for         \
+                                      // STDEXT_CC_STDCALL functions will be identical to the partial    \
+                                      // specialization of "FreeFunctionTraits" for STDEXT_CC_CDECL      \
+                                      // functions because the compiler changes STDEXT_CC_STDCALL to     \
+                                      // STDEXT_CC_CDECL in the partial specializations for              \
+                                      // STDEXT_CC_STDCALL. IOW, the partial specializations of          \
+                                      // "FreeFunctionTraits" for STDEXT_CC_STDCALL will now be          \
+                                      // duplicates of the STDEXT_CC_CDECL partial specializations       \
+                                      // (again, because the compiler changes STDEXT_CC_STDCALL to       \
+                                      // STDEXT_CC_CDECL). That would normally result in redefinition    \
+                                      // errors during the 1st phase of C++ template lookup (because     \
+                                      // all partial specializations of "FreeFunctionTraits" for         \
+                                      // STDEXT_CC_STDCALL are now the same as the STDEXT_CC_CDECL       \
+                                      // partial specializations), but our call to "AlwaysTrue_v<F>"     \
+                                      // here prevents that by delaying the full evaluation of           \
+                                      // "FreeFunctionTraits" until the 2nd phase of C++ template        \
+                                      // lookup (because the call to "AlwaysTrue_v<F>" is now dependent  \
+                                      // on a template arg of "FreeFunctionTraits", again, template arg  \
+                                      // "F", unlike "CallingConventionReplacedWithCdecl()" which has    \
+                                      // no dependencies on any of the "FreeFunctionTraits" template     \
+                                      // args and is therefore evaluated in the 1st phase). Note that    \
+                                      // even though the call to "CallingConventionReplacedWithCdecl()"  \
+                                      // will still return true during the 2nd phase (though it's        \
+                                      // actually evaluated in the 1st phase), causing SFINAE failure of \
+                                      // this "std_enable_if_t" (since it tests for the negation of the  \
+                                      // return value of "CallingConventionReplacedWithCdecl()"), the    \
+                                      // partial specializations of "FreeFunctionTraits" for             \
+                                      // STDEXT_CC_STDCALL will simply be thrown away in favor of the    \
+                                      // one for STDEXT_CC_CDECl (which correctly handles things since   \
+                                      // the compiler replaced the calling convention for                \
+                                      // STDEXT_CC_STDCALL with STDEXT_CC_CDECL so the partial           \
+                                      // specialization for the latter will now kick in to handle        \
+                                      // STDEXT_CC_STDCALL). No redefinition error therefore occurs      \
+                                      // unlike when the above behavior occurs during the 1st phase      \
+                                      // (because it now occurs during the 2nd phase instead due to the  \
+                                      // call to "AlwaysTrue_v<F>" - problem solved).                    \
+                                      ////////////////////////////////////////////////////////////////*/ \
+                                      std::enable_if_t<!CallingConventionReplacedWithCdecl<CALLING_CONVENTION, true /* IsFreeFunc */ >() && \
+                                                       AlwaysTrue_v<F> /* See comments above */ \
                                                       > \
                                      > \
-                : public FREE_FUNCTION_TRAITS_BASE_CLASS(CC, CALLING_CONVENTION, ELLIPSIS, IS_NOEXCEPT) \
+                : public FREE_FUNCTION_TRAITS_BASE_CLASS(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, IS_NOEXCEPT) \
             { \
-                static_assert(std::is_same_v<RemovePtrRef_t<F>, R CC (ArgsT... ELLIPSIS) noexcept(IS_NOEXCEPT)>); \
+            private: \
+                using SpecializedF = R CC (ArgsT... ELLIPSIS) noexcept(IS_NOEXCEPT); /* Template's 4th arg */ \
+                static_assert(std::is_same_v<SpecializedF, RemovePtrRef_t<F>>); \
 \
-            protected: \
-                using SpecializedF = R CC (ArgsT... ELLIPSIS) noexcept(IS_NOEXCEPT); /* 2nd template arg */ \
-                using BaseClass = FREE_FUNCTION_TRAITS_BASE_CLASS(CC, CALLING_CONVENTION, ELLIPSIS, IS_NOEXCEPT); \
-\
-                DECLARE_FREE_FUNCTION_WRITE_TRAITS(CC, ELLIPSIS, IS_NOEXCEPT) \
+                DECLARE_FREE_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, IS_NOEXCEPT) \
             };
 
         // noexcept (for internal use only, we #undef it later - invokes macro just above)
-        #define MAKE_FREE_FUNC_TRAITS_1(CC, CALLING_CONVENTION, ELLIPSIS) \
-            MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ELLIPSIS, false) \
-            MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ELLIPSIS, true)
+        #define MAKE_FREE_FUNC_TRAITS_1(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC) \
+            MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, false) \
+            MAKE_FREE_FUNC_TRAITS_2(CC, CALLING_CONVENTION, ELLIPSIS, IS_VARIADIC, true)
 
         ///////////////////////////////////////////////////////////////////
         // For internal use only (we #undef it later). Invokes macro just
         // above. Launching point (first macro to be called) to create
         // partial specializations of "FreeFunctionTraits" for handling
         // every permutation of non-variadic functions for the passed
-        // calling convention (variadic functions are handled just after).
+        // calling convention (variadic functions are handled separately
+        // below).
         ///////////////////////////////////////////////////////////////////
         #define MAKE_FREE_FUNC_TRAITS_NON_VARIADIC(CC, CALLING_CONVENTION) \
-            MAKE_FREE_FUNC_TRAITS_1(CC, CALLING_CONVENTION, )
+            MAKE_FREE_FUNC_TRAITS_1(CC, CALLING_CONVENTION, , false)
+
+        /////////////////////////////////////////////
+        // Temporarily enable "Wambiguous-ellipsis"
+        // pragma in Clang and Intel (see comments
+        // below - no other compilers we support
+        // produce this particular warning)
+        /////////////////////////////////////////////
+        #if defined(CLANG_COMPILER) || \
+            defined(INTEL_COMPILER)
+
+            /////////////////////////////////////////////////
+            // Temporarily disable warnings for syntax like
+            // the following (for internal use only - we pop
+            // this later to restore things):
+            // 
+            //   template <typename... ArgsT>
+            //   using F = void (ArgsT... ...);
+            // 
+            // Which results in this warning on Clang and
+            // Intel:
+            // 
+            //    "warning: '...' in this location creates a
+            //     C-style varargs function `[-Wambiguous - ellipsis]
+            // 
+            // And subsequently this:
+            // 
+            //    note: insert ',' before '...' to silence
+            //    this warning
+            // 
+            // There's no comma separating the two "..." so
+            // Clang/Intel display the above. Note that they
+            // don't produce a warning for syntax like the
+            // following however (identical to syntax above
+            // but no whitespace separates the two "..."):
+            // 
+            //   template <typename... ArgsT>
+            //   using F = void (ArgsT......);
+            /////////////////////////////////////////////////
+            CLANG_OR_INTEL_DIAGNOSTIC_PUSH // _Pragma("clang diagnostic push")
+            _Pragma("clang diagnostic ignored \"-Wambiguous-ellipsis\"")
+        #endif
 
         ///////////////////////////////////////////////////////////
         // Call above macro once for each calling convention (for
@@ -9042,7 +10469,7 @@ namespace StdExt
         #undef MAKE_FREE_FUNC_TRAITS_NON_VARIADIC
 
         ////////////////////////////////////////////////
-        // Constants just below not #defined otherwise
+        // Macros just below not #defined otherwise
         // (applicable only when function write traits
         // supported - usually the case)
         ////////////////////////////////////////////////
@@ -9072,7 +10499,7 @@ namespace StdExt
 
         /////////////////////////////////////////////////////////////////
         // For internal use only (we #undef it later). Creates partial
-        // specializations of "MemberFunctionTraits" to handle variadic
+        // specializations of "FreeFunctionTraits" to handle variadic
         // functions (those whose last arg is "..."). Simply launches
         // MAKE_FREE_FUNC_TRAITS_1 as seen which creates partial
         // specializations for handling every permutation of variadic
@@ -9086,7 +10513,7 @@ namespace StdExt
         // support variadic functions but it would be rare and we don't
         // currently support them anyway).
         /////////////////////////////////////////////////////////////////
-        MAKE_FREE_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, ...)
+        MAKE_FREE_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, ..., true)
 
         // Done with these (for internal use only)
         #undef MAKE_FREE_FUNC_TRAITS_1
@@ -9106,6 +10533,8 @@ namespace StdExt
         #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
 
         template <TRAITS_MEMBER_FUNCTION_C F,
+                  typename FunctionOriginTypeT,
+                  FunctionOrigin FunctionOriginV,
                   MEMBER_FUNCTION_NON_CV_POINTER_C MemberFunctionNonCvPtrT = RemoveCvRef_t<F>, // For "std::enable_if_t" purposes in our specializations. Just
                                                                                                // "F" above after removing any reference from "F" if present,
                                                                                                // and then any cv-qualifiers from the resulting member function
@@ -9114,10 +10543,10 @@ namespace StdExt
                                                                                                // is therefore always a non-cv-qualified pointer to a non-static
                                                                                                // member function.
                   #undef MEMBER_FUNCTION_NON_CV_POINTER_C // Done with this just above (for internal use only)
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         struct MemberFunctionTraits
         {
-            // See this constant for details
+            // See this macro for details
             #if !defined(USE_CONCEPTS)
                 //////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
@@ -9153,17 +10582,18 @@ namespace StdExt
                           "and more generally for \"FunctionTraits\" or any of its helper templates.");
         }; // struct MemberFunctionTraits
 
-        ////////////////////////////////////////////////////////////////////////
-        // MemberFunctionRawType. Commented out for now due to a compiler
-        // bug in MSVC. See use of this template in "MemberFunctionTraitsBase"
+        ///////////////////////////////////////////////////////////////////////
+        // MemberFunctionRawType. Commented out for now due to a compiler bug
+        // in MSVC. See use of this template in "MemberFunctionTraitsBase"
         // for details (commented out for now - relying on an alternate
         // technique instead but following is preferable)
-        ////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////
         /*
             template <typename F>
             struct MemberFunctionRawType;
 
-            template <typename T, typename U>
+            template <typename T,
+                      typename U>
             struct MemberFunctionRawType<U T::*>
             {
                 using Type = U;
@@ -9174,8 +10604,8 @@ namespace StdExt
         */
 
         //////////////////////////////////////////////////////////////////
-        // See this constant for details. Following code is preprocessed
-        // out if function write traits not supported (since code is only
+        // See this macro for details. Following code is preprocessed out
+        // if function write traits not supported (since code is only
         // required to support function write traits at this writing,
         // never function read traits). Function write traits are
         // normally supported however so the following normally tests
@@ -9198,42 +10628,38 @@ namespace StdExt
                 using BaseClass = FunctionWriteTraitsHelper;
 
             protected:
-                ////////////////////////////////////////////////
-                // Migrate (copy) the cv-qualifiers from "F",
-                // an optionally cv-qualified non-static member
-                // function pointer or reference to one, to
-                // "NewF" (if "const" and/or" "volatile" is
-                // present in "F"), and then the ref-qualifier
-                // from "F" to "NewF" (if & or && is present in
-                // "F"). "NewF" itself is always a non-static
-                // member function pointer without any
-                // qualifiers (by design), the reason we call
-                // this template, to copy them from "F" to
-                // "NewF.
+                /////////////////////////////////////////////////////////////////////
+                // Migrate (copy) the cv-qualifiers from "F", an optionally
+                // cv-qualified non-static member function pointer or reference to
+                // one, to "NewF" (if "const" and/or" "volatile" is present in "F"),
+                // and then the ref-qualifier from "F" to "NewF" (if & or && is
+                // present in "F"). "NewF" itself is always a non-static member
+                // function pointer without any qualifiers (by design), the reason
+                // we call this template, to copy them from "F" to "NewF.
                 //
-                // E.g.,
-                //                         Copy these to "NewF"
-                //                         |     |        |
-                //                         V     V        V
-                // using F = void (Test::* const volatile &)();
-                // using NewF = double (Test::*)(int);
+                //    Example:
+                //                            Copy these to "NewF"
+                //                            |     |        |
+                //                            V     V        V
+                //    using F = void (Test::* const volatile &)();
+                //    using NewF = double (Test::*)(int);
                 //
-                // //////////////////////////////////////////////
-                // // Yields:
-                // //
-                // //   double (* const volatile &)(int)
-                // //////////////////////////////////////////////
-                // using NewFWithCVAndRefQualifiers = MigrateCvAndRef<F, NewF>;
-                ////////////////////////////////////////////////
+                //    //////////////////////////////////////////////
+                //    // Yields:
+                //    //
+                //    //   double (Test::* const volatile &)(int)
+                //    //////////////////////////////////////////////
+                //    using NewFWithCVAndRefQualifiers = MigrateCvAndRef_t<F, NewF>;
+                /////////////////////////////////////////////////////////////////////
                 template <TRAITS_MEMBER_FUNCTION_C F, // Optionally cv-qualified non-static member
                                                       // function pointer or reference to one
                           MEMBER_FUNCTION_POINTER_C NewF> // Non-static member function pointer
                                                           // (without any qualifiers by design)
-                using MigrateCvAndRef = BaseClass::MigrateRef<F,
+                using MigrateCvAndRef_t = BaseClass::MigrateRef<F,
                                                                 BaseClass::MigrateCv< std::remove_reference_t<F>,
                                                                                       NewF
                                                                                     >
-                                                             >;
+                                                               >;
             }; // class MemberFunctionWriteTraitsHelper
 
             // For internal use only (we #undef it later)
@@ -9252,9 +10678,9 @@ namespace StdExt
                                                         std::tuple<R (STDEXT_CC_CDECL C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
                                                                    R (STDEXT_CC_STDCALL C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
                                                                    R (STDEXT_CC_FASTCALL C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                                                                   R (STDEXT_CC_VECTORCALL_REPLACE(CC) C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
+                                                                   R (STDEXT_CC_VECTORCALL_IF_SUPPORTED(CC) C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
                                                                    R (STDEXT_CC_THISCALL C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                                                                   R (STDEXT_CC_REGCALL_REPLACE(CC) C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT) \
+                                                                   R (STDEXT_CC_REGCALL_IF_SUPPORTED(CC) C::*)(ArgsT...) CONST VOLATILE REF noexcept(IS_NOEXCEPT) \
                                                                   > \
                                                        > \
                                  >
@@ -9264,10 +10690,12 @@ namespace StdExt
             // function write traits to "struct MemberFunctionTraits"
             // below.
             //////////////////////////////////////////////////////////
-            #define DECLARE_MEMBER_FUNCTION_WRITE_TRAITS(CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+            #define DECLARE_MEMBER_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, IS_NOEXCEPT) \
                 private: \
+                    using BaseClass = MEMBER_FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, IS_NOEXCEPT); \
+\
                     template <MEMBER_FUNCTION_POINTER_C NewF> \
-                    using MigrateCvAndRef_t = typename BaseClass::template MigrateCvAndRef<F, NewF>; \
+                    using MigrateCvAndRef_t = typename BaseClass::template MigrateCvAndRef_t<F, NewF>; \
 \
                     /* Primary template (kicks in when "NewClassT" is void) */ \
                     template <IS_CLASS_OR_VOID_C NewClassT, \
@@ -9317,7 +10745,7 @@ namespace StdExt
                     template <VALID_RETURN_TYPE_C NewReturnTypeT> \
                     using ReplaceReturnType_t = MigrateCvAndRef_t< REPLACE_RETURN_TYPE_IMPL(MEMBER_FUNCTION_REPLACE_RETURN_TYPE(CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT)) >; \
 \
-                    template <StdExt::CallingConvention NewCallingConventionT> \
+                    template <CallingConvention NewCallingConventionT> \
                     using ReplaceCallingConvention_t = MEMBER_FUNCTION_REPLACE_CALLING_CONVENTION(CC, CONST, VOLATILE, REF, IS_NOEXCEPT); \
 \
                     template <IS_CLASS_OR_VOID_C NewClassT> \
@@ -9337,39 +10765,45 @@ namespace StdExt
                     /* Ultimately defers to template just above (we're passing it as the 1st arg here) */ \
                     using ReplaceArgsTuple_t = typename BaseClass::template ReplaceArgsTupleImpl_t<ReplaceArgs_t, NewArgsTupleT>; \
 \
-                    template<std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT> \
+                    template <std::size_t I /* Zero-based */, \
+                              std::size_t Count, \
+                              VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     /* Defers to template just above, passing the modified args (as a "std::tuple") which replaces the current args */ \
                     using ArgsModifyTuple_t = ReplaceArgsTuple_t< TupleModifyTuple_t<typename BaseClass::ArgTypes_t, I, Count, NewArgsTupleT> >; \
 \
-                    template<std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPE_C... NewArgsT> \
+                    template <std::size_t I /* Zero-based */, \
+                              std::size_t Count, \
+                              VALID_FUNCTION_ARG_TYPE_C... NewArgsT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     /* Defers to template just above */ \
                     using ArgsModify_t = ArgsModifyTuple_t<I, Count, std::tuple<NewArgsT...>>; \
 \
-                    template <std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C NewArgT> \
+                    template <std::size_t I /* Zero-based */, \
+                              VALID_FUNCTION_ARG_TYPE_C NewArgT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_ARG_COUNT(I) \
-                    /* Defers to template just above */ \
-                    using ReplaceArg_t = STATIC_ASSERT_T(STATIC_ASSERT_I_LESS_THAN_TUPLE_SIZE_F(typename BaseClass::ArgTypes_t, I), \
-                                                         (ArgsModify_t<I, 1, NewArgT>)); \
+                    using ReplaceArg_t = ReplaceArgsTuple_t< TupleReplaceType_t<typename BaseClass::ArgTypes_t, I, NewArgT> >; \
 \
-                    template<std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT> \
+                    template <std::size_t I /* Zero-based */, \
+                              VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     using ArgsInsertTuple_t = ReplaceArgsTuple_t< TupleInsertTuple_t<typename BaseClass::ArgTypes_t, I, ArgsToInsertTupleT> >; \
 \
-                    template<std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT> \
+                    template <std::size_t I /* Zero-based */, \
+                              VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     /* Defers to template just above */ \
                     using ArgsInsert_t = ArgsInsertTuple_t<I, std::tuple<ArgsToInsertT...> >; \
 \
-                    template<VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT> \
+                    template <VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT> \
                     using ArgsAppendTuple_t = ReplaceArgsTuple_t< TupleAppendTuple_t<typename BaseClass::ArgTypes_t, ArgsToAppendTupleT> >; \
 \
-                    template<VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT> \
+                    template <VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT> \
                     /* Defers to template just above */ \
                     using ArgsAppend_t = ArgsAppendTuple_t< std::tuple<ArgsToAppendT...> >; \
 \
-                    template<std::size_t I /* Zero-based */ = 0, std::size_t Count = size_t_npos> \
+                    template <std::size_t I /* Zero-based */ = 0, \
+                              std::size_t Count = size_t_npos> \
                     REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I) \
                     using ArgsDelete_t = ReplaceArgsTuple_t< TupleDelete_t<typename BaseClass::ArgTypes_t, I, Count> >; \
 \
@@ -9405,30 +10839,34 @@ namespace StdExt
         #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
 
         template <TRAITS_MEMBER_FUNCTION_C F, // Function's full type
+                  typename FunctionOriginTypeT, // Function's origin (type)
+                  FunctionOrigin FunctionOriginV, // Function's origin (enum)
                   IS_FUNCTION_C RawTypeT, // Function's raw (native) C++ type (raw version of "F" above)
                   typename ReturnTypeT, // Function's return type
-                  CallingConvention CallingConventionT, // Function's calling convention (see enum class "CallingConvention")
+                  CallingConvention CallingConventionV, // Function's calling convention (see enum class "CallingConvention")
                                                         // implicitly or explicitly declared in the function (enum corresponds
                                                         // to our #defined STDEXT_CC_? constants, whichever the function uses)
                   IS_CLASS_C MemberFunctionClassT, // Function's class (we're a non-static member function)
-                  bool IsVariadicT, // "true" if function is variadic (last arg is "...") or "false" otherwise
-                  bool IsConstT, // "true" if the function is declared "const" or "false" otherwise
-                  bool IsVolatileT, // "true" if the function is declared "volatile" or "false" otherwise
-                  FunctionReference FunctionReferenceT, // Function's reference qualifier (see enum class "FunctionReference")
-                  bool IsNoexceptT, // "true" if the function is declared "noexcept" or "false" otherwise
+                  bool IsVariadicV, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
+                  bool IsConstV, // "true" if function is declared "const" or "false" otherwise
+                  bool IsVolatileV, // "true" if function is declared "volatile" or "false" otherwise
+                  FunctionReference FunctionReferenceV, // Function's reference qualifier (see enum class "FunctionReference")
+                  bool IsNoexceptV, // "true" if function is declared "noexcept" or "false" otherwise
                   typename... ArgsT> // Function's arguments (types) in left-to-right order of declaration (as would be expected)
         struct MemberFunctionTraitsBase : public FunctionTraitsBase<F, // Function's full type
+                                                                    FunctionOriginTypeT, // Function's origin (type)
+                                                                    FunctionOriginV, // Function's origin (enum)
                                                                     RawTypeT, // Function's raw (native) C++ type (raw version of "F" above)
                                                                     ReturnTypeT, // Function's return type
-                                                                    CallingConventionT, // Function's calling convention (see enum class "CallingConvention")
+                                                                    CallingConventionV, // Function's calling convention (see enum class "CallingConvention")
                                                                                         // implicitly or explicitly declared in the function (enum corresponds
                                                                                         // to our #defined STDEXT_CC_? constants, whichever the function uses)
                                                                     MemberFunctionClassT, // Function's class (we're a non-static member function)
-                                                                    IsVariadicT, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
-                                                                    IsConstT, // "true" if the function is declared "const" or "false" otherwise
-                                                                    IsVolatileT, // "true" if the function is declared "volatile" or "false" otherwise
-                                                                    FunctionReferenceT, // Function's reference qualifier (see enum class "FunctionReference")
-                                                                    IsNoexceptT, // "true" if the function is declared "noexcept" or "false" otherwise
+                                                                    IsVariadicV, // "true" if function is variadic (last arg of function is "...") or "false" otherwise
+                                                                    IsConstV, // "true" if function is declared "const" or "false" otherwise
+                                                                    IsVolatileV, // "true" if function is declared "volatile" or "false" otherwise
+                                                                    FunctionReferenceV, // Function's reference qualifier (see enum class "FunctionReference")
+                                                                    IsNoexceptV, // "true" if function is declared "noexcept" or "false" otherwise
                                                                     ArgsT...> // Function's arguments (types) in left-to-right order of declaration (as would be expected)
                                     #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
                                         , public MemberFunctionWriteTraitsHelper
@@ -9436,29 +10874,23 @@ namespace StdExt
         {
         };
 
-        // For internal use only ("pRef" is always "", "&" or "&&")
-        constexpr FunctionReference RefStrToFunctionReference(const char * const pRef) noexcept
-        {
-            return (pRef[0] == '\0' ? FunctionReference::None
-                                    : (pRef[1] == '\0' ? FunctionReference::LValue
-                                                       : FunctionReference::RValue));
-        }
-
         ///////////////////////////////////////////////////////////////
         // For internal use only (we #undef it later). Base class for
         // "MemberFunctionTraits" specialization further below. All
         // "FunctionTraits" specializations for non-static member
         // functions ultimately derive from this.
         ///////////////////////////////////////////////////////////////
-        #define MEMBER_FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, RAW_CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+        #define MEMBER_FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, IS_NOEXCEPT) \
             MemberFunctionTraitsBase<F, /* F */ \
+                                     FunctionOriginTypeT, /* FunctionOriginTypeT */ \
+                                     FunctionOriginV, /* FunctionOriginV */ \
                                      R RAW_CC (ArgsT... ELLIPSIS) CONST VOLATILE REF noexcept(IS_NOEXCEPT), /* RawTypeT */ \
                                      /*//////////////////////////////////////////////////////////////// \
                                      // Following commented out for now. Previously attempted to rely   \
                                      // on this instead of line just above, but a bug exists in MSVC    \
                                      // at this writing that causes occasional compilation errors.      \
                                      // Issue was never fully investigated, but occurs for instance if  \
-                                     // "DisplayAllFunctionTraits" is specialized on a variadic         \
+                                     // "DisplayAllFunctionTraits()" is specialized on a variadic       \
                                      // function after changing the calling convention using the MSVC   \
                                      // calling convention options /Gd (__cdecl), /Gr (__fastcall),     \
                                      // /Gv (__vectorcall) or /Gz (__stdcall). Numerous errors          \
@@ -9470,38 +10902,38 @@ namespace StdExt
                                      ////////////////////////////////////////////////////////////////*/ \
                                      /* MemberFunctionRawType_t<R (CC C::*)(ArgsT... ELLIPSIS) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>, */ \
                                      R, /* ReturnTypeT */ \
-                                     CALLING_CONVENTION, /* CallingConventionT (value from "enum class CallingConvention") */ \
+                                     CALLING_CONVENTION, /* CallingConventionV (value from "enum class CallingConvention") */ \
                                      C, /* MemberFunctionClassT */ \
-                                     #ELLIPSIS[0] != '\0', /* IsVariadicT (#ELLIPSIS always resolves to "" if function isn't variadic or "..." otherwise) */ \
-                                     #CONST[0] != '\0', /* IsConstT (#CONST always resolves to "" if function isn't const or "const" otherwise) */ \
-                                     #VOLATILE[0] != '\0', /* IsVolatileT (#VOLATILE always resolves to "" if function isn't volatile or "volatile" otherwise) */ \
-                                     RefStrToFunctionReference(#REF), /* FunctionReferenceT (#REF resolves to "" if function has no ref-qualifier, or "&" or "&&" otherwise) */ \
-                                     IS_NOEXCEPT, /* IsNoexceptT (true or false) */ \
+                                     IS_VARIADIC, /* IsVariadicV (true or false) */ \
+                                     IS_CONST, /* IsConstV (true or false) */ \
+                                     IS_VOLATILE, /* IsVolatileV (true or false) */ \
+                                     FUNC_REF, /* FunctionReferenceV (value from "enum class FunctionReference") */ \
+                                     IS_NOEXCEPT, /* IsNoexceptV (true or false) */ \
                                      ArgsT... /* ArgsT */>
 
         //////////////////////////////////////////////////////////////////
         // Required to circumvent a bug in Visual Studio 2019 releases of
         // MSVC or earlier (V16.11 or earlier which target MSVC 19.29 or
-        // earlier). We apply this in the 2nd template arg of the
-        // #defined (macro) struct just below, which we call shortly to
-        // create our partial specializations of "MemberFunctionTraits".
-        // Without it, compilation fails in the latter versions of VS
-        // when the ELLIPSIS arg in the macro just below is later passed
-        // "..." to handle variadic functions. The MSFT compiler chokes
-        // on the 2nd template arg being passed to the "MemberFunctionTraits"
-        // specialization just below unless a comma is used to separate
-        // the "ArgsT..." template arg seen below (applicable to the
-        // "ArgsT" parameter pack) from the ELLIPSIS (3 dots) that
-        // immediately follow it (applicable to variadic functions). When
-        // the macro just below is called later on to target variadic
-        // functions, MSFT_BUG_FIX_COMMA will be redefined to an actual
-        // comma which corrects the error. A comma is normally optional
-        // however in C++ when separating non-variadic function args from
-        // the "..." that follows them in variadic functions (so applying
-        // it to all compilers, not just the buggy MSVC versions above,
-        // is harmless). If the bug didn't exist we could just eliminate
-        // the following constant altogether since no comma separator is
-        // normally required (if not for the bug)
+        // earlier). We apply this in the 4th specialized template arg of
+        // the #defined (macro) struct just below, which we call shortly
+        // to create our partial specializations of
+        // "MemberFunctionTraits". Without it, compilation fails in the
+        // latter versions of VS when the ELLIPSIS arg in the macro just
+        // below is later passed "..." to handle variadic functions. The
+        // MSFT compiler chokes on the 4th specialized template arg just
+        // below unless a comma is used to separate the "ArgsT..."
+        // template arg seen below (applicable to the "ArgsT" parameter
+        // pack) from the ELLIPSIS (3 dots) that immediately follow it
+        // (applicable to variadic functions). When the macro just below
+        // is called later on to target variadic functions,
+        // MSFT_BUG_FIX_COMMA will be redefined to an actual comma which
+        // corrects the error. A comma is normally optional however in
+        // C++ when separating non-variadic function args from the "..."
+        // that follows them in variadic functions (so applying it to all
+        // compilers, not just the buggy MSVC versions above, is
+        // harmless). If the bug didn't exist we could just eliminate the
+        // following macro altogether since no comma separator is
+        // normally required (if not for the bug).
         //////////////////////////////////////////////////////////////////
         #define MSFT_BUG_FIX_COMMA
 
@@ -9541,35 +10973,37 @@ namespace StdExt
         // users (or us) can access it if required (i.e., the original "F" they passed
         // to this class or any of its helper template declared later on).
         ////////////////////////////////////////////////////////////////////////////////
-        #define MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+        #define MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, IS_NOEXCEPT) \
             template <TRAITS_MEMBER_FUNCTION_C F, \
+                      typename FunctionOriginTypeT, \
+                      FunctionOrigin FunctionOriginV, \
                       typename R, \
                       IS_CLASS_C C, \
                       typename... ArgsT> \
             struct MemberFunctionTraits<F, \
+                                        FunctionOriginTypeT, \
+                                        FunctionOriginV, \
                                         R (CC C::*)(ArgsT... MSFT_BUG_FIX_COMMA ELLIPSIS) CONST VOLATILE REF noexcept(IS_NOEXCEPT), \
-                                        /*////////////////////////////////////////////////////// \
-                                        // See same call in "struct FreeFunctionTraits" partial  \
-                                        // specialization earlier (consult long comments there)  \
-                                        //////////////////////////////////////////////////////*/ \
-                                        std::enable_if_t<!CallingConventionReplacedWithCdecl<CALLING_CONVENTION, false>() && \
-                                                         AlwaysTrue_v<F> \
+                                        /*/////////////////////////////////////////////////////// \
+                                        // See same call in "struct FreeFunctionTraits" partial   \
+                                        // specialization earlier (consult long comments there)   \
+                                        ///////////////////////////////////////////////////////*/ \
+                                        std::enable_if_t<!CallingConventionReplacedWithCdecl<CALLING_CONVENTION, false /* IsFreeFunc */ >() && \
+                                                         AlwaysTrue_v<F> /* See comments above */ \
                                                         > \
                                        > \
-                : public MEMBER_FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, RAW_CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+                : public MEMBER_FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, IS_NOEXCEPT) \
             { \
-                static_assert(std::is_same_v<RemoveCvRef_t<F>, R (CC C::*)(ArgsT... ELLIPSIS) CONST VOLATILE REF noexcept(IS_NOEXCEPT)>); \
+            private: \
+                using SpecializedF = R (CC C::*)(ArgsT... ELLIPSIS) CONST VOLATILE REF noexcept(IS_NOEXCEPT); /* Template's 4th arg */ \
+                static_assert(std::is_same_v<SpecializedF, RemoveCvRef_t<F>>); \
 \
-            protected: \
-                using SpecializedF = R (CC C::*)(ArgsT... ELLIPSIS) CONST VOLATILE REF noexcept(IS_NOEXCEPT); /* 2nd template arg */ \
-                using BaseClass = MEMBER_FUNCTION_TRAITS_BASE_CLASS(CALLING_CONVENTION, RAW_CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT); \
-\
-                DECLARE_MEMBER_FUNCTION_WRITE_TRAITS(CC, ELLIPSIS, CONST, VOLATILE, REF, IS_NOEXCEPT) \
+                DECLARE_MEMBER_FUNCTION_WRITE_TRAITS(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, IS_NOEXCEPT) \
 \
             /*///////////////////////////////////////////////////////// \
             // Following commented out for now due to a compiler bug    \
             // in MSVC. See declaration of "MemberFunctionRawType_t"    \
-            // for details (can't rely it for now due to this bug  -    \
+            // for details (can't rely it for now due to this bug -     \
             // currently using an alternate technique as a work-around  \
             // but may revisit this again later, if MSFT ever fixes     \
             // the problem)                                             \
@@ -9617,9 +11051,9 @@ namespace StdExt
         // (whether declaration order necessarily matters), and there's also the
         // issue of the calling convention itself, since STDEXT_CC_THISCALL is
         // normally preferable over STDEXT_CC_CDECL when compiling for 32 bits on
-        // Microsoft platforms (i.e., when compiling for 32 bits in Microsoft Visual
-        // C++, non-static member functions normally default to STDEXT_CC_THISCALL
-        // instead of STDEXT_CC_CDECL so ideally we'd want to check
+        // Microsoft (x86) platforms (i.e., when compiling for 32 bits in Microsoft
+        // Visual C++, non-static member functions normally default to
+        // STDEXT_CC_THISCALL instead of STDEXT_CC_CDECL so ideally we'd want to check
         // STDEXT_CC_THISCALL first instead). However, when compiling for 64 bits on
         // Microsoft platforms, STDEXT_CC_CDECL will kick in instead (even on
         // non-Microsoft platforms for most calling conventions that aren't already
@@ -9628,52 +11062,54 @@ namespace StdExt
         // The upshot is that we should ideally check the calling convention actually
         // in effect first if possible, regardless of what it is, so that the order
         // of specialization reflects the calling conventions most likely to be in
-        // effect depending on the platform and target build (32 vs 64 bit normally).
-        // For now however we only (very) crudely order the specializations to try
-        // and put some of the most common specializations first, and STDEXT_CC_CDECL
-        // is given priority over STDEXT_CC_THISCALL (so things might be a tiny bit
-        // slower on Microsoft platforms, since all 24 STDEXT_CC_CDECL
-        // specializations occur before the first STDEXT_CC_THISCALL specialization
-        // is encountered). A future release may try to do better assuming it's even
-        // doable (and can be done cleanly), but any performance boost will likely
-        // (usually) be negligible anyway, no matter what the order. With 144
-        // specializations of non-static member functions we're creating at this
-        // writing however (168 on Clang and Intel due to an extra calling convention
-        // they support, "regcall"), for now I'm ordering things to potentially
-        // improve the performance even if just a bit (again, the attempt is crude),
-        // assuming it has any appreciable effect at all (but harmless if not).
+        // effect depending on the platform and target build (on x86 32 vs 64 bit
+        // normally). For now however we only (very) crudely order the
+        // specializations to try and put some of the most common specializations
+        // first, and STDEXT_CC_CDECL is given priority over STDEXT_CC_THISCALL (so
+        // things might be a tiny bit slower on Microsoft platforms, since all 24
+        // STDEXT_CC_CDECL specializations occur before the first STDEXT_CC_THISCALL
+        // specialization is encountered). A future release may try to do better
+        // assuming it's even doable (and can be done cleanly), but any performance
+        // boost will likely (usually) be negligible anyway, no matter what the
+        // order. With between 120 to 168 specializations of non-static member
+        // functions we're creating at this writing however (depending on the
+        // platform but those numbers also include specializations for handling
+        // variadic functions), for now I'm ordering things to potentially improve
+        // the performance even if just a bit (again, the attempt is crude), assuming
+        // it has any appreciable effect at all (but harmless if not).
         //////////////////////////////////////////////////////////////////////////////
 
         // noexcept (for internal use only, we #undef it later - invokes macro just above)
-        #define MAKE_MEMBER_FUNC_TRAITS_4(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF, VOLATILE, CONST) \
-            MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, CONST, VOLATILE, REF, true) \
-            MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, CONST, VOLATILE, REF, false)
+        #define MAKE_MEMBER_FUNC_TRAITS_4(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF, VOLATILE, IS_VOLATILE, CONST, IS_CONST) \
+            MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, true) \
+            MAKE_MEMBER_FUNC_TRAITS_5(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, CONST, IS_CONST, VOLATILE, IS_VOLATILE, REF, FUNC_REF, false)
 
         // const (for internal use only, we #undef it later - invokes macro just above)
-        #define MAKE_MEMBER_FUNC_TRAITS_3(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF, VOLATILE) \
-            MAKE_MEMBER_FUNC_TRAITS_4(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF, VOLATILE, const) \
-            MAKE_MEMBER_FUNC_TRAITS_4(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF, VOLATILE, )
+        #define MAKE_MEMBER_FUNC_TRAITS_3(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF, VOLATILE, IS_VOLATILE) \
+            MAKE_MEMBER_FUNC_TRAITS_4(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF, VOLATILE, IS_VOLATILE, const, true) \
+            MAKE_MEMBER_FUNC_TRAITS_4(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF, VOLATILE, IS_VOLATILE,      , false)
 
         // volatile (for internal use only, we #undef it later - invokes macro just above)
-        #define MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF) \
-            MAKE_MEMBER_FUNC_TRAITS_3(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF, ) \
-            MAKE_MEMBER_FUNC_TRAITS_3(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, REF, volatile)
+        #define MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF) \
+            MAKE_MEMBER_FUNC_TRAITS_3(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF,         , false) \
+            MAKE_MEMBER_FUNC_TRAITS_3(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, REF, FUNC_REF, volatile, true)
 
         // && and && (for internal use only, we #undef it later - invokes macro just above)
-        #define MAKE_MEMBER_FUNC_TRAITS_1(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS) \
-            MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, ) \
-            MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, &) \
-            MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, &&)
+        #define MAKE_MEMBER_FUNC_TRAITS_1(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC) \
+            MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC,  ,  FunctionReference::None) \
+            MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC,  &, FunctionReference::LValue) \
+            MAKE_MEMBER_FUNC_TRAITS_2(CC, CALLING_CONVENTION, RAW_CC, ELLIPSIS, IS_VARIADIC, &&, FunctionReference::RValue)
 
         ///////////////////////////////////////////////////////////////////
         // For internal use only (we #undef it later). Invokes macro just
         // above. Launching point (first macro to be called) to create
         // partial specializations of "MemberFunctionTraits" for handling
         // every permutation of non-variadic functions for the passed
-        // calling convention (variadic functions are handled just after).
+        // calling convention (variadic functions are handled separately
+        // below).
         ///////////////////////////////////////////////////////////////////
         #define MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC(CC, CALLING_CONVENTION, RAW_CC) \
-            MAKE_MEMBER_FUNC_TRAITS_1(CC, CALLING_CONVENTION, RAW_CC, )
+            MAKE_MEMBER_FUNC_TRAITS_1(CC, CALLING_CONVENTION, RAW_CC, , false)
 
         ////////////////////////////////////////////////////////////
         // Call above macro once for each calling convention (for
@@ -9699,7 +11135,7 @@ namespace StdExt
         #undef MAKE_MEMBER_FUNC_TRAITS_NON_VARIADIC
 
         ////////////////////////////////////////////////
-        // Constants just below not #defined otherwise
+        // Macros just below not #defined otherwise
         // (applicable only when function write traits
         // supported - usually the case)
         ////////////////////////////////////////////////
@@ -9728,10 +11164,10 @@ namespace StdExt
         #endif
 
         ////////////////////////////////////////////////////////////////
-        // See this private constant (#defined earlier) for details.
+        // See this private macro (#defined earlier) for details.
         // Required here since we're about to handle variadic functions
-        // in macro call just below so following constant required to
-        // circumvent the MSFT bug described in the constant's comments
+        // in macro call just below so following macro required to
+        // circumvent the MSFT bug described in the macro's comments
         // earlier.
         ////////////////////////////////////////////////////////////////
         #undef MSFT_BUG_FIX_COMMA
@@ -9753,7 +11189,28 @@ namespace StdExt
         // support variadic functions but it would be rare and we don't
         // currently support them anyway).
         /////////////////////////////////////////////////////////////////
-        MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, STDEXT_CC_VARIADIC, ...)
+        MAKE_MEMBER_FUNC_TRAITS_1(STDEXT_CC_VARIADIC, CallingConvention::Variadic, STDEXT_CC_VARIADIC, ..., true)
+
+        //////////////////////////////////////////////////
+        // Applies to Clang and Intel only (see comments
+        // below)
+        //////////////////////////////////////////////////
+        #if defined(CLANG_COMPILER) || \
+            defined(INTEL_COMPILER)
+            /////////////////////////////////////////////////////
+            // Resolves to this (applicable to Clang and Intel
+            // only, since no other compiler we support displays
+            // a similar diagnostic as seen below):
+            // 
+            //    _Pragma("clang diagnostic pop")
+            // 
+            // To undo our earlier call to this (see the
+            // comments there for details):
+            // 
+            //    _Pragma("clang diagnostic ignored \"-Wambiguous-ellipsis\"")
+            /////////////////////////////////////////////////////
+            CLANG_OR_INTEL_DIAGNOSTIC_POP
+        #endif
 
         // Done with these (for internal use only)
         #undef MSFT_BUG_FIX_COMMA
@@ -9784,8 +11241,8 @@ namespace StdExt
             // Done with these (for internal use only)
             #undef REPLACE_ARGS_IMPL
             #undef DECLARE_REPLACE_ARGS_IMPL
-            #undef STDEXT_CC_REGCALL_REPLACE
-            #undef STDEXT_CC_VECTORCALL_REPLACE
+            #undef STDEXT_CC_REGCALL_IF_SUPPORTED
+            #undef STDEXT_CC_VECTORCALL_IF_SUPPORTED
             #undef REPLACE_RETURN_TYPE_IMPL
             #undef DECLARE_REPLACE_RETURN_TYPE_IMPL
         #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
@@ -9855,91 +11312,91 @@ namespace StdExt
     // Given the types we support as seen above, including optional
     // cv-qualifiers on any of the pointer to function types, and also
     // factoring in calling conventions on the target function, as well as
-    // "noexcept" and, for non-static member functions or functors, cv and
-    // ref qualifiers, we're dealing with 1878 permutations (required
+    // "noexcept" and, for non-static member functions or functors, cv and ref
+    // qualifiers, we're dealing with 1878 permutations (required
     // specializations on all platforms we currently support - a bit more for
     // Clang and Intel compilers which have an extra calling convention,
     // "regcall"). Although this can easily be handled in a relatively small
     // amount of actual code due to judicious use of the macros seen further
     // above (used to create these specializations - they handled all 1878
-    // specializations in earlier releases), we've since adjusted these
-    // macros to handle a much smaller number of specializations (154). We're
-    // still able to target all 1878 permutations of function types however
-    // by specializing "F" *after* removing the optional reference and/or
-    // pointer to "F" if it targets a free function (resulting in the actual
-    // free function type itself), or the optional reference and/or
-    // cv-qualifiers if "F" targets a non-static member function (resulting
-    // in a non-cv-qualified, non-static member function pointer - functors
-    // are routed through here as well). We remove the optional reference
-    // and/or pointer on "F" in order to specialize "FunctionTraits" on "F"
-    // *after* these removals, not on "F" itself, which therefore reduces the
-    // number of specializations from 1878 to 154 as noted (big improvement).
-    // After these removals on "F" that is, we only require specializations
-    // for either raw free function types (never pointers to free functions
-    // or references to free functions or references to pointers to free
-    // functions), or (non-cv-qualified) pointers to non-static member
-    // functions (never references to such pointers). This greatly reduces
-    // the number of specializations we need to handle as noted, again, from
-    // 1878 to 154, but we still capture the same information for all 1878
-    // permutations because these removals don't impact our ability to
-    // collect this information. We can capture the same info we used to
-    // capture in 1878 specializations but now using only 154
-    // specializations.
+    // specializations in earlier releases), we've since adjusted these macros
+    // to handle a much smaller number of specializations (154). We're still
+    // able to target all 1878 permutations of function types however by
+    // specializing "F" *after* removing the optional reference and/or pointer
+    // to "F" if it targets a free function (resulting in the actual free
+    // function type itself), or the optional reference and/or cv-qualifiers if
+    // "F" targets a non-static member function (resulting in a
+    // non-cv-qualified, non-static member function pointer - functors are
+    // routed through here as well). We remove the optional reference and/or
+    // pointer on "F" in order to specialize "FunctionTraits" on "F" *after*
+    // these removals, not on "F" itself, which therefore reduces the number of
+    // specializations from 1878 to 154 as noted (big improvement). After these
+    // removals on "F" that is, we only require specializations for either raw
+    // free function types (never pointers to free functions or references to
+    // free functions or references to pointers to free functions), or
+    // (non-cv-qualified) pointers to non-static member functions (never
+    // references to such pointers). This greatly reduces the number of
+    // specializations we need to handle as noted, again, from 1878 to 154, but
+    // we still capture the same information for all 1878 permutations because
+    // these removals don't impact our ability to collect this information. We
+    // can capture the same info we used to capture in 1878 specializations but
+    // now using only 154 specializations.
     //
     // The upshot is that these removals are designed solely to reduce the
-    // large number of specializations of "FunctionTraits" that would
-    // otherwise be required (1878), without affecting our ability to capture
-    // the exact same info in all these specializations (which we now do
-    // using only 154 specializations).
+    // large number of specializations of "FunctionTraits" that would otherwise
+    // be required (1878), without affecting our ability to capture the exact
+    // same info in all these specializations (which we now do using only 154
+    // specializations).
     //
     // Finally, please be aware that when "F" is in fact a supported function
     // type, its calling convention may be changed by the compiler to the
-    // "cdecl" calling convention. This normally occurs when compiling for 64
-    // bits opposed to 32 bits, or possibly other scenarios depending on the
-    // compiler options in effect (platform specific), in which case the
-    // compiler ignores the calling convention on "F" and automatically
-    // switches to the "cdecl" calling convention. Note that those
-    // "FreeFunctionTraits" and "MemberFunctionTraits" specializations
-    // further above which handle calling conventions are designed to detect
-    // this situation and when it occurs, the specializations for all calling
-    // conventions besides "cdecl" itself therefore won't kick in (such as
-    // when compiling for 64 bits as noted - the compiler always switches to
-    // the "cdecl" calling convention in this case unless a given calling
-    // convention is supported in that environment, normally the "vectorcall"
-    // calling convention only at this writing, which unlike the other
-    // non-cdecl calling conventions is still applied in 64 bit builds). The
-    // primary template for "FreeFunctionTraits" and "MemberFunctionTraits"
-    // themselves would therefore normally kick in instead in this situation
-    // (since no specializations now exist for these calling conventions - we
-    // removed them), but it will never happen because these calling
-    // conventions will never be encountered in "F". The "cdecl" calling
-    // convention always will be and a specialization always exists for it.
-    // For instance, if function "F" is declared with the "stdcall" calling
+    // "cdecl" calling convention. This typically occurs when compiling for 64
+    // bits opposed to 32 bits (for x86 but this is just the most typical
+    // scenario), in which case the compiler ignores the calling convention on
+    // "F" and automatically switches to the "cdecl" calling convention (which
+    // may not even be an actual calling convention depending on the
+    // architecture but for C++ purposes it can be thought of as one). Note
+    // that those "FreeFunctionTraits" and "MemberFunctionTraits"
+    // specializations further above which handle calling conventions are
+    // designed to detect this situation and when it occurs, the
+    // specializations for all calling conventions besides "cdecl" itself
+    // therefore won't kick in (such as when compiling for 64 bits as noted -
+    // the compiler always switches to the "cdecl" calling convention in this
+    // case unless a given calling convention is supported in that environment,
+    // such as "vectorcall" on those compilers that support it, which unlike
+    // the other non-cdecl calling conventions is still applied in 64 bit
+    // builds). The primary template for "FreeFunctionTraits" and
+    // "MemberFunctionTraits" themselves would therefore normally kick in
+    // instead in this situation (since no specializations now exist for these
+    // calling conventions - we removed them), but it will never happen because
+    // these calling conventions will never be encountered in "F". The "cdecl"
+    // calling convention always will be and a specialization always exists for
+    // it. For instance, if function "F" is declared with the "stdcall" calling
     // convention (whatever its syntax is for a given compiler), and you
-    // compile for 64 bits opposed to 32 bits, the compiler will ignore the
-    // "stdcall" calling convention on "F" and use "cdecl" instead (for all
-    // compilers we currently support). No specialization is therefore
-    // required for "stdcall" so the specialization that handles "stdcall"
-    // won't kick in (based on our design), since the "cdecl" specialization
-    // will handle it. IOW, even though there's no specialization for
-    // functions with the "stdcall" calling convention, it doesn't matter
-    // since the "stdcall" in function "F" has been replaced with "cdecl" by
-    // the compiler. The primary template therefore won't kick in for
-    // functions declared with "stdcall", the specialization that handles
-    // "cdecl" will. The primary template only kicks in if "F" isn't a
-    // supported function type (someone passes an "int" for instance which
-    // isn't even a function), in which case either the TRAITS_FUNCTION_C
-    // concept (C++20 or later) seen in the following struct will trigger
-    // (see below), or a compiler-specific error will occur in C++17 (that
-    // the template isn't defined or specialized). Specializations whose
-    // calling convention is replaced by "cdecl" therefore never wind up here
-    // as described, so no error will ever be flagged for them (they're still
-    // supported functions that is, only that the "cdecl" specialization will
-    // now kick in to handle them instead of the usual specialization that
-    // normally targets that specific calling convention).
+    // compile for 64 bits opposed to 32 bits (x86), the compiler will ignore
+    // the "stdcall" calling convention on "F" and use "cdecl" instead (for all
+    // compilers we currently support). No specialization is therefore required
+    // for "stdcall" so the specialization that handles "stdcall" won't kick in
+    // (based on our design), since the "cdecl" specialization will handle it.
+    // IOW, even though there's no specialization for functions with the
+    // "stdcall" calling convention, it doesn't matter since the "stdcall" in
+    // function "F" has been replaced with "cdecl" by the compiler. The primary
+    // template therefore won't kick in for functions declared with "stdcall",
+    // the specialization that handles "cdecl" will. The primary template only
+    // kicks in if "F" isn't a supported function type whatsoever (someone
+    // passes an "int" for instance which isn't even a function), in which case
+    // either the TRAITS_FUNCTION_C concept (C++20 or later) seen in the
+    // following struct will trigger (see below), or a compiler-specific error
+    // will occur in C++17 (that the template isn't defined or specialized).
+    // Specializations whose calling convention is replaced by "cdecl"
+    // therefore never wind up here as described, so no error will ever be
+    // flagged for them (they're still supported functions that is, only that
+    // the "cdecl" specialization will now kick in to handle them instead of
+    // the usual specialization that normally targets that specific calling
+    // convention).
     ////////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F,
-              typename = void> // Arg for internal use only (users should never explicitly pass it)
+              typename = void> // Arg for internal use only (never explicitly passed)
     struct FunctionTraits; // Not defined by design in order to support SFINAE.
                            // See large comments above.
 
@@ -9959,7 +11416,10 @@ namespace StdExt
                                                                         // pointer to one or a reference to one
                                                                         // or a reference to a pointer to one
                          >
-                         : Private::FreeFunctionTraits<F>
+                         : Private::FreeFunctionTraits<F,
+                                                       void, // FunctionOriginTypeT
+                                                       FunctionOrigin::None
+                                                      >
     {
     };
 
@@ -9977,72 +11437,12 @@ namespace StdExt
                                                                           // non-static member function or
                                                                           // a reference to such a pointer
                          >
-                         : Private::MemberFunctionTraits<F>
+                         : Private::MemberFunctionTraits<F,
+                                                         void, // FunctionOriginTypeT
+                                                         FunctionOrigin::None
+                                                        >
     {
     };
-
-    // For internal use only
-    namespace Private
-    {
-        /////////////////////////////////////////////////////////////////
-        // struct FunctorTraitsBase (base class of both "FunctorTraits"
-        // and "StaticFunctorTraits"
-        /////////////////////////////////////////////////////////////////
-        template <TRAITS_NON_STATIC_OR_STATIC_FUNCTOR_C F>
-        struct FunctorTraitsBase
-        {
-            #if !defined(USE_CONCEPTS)
-                //////////////////////////////////////////////////
-                // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead (macro for this
-                // above resolves to the "typename" keyword when
-                // concepts aren't supported and the following
-                // "static_assert" is then used instead)
-                //////////////////////////////////////////////////
-                STATIC_ASSERT_IS_TRAITS_NON_STATIC_OR_STATIC_FUNCTOR(F);
-            #endif
-
-            using FunctorType = F;
-
-            ////////////////////////////////////////////////////
-            // For internal use only for now (not intended for
-            // end users but should be made available to them
-            // in a future release)
-            ////////////////////////////////////////////////////
-            using RawFunctorType_t = RemoveCvRef_t<F>;
-            static constexpr tstring_view RawFunctorTypeName_v = TypeName_v<RawFunctorType_t>;
-        }; // struct FunctorTraitsBase
-
-        template <TRAITS_FUNCTOR_C F>
-        struct FunctorTraits : MemberFunctionTraits< decltype(&std::remove_reference_t<F>::operator()) >,
-                               FunctorTraitsBase<F>
-        {
-        private:
-            using BaseClass = MemberFunctionTraits< decltype(&std::remove_reference_t<F>::operator()) >;
-
-            // See this constant for details
-            #if !defined(USE_CONCEPTS)
-                //////////////////////////////////////////////////
-                // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead (macro for this
-                // above resolves to the "typename" keyword when
-                // concepts aren't supported and the following
-                // "static_assert" is then used instead)
-                //////////////////////////////////////////////////
-                STATIC_ASSERT_IS_TRAITS_FUNCTOR(F)
-            #endif
-
-        public:
-            //////////////////////////////////////////////////////////////////
-            // Overrides (hides) the same member in the "FunctionTraitsBase"
-            // class (which is always "FunctionOrigin::None"). See this for
-            // details.
-            //////////////////////////////////////////////////////////////////
-            static constexpr FunctionOrigin FunctionOrigin_v = FunctionOrigin::Functor;
-        }; // struct FunctorTraits
-    } // namespace Private
 
     //////////////////////////////////////////////////////////////////////////
     // "FunctionTraits" partial specialization for handling non-overloaded
@@ -10214,7 +11614,7 @@ namespace StdExt
     //     using F = decltype(&decltype(myLambda)::template operator()<float>); // See above for details. A helper alias
     //                                                                          // to make the syntax cleaner will likely
     //                                                                          // be made available in a future release
-    //                                                                         //  of this header.
+    //                                                                          //  of this header.
     //
     //     ///////////////////////////////////////////////////////
     //     // Resolves to "int" (lambda's return type) just like
@@ -10232,126 +11632,59 @@ namespace StdExt
     template <typename F>
     struct FunctionTraits<F,
                           std::enable_if_t< IsTraitsFunctor_v<F> > // True if "F" is a non-overloaded, non-static
-                                                                   // functor or a reference to one but not a
-                                                                   // "std::function" (even though the latter is
-                                                                   // technically a functor - it's explicitly bypassed
-                                                                   // here since we have a separate "FunctionTraits"
-                                                                   // specialization for it further below)
+                                                                   // operator() functor or a reference to one, but
+                                                                   // not a "std::function" (even though the latter
+                                                                   // is technically a functor - it's explicitly
+                                                                   // bypassed here since we have a separate
+                                                                   // "FunctionTraits" specialization for it
+                                                                   // further below)
                          >
-                         : Private::FunctorTraits<F>
+                         : Private::MemberFunctionTraits< decltype(&std::remove_reference_t<F>::operator()), // F
+                                                          F, // FunctionOriginTypeT
+                                                          FunctionOrigin::Functor
+                                                        >
     {
     };
-
-    // For internal use only
-    namespace Private
-    {
-        template <TRAITS_STATIC_FUNCTOR_C F>
-        struct StaticFunctorTraits : FreeFunctionTraits< decltype(std::remove_reference_t<F>::operator()) >,
-                                     FunctorTraitsBase<F>
-        {
-        private:
-            using BaseClass = FreeFunctionTraits< decltype(std::remove_reference_t<F>::operator()) >;
-
-            // See this constant for details
-            #if !defined(USE_CONCEPTS)
-                //////////////////////////////////////////////////
-                // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead (macro for this
-                // above resolves to the "typename" keyword when
-                // concepts aren't supported and the following
-                // "static_assert" is then used instead)
-                //////////////////////////////////////////////////
-                STATIC_ASSERT_IS_TRAITS_STATIC_FUNCTOR(F)
-            #endif
-
-        public:
-            //////////////////////////////////////////////////////////////////
-            // Overrides (hides) the same member in the "FunctionTraitsBase"
-            // class (which is always "FunctionOrigin::None"). See this for
-            // details.
-            //////////////////////////////////////////////////////////////////
-            static constexpr FunctionOrigin FunctionOrigin_v = FunctionOrigin::StaticFunctor;
-        }; // struct StaticFunctorTraits
-    } // namespace Private
 
     //////////////////////////////////////////////////////////////////////////
     // "FunctionTraits" partial specialization for handling non-overloaded
-    // *static* functors (opposed to non-static functors which have their own
-    // "FunctionTraits" specialization further above). Note that static
-    // functors were legalized in C++23 (i.e., functors whose "operator()"
-    // member is *static*, though they'll normally be rare in practice). Note
-    // that "F" can be either a static functor or a reference to one. See the
-    // "FunctionTraits" specialization further above for handling non-static
-    // functors (the usual functors that will be encountered in practice
-    // normally). The following is identical except it deals with the
-    // *static* "operator()" member (so dealing with lambdas not an issue
-    // here - they're always based on the non-static "operator()")
+    // function objects (AKA functors) with a static "operator()" member
+    // instead of non-static (though rare in practice). Static versions were
+    // legalized in C++23 so we only support them in C++23, hence the
+    // following explicitly checks for the latter in addition to
+    // __cpp_static_call_operator (since the latter may be #defined in a
+    // pre-C++23 release version if a given compiler provided early support
+    // for it but for our purposes we add the extract check for C++23 as
+    // well).
+    //
+    // See https://wg21.link/P1169R4
     //////////////////////////////////////////////////////////////////////////
-    template <typename F>
-    struct FunctionTraits<F,
-                          std::enable_if_t< IsTraitsStaticFunctor_v<F> > // True if "F" is a non-overloaded static
-                                                                         // functor or a reference to one
-                         >
-                         : Private::StaticFunctorTraits<F>
-    {
-    };
-
-    namespace Private
-    {
-        template <TRAITS_STD_FUNCTION_C F>
-        /////////////////////////////////////////////////////////
-        // Note: In theory we should derive the following from
-        // "FreeFunctionTraits" instead of "FunctionTraits" as
-        // we're doing since the template arg of "std::function"
-        // can only legally be a free function in C++ (and with
-        // some restrictions too - see comments in template
-        // "StdFunctionTemplateArg_t"). Should a user specialize
-        // "std::function" on non-free function however, which
-        // isn't legal, (again, "std::function" only legally
-        // takes free functions), the following will handle it
-        // even though it's illegal in C++ itself. A compiler
-        // error might therefore occur or undefined behavior but
-        // it has nothing to do with us (since we purposely
-        // derive the following from "FunctionTraits" instead of
-        // "FreeFunctionTraits" so it can handle any function
-        // type the user specializes "std::function" on even if
-        // it's not a legal type for "std::function" itself).
-        // Only if it's not an actual function type handled by
-        // this library will we have an issue, since no
-        // "FunctionTraits" specialization will then exist for
-        // it so the following will normally result in an
-        // undefined "FunctionTraits" error (it's declared but
-        // not defined). Why someone would pass an (obviously
-        // illegal) non-function type to "std::function" however
-        // (unless it's occurring in an SFINAE context) is
-        // anyone's guess. Otherwise it's guaranteed to cause a
-        // compiler error in the caller's own code regardless of
-        // our library.
-        /////////////////////////////////////////////////////////
-        struct StdFunctionTraits : public FunctionTraits< StdFunctionTemplateArg_t< std::remove_reference_t<F> > >
+    #if CPP23_OR_LATER && defined(__cpp_static_call_operator)
+        //////////////////////////////////////////////////////////////////////////
+        // "FunctionTraits" partial specialization for handling non-overloaded
+        // *static* functors (opposed to non-static functors which have their own
+        // "FunctionTraits" specialization further above). Note that static
+        // functors were legalized in C++23 (i.e., functors whose "operator()"
+        // member is *static*, though they'll normally be rare in practice). Note
+        // that "F" can be either a static functor or a reference to one. See the
+        // "FunctionTraits" specialization further above for handling non-static
+        // functors (the usual functors that will be encountered in practice
+        // normally). The following is identical except it deals with the
+        // *static* "operator()" member (so dealing with lambdas not an issue
+        // here - they're always based on the non-static "operator()")
+        //////////////////////////////////////////////////////////////////////////
+        template <typename F>
+        struct FunctionTraits<F,
+                              std::enable_if_t< IsTraitsStaticFunctor_v<F> > // True if "F" is a non-overloaded static
+                                                                             // operator() functor or a reference to one
+                             >
+                             : Private::FreeFunctionTraits< decltype(std::remove_reference_t<F>::operator()), // F
+                                                            F, // FunctionOriginTypeT
+                                                            FunctionOrigin::StaticFunctor
+                                                          >
         {
-            // See this constant for details
-            #if !defined(USE_CONCEPTS)
-                //////////////////////////////////////////////////
-                // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead (macros for this
-                // above resolves to the "typename" keyword when
-                // concepts aren't supported and the following
-                // "static_assert" is then used instead)
-                //////////////////////////////////////////////////
-                STATIC_ASSERT_IS_TRAITS_STD_FUNCTION(F)
-            #endif
-
-            //////////////////////////////////////////////////////////////////
-            // Overrides (hides) the same member in the "FunctionTraitsBase"
-            // class (which is always "FunctionOrigin::None). See this for
-            // details.
-            //////////////////////////////////////////////////////////////////
-            static constexpr FunctionOrigin FunctionOrigin_v = FunctionOrigin::StdFunction;
-        }; // struct StdFunctionTraits
-    } // namespace Private
+        };
+    #endif // #if CPP23_OR_LATER && defined(__cpp_static_call_operator)
 
     //////////////////////////////////////////////////////////////////////////
     // "FunctionTraits" partial specialization for handling "std::function"
@@ -10376,9 +11709,13 @@ namespace StdExt
     //////////////////////////////////////////////////////////////////////////
     template <typename F>
     struct FunctionTraits<F,
-                          std::enable_if_t< IsTraitsStdFunction_v<F> > // True if "F" is a "std::function" specialization or reference to one
+                          std::enable_if_t< IsTraitsStdFunction_v<F> > // True if "F" is a "std::function"
+                                                                       // specialization or reference to one
                          >
-                         : Private::StdFunctionTraits<F>
+                         : Private::FreeFunctionTraits< FirstTemplateArg_t< std::remove_reference_t<F> >,
+                                                        F, // FunctionOriginTypeT
+                                                        FunctionOrigin::StdFunction
+                                                      >
     {
     };
 
@@ -10400,14 +11737,10 @@ namespace StdExt
     // for both free and non-static member functions. All other
     // compilers we support always default to "cdecl" for both
     // free and non-static member functions regardless of the
-    // architecture (32 or 64 bits).
+    // architecture (32 or 64 bits usually).
     ////////////////////////////////////////////////////////////
     template <bool IsFreeFunc>
-    inline constexpr CallingConvention DefaultCallingConvention_v = FunctionTraits< std::conditional_t<IsFreeFunc,
-                                                                                                       void(),
-                                                                                                       void (Private::AnyClass::*)()
-                                                                                                      >
-                                                                                  >::CallingConvention_v;
+    inline constexpr CallingConvention DefaultCallingConvention_v = FunctionTraits< Private::TestFunc_t<IsFreeFunc> >::CallingConvention_v;
 
     /////////////////////////////////////////////////////////////////////
     // DefaultCallingConventionName_v. See "DefaultCallingConvention_v"
@@ -10421,12 +11754,16 @@ namespace StdExt
     namespace Private
     {
         template <ABOMINABLE_FUNCTION_C F>
-        struct AbominableFunctionTraits : public MemberFunctionTraits<F AnyClass::*>
+        struct AbominableFunctionTraits : public MemberFunctionTraits<F AnyClass::*,
+                                                                      void, // FunctionOriginTypeT
+                                                                      FunctionOrigin::None
+                                                                     >
                                     #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
                                         , public FreeOrAbominableFunctionWriteTraitsHelper
                                     #endif
         {
-            // See this constant for details
+        private:
+            // See this macro for details
             #if !defined(USE_CONCEPTS)
                 //////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
@@ -10439,11 +11776,13 @@ namespace StdExt
                 STATIC_ASSERT_IS_ABOMINABLE_FUNCTION(F)
             #endif
 
-        private:
-            using BaseClass = MemberFunctionTraits<F AnyClass::*>;
+            using BaseClass = MemberFunctionTraits<F AnyClass::*,
+                                                   void,
+                                                   FunctionOrigin::None
+                                                  >;
 
             template <MEMBER_FUNCTION_POINTER_C NewF>
-            using ToRawType_t = typename MemberFunctionTraits<NewF>::RawType_t;
+            using ToRawType_t = typename MemberFunctionTraits<NewF, void, FunctionOrigin::None>::RawType_t;
 
         public:
             //////////////////////////////////////////////////////
@@ -10472,7 +11811,7 @@ namespace StdExt
             // https://learn.microsoft.com/en-us/cpp/build/reference/gd-gr-gv-gz-calling-convention?view=msvc-170
             // for details at this writing - link liable to go dead though at some point
             // since MSFT is notorious for this). For all other compilers we currently
-            // support the default will normally be "cdecl" instead. If STDEXT_CC_THISCALL
+            // support, the default will normally be "cdecl" instead. If STDEXT_CC_THISCALL
             // is not present in "F" however as is normally the case (so either "F" was
             // declared with no explicit calling convention or it was but not
             // STDEXT_CC_THISCALL, which will normally the case), then the following will
@@ -10488,10 +11827,10 @@ namespace StdExt
             //////////////////////////////////////////////////////////////////////////////////
             using FunctionType_t = typename BaseClass::RawType_t;
 
-            ////////////////////////////////////////////////////////
-            // Helper variable for above variable (returns it as a
-            // WYSIWYG "tstring_view"). Hides base class version.
-            ////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////
+            // Convenience helper for just above (returns it as a
+            // "tstring_view"). Hides the base class version.
+            ///////////////////////////////////////////////////////
             static constexpr tstring_view FunctionTypeName_v = TypeName_v<FunctionType_t>;
 
             /////////////////////////////////////////////////////////////////////////////////
@@ -10597,7 +11936,7 @@ namespace StdExt
             // very likely is the case so it should hopefully be stable in theory).
             /////////////////////////////////////////////////////////////////////////////////
             static constexpr CallingConvention CallingConvention_v = (BaseClass::CallingConvention_v != CallingConvention::Thiscall ? BaseClass::CallingConvention_v
-                                                                                                                                    : DefaultCallingConvention_v<true>); // Default calling convention for a free function;
+                                                                                                                                    : DefaultCallingConvention_v<true>); // Default calling convention for a free function
 
             //////////////////////////////////////////////////////////////
             // *** Commented out for now. Can't rely on it due to a
@@ -10623,10 +11962,10 @@ namespace StdExt
             //////////////////////////////////////////////////////////////
             //static constexpr auto CallingConvention_v = StdExt::CallingConvention_v<typename BaseClass::FreeFunctionRawType>;
 
-            ////////////////////////////////////////////////////////
-            // Helper variable for above variable (returns it as a
-            // WYSIWYG "tstring_view"). Hides base class version.
-            ////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////
+            // Convenience helper for just above (returns it as a
+            // "tstring_view"). Hides the base class version.
+            ///////////////////////////////////////////////////////
             static constexpr tstring_view CallingConventionName_v = CallingConventionToString(CallingConvention_v);
 
             ///////////////////////////////////////////////////////////
@@ -10637,12 +11976,11 @@ namespace StdExt
             using MemberFunctionClass_t = void;
 
             ////////////////////////////////////////////////////////
-            // Helper variable for above variable (returns it as a
-            // WYSIWYG "tstring_view") but this is an abominable
-            // function so it has no class (only non-static member
-            // functions do). We therefore always return an empty
-            // string. Note that this member hides the base class
-            // version.
+            // Convenience helper for just above (returns it as a
+            // "tstring_view"), but this is an abominable function
+            // so it has no class (only non-static member functions
+            // do). We therefore always return an empty string.
+            // Note that this member hides the base class version.
             ////////////////////////////////////////////////////////
             static constexpr tstring_view MemberFunctionClassName_v = tstring_view(_T(""));
 
@@ -10653,7 +11991,7 @@ namespace StdExt
                 template <VALID_RETURN_TYPE_C NewReturnTypeT>
                 using ReplaceReturnType_t = ToRawType_t<typename BaseClass::template ReplaceReturnType_t<NewReturnTypeT>>;
 
-                template <StdExt::CallingConvention NewCallingConventionT>
+                template <CallingConvention NewCallingConventionT>
                 using ReplaceCallingConvention_t = std::conditional_t< NewCallingConventionT != CallingConvention::Thiscall, // Only applies to non-static member functions (we're an abominable function)
                                                                        ToRawType_t< typename BaseClass::template ReplaceCallingConvention_t<NewCallingConventionT> >,
                                                                        FunctionType_t // No change (we don't allow the calling convention of an abominable function to change to STDEXT_CC_THISCALL)
@@ -10671,35 +12009,43 @@ namespace StdExt
                 template <VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
                 using ReplaceArgsTuple_t = ToRawType_t<typename BaseClass::template ReplaceArgsTuple_t<NewArgsTupleT> >;
 
-                template<std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
+                template <std::size_t I /* Zero-based */,
+                          std::size_t Count,
+                          VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
                 REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I)
                 using ArgsModifyTuple_t = ToRawType_t< typename BaseClass::template ArgsModifyTuple_t<I, Count, NewArgsTupleT> >;
 
-                template<std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
+                template <std::size_t I /* Zero-based */,
+                          std::size_t Count,
+                          VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
                 REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I)
                 using ArgsModify_t = ToRawType_t< typename BaseClass::template ArgsModify_t<I, Count, NewArgsT...> >;
 
-                template <std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C NewArgT>
+                template <std::size_t I /* Zero-based */,
+                          VALID_FUNCTION_ARG_TYPE_C NewArgT>
                 REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_ARG_COUNT(I)
                 // Done with this just above (for internal use only) ...
                 #undef REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_ARG_COUNT
                 using ReplaceArg_t = ToRawType_t< typename BaseClass::template ReplaceArg_t<I, NewArgT> >;
 
-                template<std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT>
+                template <std::size_t I /* Zero-based */,
+                          VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT>
                 REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I)
                 using ArgsInsertTuple_t = ToRawType_t< typename BaseClass::template ArgsInsertTuple_t<I, ArgsToInsertTupleT> >;
 
-                template<std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT>
+                template <std::size_t I /* Zero-based */,
+                          VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT>
                 REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I)
                 using ArgsInsert_t = ToRawType_t< typename BaseClass::template ArgsInsert_t<I, ArgsToInsertT...> >;
 
-                template<VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT>
+                template <VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT>
                 using ArgsAppendTuple_t = ToRawType_t< typename BaseClass::template ArgsAppendTuple_t<ArgsToAppendTupleT> >;
 
-                template<VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT>
+                template <VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT>
                 using ArgsAppend_t = ToRawType_t< typename BaseClass::template ArgsAppend_t<ArgsToAppendT...> >;
 
-                template<std::size_t I = 0 /* Zero-based */, std::size_t Count = size_t_npos>
+                template <std::size_t I = 0 /* Zero-based */,
+                          std::size_t Count = size_t_npos>
                 REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(I)
                 // Done with this just above (for internal use only) ...
                 #undef REQUIRES_FUNCTION_TRAITS_BASE_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT
@@ -10732,47 +12078,28 @@ namespace StdExt
     // "FunctionTraits" partial specialization for abominable functions
     template <typename F>
     struct FunctionTraits<F,
-                          std::enable_if_t< IsAbominableFunction_v<F> > // True if "F" is an abominable function
+                          std::enable_if_t< IsAbominableFunction_v<F> >
                          > :
-        Private::AbominableFunctionTraits<F>
+                         Private::AbominableFunctionTraits<F>
     {
     };
 
-    //////////////////////////////////////////////////////
-    // Restore warnings we disabled earlier (for GCC see
-    // earlier call to "#pragma GCC diagnostic push")
-    //////////////////////////////////////////////////////
-    #if defined(GCC_COMPILER)
-        #pragma GCC diagnostic pop
-    //////////////////////////////////////////////////////////
-    // Again, restore warnings we disabled earlier (for both
-    // Clang and Intel see earlier call to "#pragma clang
-    // diagnostic push", noting that Intel (DPC++/C++) is
-    // based on Clang so same calls handle both)
-    //////////////////////////////////////////////////////////
-    #elif defined(CLANG_COMPILER) || \
-          defined(INTEL_COMPILER)
-        #pragma clang diagnostic pop
-    #endif
-
-    ///////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////
     // IsFunctionTraitsSpecialization_v. Returns true if "T" is a
     // specialization of struct "FunctionTraits" or false otherwise.
-    // Note that "FunctionTraits" derivatives always return false
-    // since in the general case, types derived from a specialization
-    // don't qualify as the specialization itself, they only inherit
-    // from it (subtle but meaningful difference). "FunctionTraits"
-    // derivatives aren't normally valid in C++ anyway, since the
-    // "FunctionTraits" destructor isn't virtual so developers
-    // shouldn't normally derive from it (this library never does).
-    ///////////////////////////////////////////////////////////////////
+    // Note that the library doesn't declare any "FunctionTraits"
+    // derivatives and the following call to "IsSpecializationOf_v",
+    // would always return false for them anyway since it only returns
+    // true for specializations but not derivatives of specializations.
+    // "FunctionTraits" isn't designed to be a base class.
+    ////////////////////////////////////////////////////////////////////
     template <typename T>
-    inline constexpr bool IsFunctionTraitsSpecialization_v = IsSpecialization_v<T, FunctionTraits>;
+    inline constexpr bool IsFunctionTraitsSpecialization_v = IsSpecializationOf_v<T, FunctionTraits>;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     //////////////////////////////////////////////
     // Concept for above template (see following
-    // #defined constant for details)
+    // #defined macro for details)
     //////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -10781,12 +12108,8 @@ namespace StdExt
         #endif
 
         #define FUNCTION_TRAITS_C StdExt::FunctionTraits_c
-        #define STATIC_ASSERT_IS_FUNCTION_TRAITS(T)
     #else
         #define FUNCTION_TRAITS_C typename
-        #define STATIC_ASSERT_IS_FUNCTION_TRAITS(T) static_assert(StdExt::IsFunctionTraitsSpecialization_v<T>, \
-                                                                  QUOTE_STRINGIFY(T) " must be a " \
-                                                                  "\"FunctionTraits\" specialization");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -10794,10 +12117,17 @@ namespace StdExt
     // FunctionTraitsArgCount_v. Thin wrapper around
     // "FunctionTraits::ArgCount_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#argcount_v
+    // https://github.com/HexadigmSystems/FunctionTraits#argcount_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr std::size_t FunctionTraitsArgCount_v = FunctionTraitsT::ArgCount_v;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIndexLessThanArgCount_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              std::size_t I /* Zero-based */>
+    inline constexpr bool FunctionTraitsIndexLessThanArgCount_v = FunctionTraitsT::template IndexLessThanArgCount_v<I>;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
 //////////////////////////////////////////////////////////////////////////
@@ -10805,10 +12135,8 @@ namespace StdExt
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */>
-        inline constexpr bool FunctionTraitsIndexLessThanArgCount_v = FunctionTraitsT::template IndexLessThanArgCount_v<I>;
-
-        template <typename FunctionTraitsT, std::size_t I /* Zero-based */>
+        template <typename FunctionTraitsT,
+                  std::size_t I /* Zero-based */>
         concept FunctionTraitsIndexLessThanArgCount_c = FunctionTraitsIndexLessThanArgCount_v<FunctionTraitsT, I>;
     #endif
 
@@ -10817,15 +12145,22 @@ namespace StdExt
     #define REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_ARG_COUNT(FUNCTION_TRAITS_T, I)
 #endif // #if defined(USE_CONCEPTS)
 
+#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIndexLessThanOrEqualToArgCount_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              std::size_t I /* Zero-based */>
+    inline constexpr bool FunctionTraitsIndexLessThanOrEqualToArgCount_v = FunctionTraitsT::template IndexLessThanOrEqualToArgCount_v<I>;
+#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+
 //////////////////////////////////////////////////////////////////////////
 // REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */>
-        inline constexpr bool FunctionTraitsIndexLessThanOrEqualToArgCount_v = FunctionTraitsT::template IndexLessThanOrEqualToArgCount_v<I>;
-
-        template <typename FunctionTraitsT, std::size_t I /* Zero-based */>
+        template <typename FunctionTraitsT,
+                  std::size_t I /* Zero-based */>
         concept FunctionTraitsIndexLessThanOrEqualToArgCount_c = FunctionTraitsIndexLessThanOrEqualToArgCount_v<FunctionTraitsT, I>;
     #endif
 
@@ -10839,7 +12174,9 @@ namespace StdExt
     // FunctionTraitsIndexLessThanArgCountOrReturnVoid_v
     //////////////////////////////////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, bool ReturnVoidIfInvalidIndex>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  bool ReturnVoidIfInvalidIndex>
         inline constexpr bool FunctionTraitsIndexLessThanArgCountOrReturnVoid_v = FunctionTraitsT::template IndexLessThanArgCountOrReturnVoid_v<I, ReturnVoidIfInvalidIndex>;
     #endif // #if defined(USE_CONCEPTS)
 
@@ -10847,9 +12184,11 @@ namespace StdExt
     // FunctionTraitsArgType_t. Thin wrapper around
     // "FunctionTraits::ArgType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#argtype_t
+    // https://github.com/HexadigmSystems/FunctionTraits#argtype_t
     //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, bool ReturnVoidIfInvalidIndex = false>
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              std::size_t I /* Zero-based */,
+              bool ReturnVoidIfInvalidIndex = false>
     #if defined(USE_CONCEPTS)
         requires FunctionTraitsIndexLessThanArgCountOrReturnVoid_v<FunctionTraitsT, I, ReturnVoidIfInvalidIndex>
     #endif
@@ -10859,7 +12198,9 @@ namespace StdExt
     // FunctionTraitsIndexLessThanArgCountOrReturnEmptyString_v
     //////////////////////////////////////////////////////////////////////////
     #if defined(USE_CONCEPTS)
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, bool ReturnEmptyStringIfInvalidIndex>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  bool ReturnEmptyStringIfInvalidIndex>
         inline constexpr bool FunctionTraitsIndexLessThanArgCountOrReturnEmptyString_v = FunctionTraitsT::template IndexLessThanArgCountOrReturnEmptyString_v<I, ReturnEmptyStringIfInvalidIndex>;
     #endif // #if defined(USE_CONCEPTS)
 
@@ -10867,9 +12208,11 @@ namespace StdExt
     // FunctionTraitsArgTypeName_v. Thin wrapper around
     // "FunctionTraits::ArgTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#argtypename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#argtypename_v
     //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, bool ReturnEmptyStringIfInvalidIndex = false>
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              std::size_t I /* Zero-based */,
+              bool ReturnEmptyStringIfInvalidIndex = false>
     #if defined(USE_CONCEPTS)
         requires FunctionTraitsIndexLessThanArgCountOrReturnEmptyString_v<FunctionTraitsT, I, ReturnEmptyStringIfInvalidIndex>
     #endif
@@ -10879,7 +12222,7 @@ namespace StdExt
     // FunctionTraitsArgTypes_t. Thin wrapper around
     // "FunctionTraits::ArgTypes_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#argtypes_t
+    // https://github.com/HexadigmSystems/FunctionTraits#argtypes_t
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     using FunctionTraitsArgTypes_t = typename FunctionTraitsT::ArgTypes_t;
@@ -10888,7 +12231,7 @@ namespace StdExt
     // FunctionTraitsCallingConvention_v. Thin wrapper around
     // "FunctionTraits::CallingConvention_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#callingconvention_v
+    // https://github.com/HexadigmSystems/FunctionTraits#callingconvention_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr CallingConvention FunctionTraitsCallingConvention_v = FunctionTraitsT::CallingConvention_v;
@@ -10897,7 +12240,7 @@ namespace StdExt
     // FunctionTraitsCallingConventionName_v. Thin wrapper around
     // "FunctionTraits::CallingConventionName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#callingconventionname_v
+    // https://github.com/HexadigmSystems/FunctionTraits#callingconventionname_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr tstring_view FunctionTraitsCallingConventionName_v = FunctionTraitsT::CallingConventionName_v;
@@ -10906,7 +12249,7 @@ namespace StdExt
     // FunctionTraitsForEachArg. Thin wrapper around
     // "FunctionTraits::ForEachArg".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#foreacharg
+    // https://github.com/HexadigmSystems/FunctionTraits#foreacharg
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT,
               FOR_EACH_ARG_FUNCTOR_C ForEachArgFunctorT>
@@ -10919,7 +12262,7 @@ namespace StdExt
     // FunctionTraitsFunctionClassification_v. Thin wrapper around
     // "FunctionTraits::FunctionClassification_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionclassification_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionclassification_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr FunctionClassification FunctionTraitsFunctionClassification_v = FunctionTraitsT::FunctionClassification_v;
@@ -10931,17 +12274,35 @@ namespace StdExt
     //////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     [[deprecated("This template was replaced by \"FunctionTraitsFunctionClassification_v\". The old name continues to be supported for now (it just defers to the new name), but may be removed in a future release (users should update their code to invoke the new name, checking the result for \"FunctionClassification::NonStaticMember\")")]]
-    inline constexpr bool FunctionTraitsIsMemberFunction_v = (FunctionTraitsFunctionClassification_v<FunctionTraitsT> == FunctionClassification::NonStaticMember); // Just defer to new name above
+    inline constexpr bool FunctionTraitsIsMemberFunction_v = (FunctionTraitsFunctionClassification_v<FunctionTraitsT> == FunctionClassification::NonStaticMember); // Just defer to new template "FunctionTraitsFunctionClassification_v"
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsFunctionOrigin_v. Thin wrapper around
     // "FunctionTraits::FunctionOrigin_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionorigin_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionorigin_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr FunctionOrigin FunctionTraitsFunctionOrigin_v = FunctionTraitsT::FunctionOrigin_v;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsFunctionOriginType_t. Thin wrapper around
+    // "FunctionTraits::FunctionOriginType_t".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functionorigintype_t
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsFunctionOriginType_t = typename FunctionTraitsT::FunctionOriginType_t;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsFunctionOriginTypeName_v. Thin wrapper around
+    // "FunctionTraits::FunctionOriginTypeName_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functionorigintypename_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    inline constexpr tstring_view FunctionTraitsFunctionOriginTypeName_v = FunctionTraitsT::FunctionOriginTypeName_v;
 
 #if defined(STDEXT_SUPPORT_DEPRECATED)
     ///////////////////////////////////////////////////////////
@@ -10950,14 +12311,14 @@ namespace StdExt
     ///////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     [[deprecated("This template was replaced by \"FunctionTraitsFunctionOrigin_v\". The old name continues to be supported for now (it just defers to the new name), but may be removed in a future release (users should update their code to invoke the new name, checking the result for \"FunctionOrigin::Functor\" or \"FunctionOrigin::StaticFunctor\", usually the former)")]]
-    inline constexpr bool FunctionTraitsIsFunctor_v = (FunctionTraitsFunctionOrigin_v<FunctionTraitsT> == FunctionOrigin::Functor);
+    inline constexpr bool FunctionTraitsIsFunctor_v = (FunctionTraitsFunctionOrigin_v<FunctionTraitsT> == FunctionOrigin::Functor); // Just defer to new template further above
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsFunctionRawType_t. Thin wrapper around
     // "FunctionTraits::RawType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionrawtype_t
+    // https://github.com/HexadigmSystems/FunctionTraits#functionrawtype_t
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     using FunctionTraitsFunctionRawType_t = typename FunctionTraitsT::RawType_t;
@@ -10966,163 +12327,16 @@ namespace StdExt
     // FunctionTraitsFunctionRawTypeName_v. Thin wrapper around
     // "FunctionTraits::RawTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionrawtypename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionrawtypename_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr tstring_view FunctionTraitsFunctionRawTypeName_v = FunctionTraitsT::RawTypeName_v;
 
     //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsFunctionType_t. Thin wrapper around
-    // "FunctionTraits::FunctionType_t".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functiontype_t
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    using FunctionTraitsFunctionType_t = typename FunctionTraitsT::FunctionType_t;
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsFunctionTypeName_v. Thin wrapper around
-    // "FunctionTraits::FunctionTypeName_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functiontypename_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    inline constexpr tstring_view FunctionTraitsFunctionTypeName_v = FunctionTraitsT::FunctionTypeName_v;
-
-    ////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v
-    ////////////////////////////////////////////////////////////////////////
-    #if defined(USE_CONCEPTS)
-        template <FUNCTION_TRAITS_C FunctionTraits1,
-                  FUNCTION_TRAITS_C FunctionTraits2,
-                  std::size_t I /* Zero-based */,
-                  bool ReturnFalseIfOneHasArgOtherDoesnt>
-        inline constexpr bool FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v = FunctionTraits1::template IndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v<FunctionTraits2,
-                                                                                                                                                                                    I,
-                                                                                                                                                                                    ReturnFalseIfOneHasArgOtherDoesnt>;
-    #endif // #if defined(USE_CONCEPTS)
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsArgListEmpty_v. Thin wrapper around
-    // "FunctionTraits::IsArgListEmpty_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isarglistempty_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    inline constexpr bool FunctionTraitsIsArgListEmpty_v = FunctionTraitsT::IsArgListEmpty_v;
-
-    #if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsArgListEmpty_v)
-        inline constexpr bool FunctionTraitsIsEmptyArgList_v = FunctionTraitsIsArgListEmpty_v<FunctionTraitsT>;
-    #endif
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsArgTypeMatch_v. Thin wrapper around
-    // "FunctionTraits::IsArgTypeMatch_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypematch_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraits1, FUNCTION_TRAITS_C FunctionTraits2, std::size_t I /* Zero-based */, bool ReturnFalseIfOneHasArgOtherDoesnt = true>
-    #if defined(USE_CONCEPTS)
-        requires FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v<FunctionTraits1, FunctionTraits2, I, ReturnFalseIfOneHasArgOtherDoesnt>
-    #endif
-    inline constexpr bool FunctionTraitsIsArgTypeMatch_v = FunctionTraits1::template IsArgTypeMatch_v<FunctionTraits2, I, ReturnFalseIfOneHasArgOtherDoesnt>;
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsArgTypesMatch_v. Thin wrapper around
-    // "FunctionTraits::IsArgTypesMatch_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypesmatch_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraits1, FUNCTION_TRAITS_C FunctionTraits2, bool IgnoreVariadic = false>
-    inline constexpr bool FunctionTraitsIsArgTypesMatch_v = FunctionTraits1::template IsArgTypesMatch_v<FunctionTraits2, IgnoreVariadic>;
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v
-    //////////////////////////////////////////////////////////////////////////
-    #if defined(USE_CONCEPTS)
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, bool CompareWithVoidIfInvalidIndex>
-        inline constexpr bool FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v = FunctionTraitsT::template IndexLessThanArgCountOrCompareWithVoid_v<I, CompareWithVoidIfInvalidIndex>;
-    #endif // #if defined(USE_CONCEPTS)
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsArgTypeSame_v. Thin wrapper around
-    // "FunctionTraits::IsArgTypeSame_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypesame_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, typename T, bool CompareWithVoidIfInvalidIndex = false>
-    #if defined(USE_CONCEPTS)
-        requires FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v<FunctionTraitsT, I, CompareWithVoidIfInvalidIndex>
-    #endif
-    inline constexpr bool FunctionTraitsIsArgTypeSame_v = FunctionTraitsT::template IsArgTypeSame_v<I, T, CompareWithVoidIfInvalidIndex>;
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsArgTypesSame_v. Thin wrapper around
-    // "FunctionTraits::IsArgTypesSame_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypessame_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, AndVariadic AndVariadicT, typename... ArgTypesToCompareT>
-    inline constexpr bool FunctionTraitsIsArgTypesSame_v = FunctionTraitsT::template IsArgTypesSame_v<AndVariadicT, ArgTypesToCompareT...>;
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsArgTypesSameTuple_v. Thin wrapper around
-    // "FunctionTraits::IsArgTypesSameTuple_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypessametuple_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, TUPLE_C ArgTypesToCompareTupleT, AndVariadic AndVariadicT = AndVariadic::IsFalse>
-    inline constexpr bool FunctionTraitsIsArgTypesSameTuple_v = FunctionTraitsT::template IsArgTypesSameTuple_v<ArgTypesToCompareTupleT, AndVariadicT>;
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsFunctionConst_v. Thin wrapper around
-    // "FunctionTraits::IsConst_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isfunctionconst_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    inline constexpr bool FunctionTraitsIsFunctionConst_v = FunctionTraitsT::IsConst_v;
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-    //////////////////////////////////////////////////////////////////
-    // Same as above template (just defers to it) but was renamed to
-    // the above so following name is deprecated (we warn user below)
-    //////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsFunctionConst_v)
-    inline constexpr bool FunctionTraitsIsMemberFunctionConst_v = FunctionTraitsIsFunctionConst_v<FunctionTraitsT>; // Just defer to new name above
-#endif
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionTraitsIsFunctionVolatile_v. Thin wrapper around
-    // "FunctionTraits::IsVolatile_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isfunctionvolatile_v
-    //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    inline constexpr bool FunctionTraitsIsFunctionVolatile_v = FunctionTraitsT::IsVolatile_v;
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-    //////////////////////////////////////////////////////////////////
-    // Same as above template (just defers to it) but was renamed to
-    // the above so following name is deprecated (we warn user below)
-    //////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT>
-    TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsFunctionVolatile_v)
-    inline constexpr bool FunctionTraitsIsMemberFunctionVolatile_v = FunctionTraitsIsFunctionVolatile_v<FunctionTraitsT>; // Just defer to new name above
-#endif
-
-    //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsFunctionReference_v. Thin wrapper around
     // "FunctionTraits::FunctionReference_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionreference_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionreference_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr FunctionReference FunctionTraitsFunctionReference_v = FunctionTraitsT::FunctionReference_v;
@@ -11141,9 +12355,10 @@ namespace StdExt
     // FunctionTraitsFunctionReferenceName_v. Thin wrapper around
     // "FunctionTraits::FunctionReferenceName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionreferencename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionreferencename_v
     //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, bool UseAmpersands = true>
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              bool UseAmpersands = true>
     inline constexpr tstring_view FunctionTraitsFunctionReferenceName_v = FunctionTraitsT::template FunctionReferenceName_v<UseAmpersands>;
 
 #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -11151,16 +12366,178 @@ namespace StdExt
     // Same as above template (just defers to it) but was renamed to
     // the above so following name is deprecated (we warn user below)
     //////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, bool UseAmpersands = true>
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              bool UseAmpersands = true>
     TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionReferenceName_v)
     inline constexpr tstring_view FunctionTraitsMemberFunctionRefQualifierName_v = FunctionTraitsFunctionReferenceName_v<FunctionTraitsT, UseAmpersands>; // Just defer to new name above
+#endif
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsFunctionType_t. Thin wrapper around
+    // "FunctionTraits::FunctionType_t".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functiontype_t
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    using FunctionTraitsFunctionType_t = typename FunctionTraitsT::FunctionType_t;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsFunctionTypeName_v. Thin wrapper around
+    // "FunctionTraits::FunctionTypeName_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functiontypename_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    inline constexpr tstring_view FunctionTraitsFunctionTypeName_v = FunctionTraitsT::FunctionTypeName_v;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgListEmpty_v. Thin wrapper around
+    // "FunctionTraits::IsArgListEmpty_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isarglistempty_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    inline constexpr bool FunctionTraitsIsArgListEmpty_v = FunctionTraitsT::IsArgListEmpty_v;
+
+    #if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsArgListEmpty_v)
+        inline constexpr bool FunctionTraitsIsEmptyArgList_v = FunctionTraitsIsArgListEmpty_v<FunctionTraitsT>; // Just defer to new template name above
+    #endif
+
+    ////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v
+    ////////////////////////////////////////////////////////////////////////
+    #if defined(USE_CONCEPTS)
+        template <FUNCTION_TRAITS_C FunctionTraits1,
+                  FUNCTION_TRAITS_C FunctionTraits2,
+                  std::size_t I /* Zero-based */,
+                  bool ReturnFalseIfOneHasArgOtherDoesnt>
+        inline constexpr bool FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v = FunctionTraits1::template IndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v<FunctionTraits2,
+                                                                                                                                                                                    I,
+                                                                                                                                                                                    ReturnFalseIfOneHasArgOtherDoesnt>;
+    #endif // #if defined(USE_CONCEPTS)
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgTypeMatch_v. Thin wrapper around
+    // "FunctionTraits::IsArgTypeMatch_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypematch_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraits1,
+              FUNCTION_TRAITS_C FunctionTraits2,
+              std::size_t I /* Zero-based */,
+              bool ReturnFalseIfOneHasArgOtherDoesnt = true>
+    #if defined(USE_CONCEPTS)
+        requires FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v<FunctionTraits1, FunctionTraits2, I, ReturnFalseIfOneHasArgOtherDoesnt>
+    #endif
+    inline constexpr bool FunctionTraitsIsArgTypeMatch_v = FunctionTraits1::template IsArgTypeMatch_v<FunctionTraits2, I, ReturnFalseIfOneHasArgOtherDoesnt>;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v
+    //////////////////////////////////////////////////////////////////////////
+    #if defined(USE_CONCEPTS)
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  bool CompareWithVoidIfInvalidIndex>
+        inline constexpr bool FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v = FunctionTraitsT::template IndexLessThanArgCountOrCompareWithVoid_v<I, CompareWithVoidIfInvalidIndex>;
+    #endif // #if defined(USE_CONCEPTS)
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgTypeSame_v. Thin wrapper around
+    // "FunctionTraits::IsArgTypeSame_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypesame_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              std::size_t I /* Zero-based */,
+              typename T,
+              bool CompareWithVoidIfInvalidIndex = false>
+    #if defined(USE_CONCEPTS)
+        requires FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v<FunctionTraitsT, I, CompareWithVoidIfInvalidIndex>
+    #endif
+    inline constexpr bool FunctionTraitsIsArgTypeSame_v = FunctionTraitsT::template IsArgTypeSame_v<I, T, CompareWithVoidIfInvalidIndex>;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgTypesMatch_v. Thin wrapper around
+    // "FunctionTraits::IsArgTypesMatch_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypesmatch_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraits1,
+              FUNCTION_TRAITS_C FunctionTraits2,
+              bool IgnoreVariadic = false>
+    inline constexpr bool FunctionTraitsIsArgTypesMatch_v = FunctionTraits1::template IsArgTypesMatch_v<FunctionTraits2, IgnoreVariadic>;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgTypesSame_v. Thin wrapper around
+    // "FunctionTraits::IsArgTypesSame_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypessame_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              AndVariadic AndVariadicT,
+              typename... ArgTypesToCompareT>
+    inline constexpr bool FunctionTraitsIsArgTypesSame_v = FunctionTraitsT::template IsArgTypesSame_v<AndVariadicT, ArgTypesToCompareT...>;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsArgTypesSameTuple_v. Thin wrapper around
+    // "FunctionTraits::IsArgTypesSameTuple_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypessametuple_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              TUPLE_C ArgTypesToCompareTupleT,
+              AndVariadic AndVariadicT = AndVariadic::IsFalse>
+    inline constexpr bool FunctionTraitsIsArgTypesSameTuple_v = FunctionTraitsT::template IsArgTypesSameTuple_v<ArgTypesToCompareTupleT, AndVariadicT>;
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsFunctionConst_v. Thin wrapper around
+    // "FunctionTraits::IsConst_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isfunctionconst_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    inline constexpr bool FunctionTraitsIsFunctionConst_v = FunctionTraitsT::IsConst_v;
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+    //////////////////////////////////////////////////////////////////
+    // Same as above template (just defers to it) but was renamed to
+    // the above so following name is deprecated (we warn user below)
+    //////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsFunctionConst_v)
+    inline constexpr bool FunctionTraitsIsMemberFunctionConst_v = FunctionTraitsIsFunctionConst_v<FunctionTraitsT>; // Just defer to new name above
+#endif
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionTraitsIsFunctionVolatile_v. Thin wrapper around
+    // "FunctionTraits::IsVolatile_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isfunctionvolatile_v
+    //////////////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    inline constexpr bool FunctionTraitsIsFunctionVolatile_v = FunctionTraitsT::IsVolatile_v;
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+    //////////////////////////////////////////////////////////////////
+    // Same as above template (just defers to it) but was renamed to
+    // the above so following name is deprecated (we warn user below)
+    //////////////////////////////////////////////////////////////////
+    template <FUNCTION_TRAITS_C FunctionTraitsT>
+    TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsFunctionVolatile_v)
+    inline constexpr bool FunctionTraitsIsMemberFunctionVolatile_v = FunctionTraitsIsFunctionVolatile_v<FunctionTraitsT>; // Just defer to new name above
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsIsNoexcept_v. Thin wrapper around
     // "FunctionTraits::IsNoexcept_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isnoexcept_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isnoexcept_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr bool FunctionTraitsIsNoexcept_v = FunctionTraitsT::IsNoexcept_v;
@@ -11169,25 +12546,27 @@ namespace StdExt
     // FunctionTraitsIsReturnTypeMatch_v. Thin wrapper around
     // "FunctionTraits::IsReturnTypeMatch_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isreturntypematch_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isreturntypematch_v
     //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraits1, FUNCTION_TRAITS_C FunctionTraits2>
+    template <FUNCTION_TRAITS_C FunctionTraits1,
+              FUNCTION_TRAITS_C FunctionTraits2>
     inline constexpr bool FunctionTraitsIsReturnTypeMatch_v = FunctionTraits1::template IsReturnTypeMatch_v<FunctionTraits2>;
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsIsReturnTypeSame_v. Thin wrapper around
     // "FunctionTraits::IsReturnTypeSame_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isreturntypesame_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isreturntypesame_v
     //////////////////////////////////////////////////////////////////////////
-    template <FUNCTION_TRAITS_C FunctionTraitsT, typename T>
+    template <FUNCTION_TRAITS_C FunctionTraitsT,
+              typename T>
     inline constexpr bool FunctionTraitsIsReturnTypeSame_v = FunctionTraitsT::template IsReturnTypeSame_v<T>;
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsIsReturnTypeVoid_v. Thin wrapper around
     // "FunctionTraits::IsReturnTypeVoid_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isreturntypevoid_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isreturntypevoid_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr bool FunctionTraitsIsReturnTypeVoid_v = FunctionTraitsT::IsReturnTypeVoid_v;
@@ -11199,14 +12578,14 @@ namespace StdExt
     //////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsIsReturnTypeVoid_v)
-    inline constexpr bool FunctionTraitsIsVoidReturnType_v = FunctionTraitsIsReturnTypeVoid_v<FunctionTraitsT>;
+    inline constexpr bool FunctionTraitsIsVoidReturnType_v = FunctionTraitsIsReturnTypeVoid_v<FunctionTraitsT>; // Defer to template just above
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionTraitsIsVariadic_v. Thin wrapper around
     // "FunctionTraits::IsVariadic_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isvariadic_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isvariadic_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr bool FunctionTraitsIsVariadic_v = FunctionTraitsT::IsVariadic_v;
@@ -11215,7 +12594,7 @@ namespace StdExt
     // FunctionTraitsMemberFunctionClass_t. Thin wrapper around
     // "FunctionTraits::MemberFunctionClass_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#memberfunctionclass_t
+    // https://github.com/HexadigmSystems/FunctionTraits#memberfunctionclass_t
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     using FunctionTraitsMemberFunctionClass_t = typename FunctionTraitsT::MemberFunctionClass_t;
@@ -11224,7 +12603,7 @@ namespace StdExt
     // FunctionTraitsMemberFunctionClassName_v. Thin wrapper around
     // "FunctionTraits::MemberFunctionClassName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#memberfunctionclassname_v
+    // https://github.com/HexadigmSystems/FunctionTraits#memberfunctionclassname_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr tstring_view FunctionTraitsMemberFunctionClassName_v = FunctionTraitsT::MemberFunctionClassName_v;
@@ -11233,7 +12612,7 @@ namespace StdExt
     // FunctionTraitsReturnType_t. Thin wrapper around
     // "FunctionTraits::ReturnType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#returntype_t
+    // https://github.com/HexadigmSystems/FunctionTraits#returntype_t
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     using FunctionTraitsReturnType_t = typename FunctionTraitsT::ReturnType_t;
@@ -11242,31 +12621,13 @@ namespace StdExt
     // FunctionTraitsReturnTypeName_v. Thin wrapper around
     // "FunctionTraits::ReturnTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#returntypename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#returntypename_v
     //////////////////////////////////////////////////////////////////////////
     template <FUNCTION_TRAITS_C FunctionTraitsT>
     inline constexpr tstring_view FunctionTraitsReturnTypeName_v = FunctionTraitsT::ReturnTypeName_v;
 
-    namespace Private
-    {
-        ////////////////////////////////////////////////////////////
-        // TODO - Declared in our private namespace for now so not
-        // intended for end users but should be made available to
-        // them in a future release. If so then a
-        // NON_STATIC_OR_STATIC_FUNCTOR_TRAITS_C concept (name TBD)
-        // should be created and used to replace FUNCTION_TRAITS_C
-        // just below.
-        ////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraits>
-        using FunctionTraitsRawFunctorType_t = typename FunctionTraits::RawFunctorType_t;
-
-        // TODO - See comments just above
-        template <FUNCTION_TRAITS_C FunctionTraits>
-        inline constexpr tstring_view FunctionTraitsRawFunctorTypeName_v = FunctionTraits::RawFunctorTypeName_v;
-    } // namespace Private
-
     /////////////////////////////////////////////////////
-    // See this constant for details. Following helper
+    // See this macro for details. Following helper
     // templates for function write traits are declared
     // only if function write traits are supported.
     // They're preprocessed out otherwise (so function
@@ -11277,7 +12638,7 @@ namespace StdExt
         // FunctionTraitsAddNoexcept_t. Thin wrapper around
         // "FunctionTraits::AddNoexcept_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#addnoexcept_t
+        // https://github.com/HexadigmSystems/FunctionTraits#addnoexcept_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsAddNoexcept_t = typename FunctionTraitsT::AddNoexcept_t;
@@ -11286,16 +12647,107 @@ namespace StdExt
         // FunctionTraitsAddVariadicArgs_t. Thin wrapper around
         // "FunctionTraits::AddVariadicArgs_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#addvariadicargs_t
+        // https://github.com/HexadigmSystems/FunctionTraits#addvariadicargs_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsAddVariadicArgs_t = typename FunctionTraitsT::AddVariadicArgs_t;
 
         //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsAppend_t. Thin wrapper around
+        // "FunctionTraits::ArgsAppend_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsappend_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT>
+        using FunctionTraitsArgsAppend_t = typename FunctionTraitsT::template ArgsAppend_t<ArgsToAppendT...>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsAppendTuple_t. Thin wrapper around
+        // "FunctionTraits::ArgsAppendTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsappendtuple_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT>
+        using FunctionTraitsArgsAppendTuple_t = typename FunctionTraitsT::template ArgsAppendTuple_t<ArgsToAppendTupleT>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsDelete_t. Thin wrapper around
+        // "FunctionTraits::ArgsDelete_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsdelete_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I = 0 /* Zero-based */,
+                  std::size_t Count = size_t_npos>
+        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
+        using FunctionTraitsArgsDelete_t = typename FunctionTraitsT::template ArgsDelete_t<I, Count>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsInsert_t. Thin wrapper around
+        // "FunctionTraits::ArgsInsert_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsinsert_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT>
+        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
+        using FunctionTraitsArgsInsert_t = typename FunctionTraitsT::template ArgsInsert_t<I, ArgsToInsertT...>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsInsertTuple_t. Thin wrapper around
+        // "FunctionTraits::ArgsInsertTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsinserttuple_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT>
+        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
+        using FunctionTraitsArgsInsertTuple_t = typename FunctionTraitsT::template ArgsInsertTuple_t<I, ArgsToInsertTupleT>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsMakeVoid_t. Thin wrapper around
+        // "FunctionTraits::ArgsMakeVoid_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsmakevoid_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsArgsMakeVoid_t = typename FunctionTraitsT::ArgsMakeVoid_t;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsModify_t. Thin wrapper around
+        // "FunctionTraits::ArgsModify_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsmodify_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  std::size_t Count,
+                  VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
+        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
+        using FunctionTraitsArgsModify_t = typename FunctionTraitsT::template ArgsModify_t<I, Count, NewArgsT...>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsArgsModifyTuple_t. Thin wrapper around
+        // "FunctionTraits::ArgsModifyTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsmodifytuple_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  std::size_t Count,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
+        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
+        using FunctionTraitsArgsModifyTuple_t = typename FunctionTraitsT::template ArgsModifyTuple_t<I, Count, NewArgsTupleT>;
+
+        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsFunctionAddConst_t. Thin wrapper around
         // "FunctionTraits::AddConst_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddconst_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddconst_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsFunctionAddConst_t = typename FunctionTraitsT::AddConst_t;
@@ -11310,64 +12762,10 @@ namespace StdExt
 #endif
 
         //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsFunctionRemoveConst_t. Thin wrapper around
-        // "FunctionTraits::RemoveConst_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremoveconst_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsFunctionRemoveConst_t = typename FunctionTraitsT::RemoveConst_t;
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsMemberFunctionRemoveConst_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionRemoveConst_t) = FunctionTraitsFunctionRemoveConst_t<FunctionTraitsT>; // Just defer to new name above
-#endif
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsFunctionAddVolatile_t. Thin wrapper around
-        // "FunctionTraits::AddVolatile_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddvolatile_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsFunctionAddVolatile_t = typename FunctionTraitsT::AddVolatile_t;
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsMemberFunctionAddVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionAddVolatile_t) = FunctionTraitsFunctionAddVolatile_t<FunctionTraitsT>; // Just defer to new name above
-#endif
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsFunctionRemoveVolatile_t. Thin wrapper around
-        // "FunctionTraits::RemoveVolatile_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremovevolatile_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsFunctionRemoveVolatile_t = typename FunctionTraitsT::RemoveVolatile_t;
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsMemberFunctionRemoveVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionRemoveVolatile_t) = FunctionTraitsFunctionRemoveVolatile_t<FunctionTraitsT>; // Just defer to new name above
-#endif
-
-        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsFunctionAddCV_t. Thin wrapper around
         // "FunctionTraits::AddCV_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddcv_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddcv_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsFunctionAddCV_t = typename FunctionTraitsT::AddCV_t;
@@ -11382,28 +12780,10 @@ namespace StdExt
 #endif
 
         //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsFunctionRemoveCV_t. Thin wrapper around
-        // "FunctionTraits::RemoveCV_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremovecv_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsFunctionRemoveCV_t = typename FunctionTraitsT::RemoveCV_t;
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsMemberFunctionRemoveCV_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionRemoveCV_t) = FunctionTraitsFunctionRemoveCV_t<FunctionTraitsT>; // Just defer to new name above
-#endif
-
-        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsFunctionAddLValueReference_t. Thin wrapper around
         // "FunctionTraits::AddLValueReference_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddlvaluereference_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddlvaluereference_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsFunctionAddLValueReference_t = typename FunctionTraitsT::AddLValueReference_t;
@@ -11421,7 +12801,7 @@ namespace StdExt
         // FunctionTraitsFunctionAddRValueReference_t. Thin wrapper around
         // "FunctionTraits::AddRValueReference_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddrvaluereference_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddrvaluereference_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsFunctionAddRValueReference_t = typename FunctionTraitsT::AddRValueReference_t;
@@ -11436,10 +12816,64 @@ namespace StdExt
 #endif
 
         //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsFunctionAddVolatile_t. Thin wrapper around
+        // "FunctionTraits::AddVolatile_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddvolatile_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsFunctionAddVolatile_t = typename FunctionTraitsT::AddVolatile_t;
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsMemberFunctionAddVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionAddVolatile_t) = FunctionTraitsFunctionAddVolatile_t<FunctionTraitsT>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsFunctionRemoveConst_t. Thin wrapper around
+        // "FunctionTraits::RemoveConst_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremoveconst_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsFunctionRemoveConst_t = typename FunctionTraitsT::RemoveConst_t;
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsMemberFunctionRemoveConst_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionRemoveConst_t) = FunctionTraitsFunctionRemoveConst_t<FunctionTraitsT>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsFunctionRemoveCV_t. Thin wrapper around
+        // "FunctionTraits::RemoveCV_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremovecv_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsFunctionRemoveCV_t = typename FunctionTraitsT::RemoveCV_t;
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsMemberFunctionRemoveCV_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionRemoveCV_t) = FunctionTraitsFunctionRemoveCV_t<FunctionTraitsT>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsFunctionRemoveReference_t. Thin wrapper around
         // "FunctionTraits::RemoveReference_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremovereference_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremovereference_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsFunctionRemoveReference_t = typename FunctionTraitsT::RemoveReference_t;
@@ -11454,12 +12888,31 @@ namespace StdExt
 #endif
 
         //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsFunctionRemoveVolatile_t. Thin wrapper around
+        // "FunctionTraits::RemoveVolatile_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremovevolatile_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsFunctionRemoveVolatile_t = typename FunctionTraitsT::RemoveVolatile_t;
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT>
+        using FunctionTraitsMemberFunctionRemoveVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsFunctionRemoveVolatile_t) = FunctionTraitsFunctionRemoveVolatile_t<FunctionTraitsT>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsReplaceMemberFunctionClass_t. Thin wrapper around
         // "FunctionTraits::ReplaceMemberFunctionClass_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacememberfunctionclass_t
+        // https://github.com/HexadigmSystems/FunctionTraits#replacememberfunctionclass_t
         //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, IS_CLASS_OR_VOID_C NewClassT>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  IS_CLASS_OR_VOID_C NewClassT>
         using FunctionTraitsReplaceMemberFunctionClass_t = typename FunctionTraitsT::template ReplaceMemberFunctionClass_t<NewClassT>;
 
 #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -11467,7 +12920,8 @@ namespace StdExt
         // Same as above template (just defers to it) but was renamed to
         // the above so following name is deprecated (we warn user below)
         //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, IS_CLASS_OR_VOID_C NewClassT>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  IS_CLASS_OR_VOID_C NewClassT>
         using FunctionTraitsMemberFunctionReplaceClass_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsReplaceMemberFunctionClass_t) = FunctionTraitsReplaceMemberFunctionClass_t<FunctionTraitsT, NewClassT>; // Just defer to new name above
 #endif
 
@@ -11475,7 +12929,7 @@ namespace StdExt
         // FunctionTraitsRemoveNoexcept_t. Thin wrapper around
         // "FunctionTraits::RemoveNoexcept_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#removenoexcept_t
+        // https://github.com/HexadigmSystems/FunctionTraits#removenoexcept_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsRemoveNoexcept_t = typename FunctionTraitsT::RemoveNoexcept_t;
@@ -11484,122 +12938,20 @@ namespace StdExt
         // FunctionTraitsRemoveVariadicArgs_t. Thin wrapper around
         // "FunctionTraits::RemoveVariadicArgs_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#removevariadicargs_t
+        // https://github.com/HexadigmSystems/FunctionTraits#removevariadicargs_t
         //////////////////////////////////////////////////////////////////////////
         template <FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsRemoveVariadicArgs_t = typename FunctionTraitsT::RemoveVariadicArgs_t;
 
         //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsReplaceArgs_t. Thin wrapper around
-        // "FunctionTraits::ReplaceArgs_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replaceargs_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
-        using FunctionTraitsReplaceArgs_t = typename FunctionTraitsT::template ReplaceArgs_t<NewArgsT...>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsReplaceArgsTuple_t. Thin wrapper around
-        // "FunctionTraits::ReplaceArgsTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replaceargstuple_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
-        using FunctionTraitsReplaceArgsTuple_t = typename FunctionTraitsT::template ReplaceArgsTuple_t<NewArgsTupleT>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsReplaceCallingConvention_t. Thin wrapper around
-        // "FunctionTraits::ReplaceCallingConvention_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacecallingconvention_t
-        //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, CallingConvention NewCallingConventionT>
-        using FunctionTraitsReplaceCallingConvention_t = typename FunctionTraitsT::template ReplaceCallingConvention_t<NewCallingConventionT>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsModify_t. Thin wrapper around
-        // "FunctionTraits::ArgsModify_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsmodify_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
-        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
-        using FunctionTraitsArgsModify_t = typename FunctionTraitsT::template ArgsModify_t<I, Count, NewArgsT...>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsModifyTuple_t. Thin wrapper around
-        // "FunctionTraits::ArgsModifyTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsmodifytuple_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, std::size_t Count, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
-        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
-        using FunctionTraitsArgsModifyTuple_t = typename FunctionTraitsT::template ArgsModifyTuple_t<I, Count, NewArgsTupleT>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsInsert_t. Thin wrapper around
-        // "FunctionTraits::ArgsInsert_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsinsert_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT>
-        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
-        using FunctionTraitsArgsInsert_t = typename FunctionTraitsT::template ArgsInsert_t<I, ArgsToInsertT...>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsInsertTuple_t. Thin wrapper around
-        // "FunctionTraits::ArgsInsertTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsinserttuple_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT>
-        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
-        using FunctionTraitsArgsInsertTuple_t = typename FunctionTraitsT::template ArgsInsertTuple_t<I, ArgsToInsertTupleT>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsMakeVoid_t. Thin wrapper around
-        // "FunctionTraits::ArgsMakeVoid_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsmakevoid_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT>
-        using FunctionTraitsArgsMakeVoid_t = typename FunctionTraitsT::ArgsMakeVoid_t;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsAppend_t. Thin wrapper around
-        // "FunctionTraits::ArgsAppend_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsappend_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT>
-        using FunctionTraitsArgsAppend_t = typename FunctionTraitsT::template ArgsAppend_t<ArgsToAppendT...>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsAppendTuple_t. Thin wrapper around
-        // "FunctionTraits::ArgsAppendTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsappendtuple_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT>
-        using FunctionTraitsArgsAppendTuple_t = typename FunctionTraitsT::template ArgsAppendTuple_t<ArgsToAppendTupleT>;
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionTraitsArgsDelete_t. Thin wrapper around
-        // "FunctionTraits::ArgsDelete_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsdelete_t
-        //////////////////////////////////////////////////////////////////////////
-        template<FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I = 0 /* Zero-based */, std::size_t Count = size_t_npos>
-        REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(FunctionTraitsT, I)
-        using FunctionTraitsArgsDelete_t = typename FunctionTraitsT::template ArgsDelete_t<I, Count>;
-
-        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsReplaceArg_t. Thin wrapper around
         // "FunctionTraits::ReplaceArg_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacearg_t
+        // https://github.com/HexadigmSystems/FunctionTraits#replacearg_t
         //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, VALID_FUNCTION_ARG_TYPE_C NewArgT>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  VALID_FUNCTION_ARG_TYPE_C NewArgT>
         REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_ARG_COUNT(FunctionTraitsT, I)
         using FunctionTraitsReplaceArg_t = typename FunctionTraitsT::template ReplaceArg_t<I, NewArgT>;
 
@@ -11608,32 +12960,82 @@ namespace StdExt
         // Same as above template (just defers to it) but was renamed to
         // the above so following name is deprecated (we warn user below)
         //////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, std::size_t I /* Zero-based */, typename NewArgT>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  std::size_t I /* Zero-based */,
+                  typename NewArgT>
         REQUIRES_FUNCTION_TRAITS_I_LESS_THAN_ARG_COUNT(FunctionTraitsT, I)
         using FunctionTraitsReplaceNthArg_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionTraitsReplaceArg_t) = FunctionTraitsReplaceArg_t<FunctionTraitsT, I, NewArgT>; // Just defer to new name above
 #endif
 
         //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsReplaceArgs_t. Thin wrapper around
+        // "FunctionTraits::ReplaceArgs_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replaceargs_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
+        using FunctionTraitsReplaceArgs_t = typename FunctionTraitsT::template ReplaceArgs_t<NewArgsT...>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsReplaceArgsTuple_t. Thin wrapper around
+        // "FunctionTraits::ReplaceArgsTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replaceargstuple_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
+        using FunctionTraitsReplaceArgsTuple_t = typename FunctionTraitsT::template ReplaceArgsTuple_t<NewArgsTupleT>;
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionTraitsReplaceCallingConvention_t. Thin wrapper around
+        // "FunctionTraits::ReplaceCallingConvention_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replacecallingconvention_t
+        //////////////////////////////////////////////////////////////////////////
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  CallingConvention NewCallingConventionT>
+        using FunctionTraitsReplaceCallingConvention_t = typename FunctionTraitsT::template ReplaceCallingConvention_t<NewCallingConventionT>;
+
+        //////////////////////////////////////////////////////////////////////////
         // FunctionTraitsReplaceReturnType_t. Thin wrapper around
         // "FunctionTraits::ReplaceReturnType_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacereturntype_t
+        // https://github.com/HexadigmSystems/FunctionTraits#replacereturntype_t
         //////////////////////////////////////////////////////////////////////////
-        template <FUNCTION_TRAITS_C FunctionTraitsT, VALID_RETURN_TYPE_C NewReturnTypeT>
+        template <FUNCTION_TRAITS_C FunctionTraitsT,
+                  VALID_RETURN_TYPE_C NewReturnTypeT>
         using FunctionTraitsReplaceReturnType_t = typename FunctionTraitsT::template ReplaceReturnType_t<NewReturnTypeT>;
 
-        template <IS_CLASS_C T, FUNCTION_TRAITS_C FunctionTraitsT>
+        template <IS_CLASS_C T,
+                  FUNCTION_TRAITS_C FunctionTraitsT>
         using FunctionTraitsMakeMemberFunctionPtr_t = FunctionTraitsReplaceMemberFunctionClass_t<FunctionTraitsT, T>;
     #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+
+    ///////////////////////////////////////////////////////
+    // Restore the warnings we disabled in call to
+    // DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS
+    // earlier (see this for details). From this point on
+    // there's no other code in the file that can trigger
+    // these warnings so we restore things here ...
+    ///////////////////////////////////////////////////////
+    DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS
 
     //////////////////////////////////////////////////////////////////////////
     // ArgCount_v. Thin wrapper around
     // "FunctionTraits::ArgCount_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#argcount_v
+    // https://github.com/HexadigmSystems/FunctionTraits#argcount_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr std::size_t ArgCount_v = FunctionTraitsArgCount_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+    //////////////////////////////////////////////////////////////////////////
+    // IndexLessThanArgCount_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F,
+              std::size_t I /* Zero-based */>
+    inline constexpr bool IndexLessThanArgCount_v = FunctionTraitsIndexLessThanArgCount_v<FunctionTraits<F>, I>; // Defers to the "FunctionTraits" version further above
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
 //////////////////////////////////////////////////////////////////////////
@@ -11641,9 +13043,6 @@ namespace StdExt
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */>
-        inline constexpr bool IndexLessThanArgCount_v = FunctionTraitsIndexLessThanArgCount_v<FunctionTraits<F>, I>; // Defers to the "FunctionTraits" version further above
-
         template <typename F, std::size_t I /* Zero-based */>
         concept IndexLessThanArgCount_c = IndexLessThanArgCount_v<F, I>;
     #endif
@@ -11653,14 +13052,20 @@ namespace StdExt
     #define REQUIRES_I_LESS_THAN_ARG_COUNT(F, I)
 #endif // #if defined(USE_CONCEPTS)
 
+#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+    //////////////////////////////////////////////////////////////////////////
+    // IndexLessThanOrEqualToArgCount_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F,
+              std::size_t I /* Zero-based */>
+    inline constexpr bool IndexLessThanOrEqualToArgCount_v = FunctionTraitsIndexLessThanOrEqualToArgCount_v<FunctionTraits<F>, I>; // Defers to the "FunctionTraits" version further above
+#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+
 //////////////////////////////////////////////////////////////////////////
 // REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */>
-        inline constexpr bool IndexLessThanOrEqualToArgCount_v = FunctionTraitsIndexLessThanOrEqualToArgCount_v<FunctionTraits<F>, I>; // Defers to the "FunctionTraits" version further above
-
         template <typename F, std::size_t I /* Zero-based */>
         concept IndexLessThanOrEqualToArgCount_c = IndexLessThanOrEqualToArgCount_v<F, I>;
     #endif
@@ -11675,7 +13080,9 @@ namespace StdExt
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, bool ReturnVoidIfInvalidIndex>
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I /* Zero-based */,
+                  bool ReturnVoidIfInvalidIndex>
         inline constexpr bool IndexLessThanArgCountOrReturnVoid_v = FunctionTraitsIndexLessThanArgCountOrReturnVoid_v<FunctionTraits<F>, I, ReturnVoidIfInvalidIndex>; // Defers to the "FunctionTraits" version further above
     #endif
 
@@ -11689,9 +13096,11 @@ namespace StdExt
     // ArgType_t. Thin wrapper around
     // "FunctionTraits::ArgType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#argtype_t
+    // https://github.com/HexadigmSystems/Functiontraits#argtype_t
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, bool ReturnVoidIfInvalidIndex = false>
+    template <TRAITS_FUNCTION_C F,
+              std::size_t I /* Zero-based */,
+              bool ReturnVoidIfInvalidIndex = false>
     REQUIRES_I_LESS_THAN_ARG_COUNT_OR_RETURN_VOID(F, I, ReturnVoidIfInvalidIndex)
     using ArgType_t = FunctionTraitsArgType_t<FunctionTraits<F>, I, ReturnVoidIfInvalidIndex>; // Defers to the "FunctionTraits" helper further above
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -11701,7 +13110,9 @@ namespace StdExt
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, bool ReturnEmptyStringIfInvalidIndex>
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I /* Zero-based */,
+                  bool ReturnEmptyStringIfInvalidIndex>
         inline constexpr bool IndexLessThanArgCountOrReturnEmptyString_v = FunctionTraitsIndexLessThanArgCountOrReturnEmptyString_v<FunctionTraits<F>, I, ReturnEmptyStringIfInvalidIndex>; // Defers to the "FunctionTraits" version further above
     #endif
 
@@ -11715,9 +13126,11 @@ namespace StdExt
     // ArgTypeName_v. Thin wrapper around
     // "FunctionTraits::ArgTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#argtypename_v
+    // https://github.com/HexadigmSystems/Functiontraits#argtypename_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, bool ReturnEmptyStringIfInvalidIndex = false>
+    template <TRAITS_FUNCTION_C F,
+              std::size_t I /* Zero-based */,
+              bool ReturnEmptyStringIfInvalidIndex = false>
     REQUIRES_I_LESS_THAN_ARG_COUNT_OR_RETURN_EMPTY_STRING(F, I, ReturnEmptyStringIfInvalidIndex)
     inline constexpr tstring_view ArgTypeName_v = FunctionTraitsArgTypeName_v<FunctionTraits<F>, I, ReturnEmptyStringIfInvalidIndex>; // Defers to the "FunctionTraits" helper further above
 
@@ -11725,7 +13138,7 @@ namespace StdExt
     // ArgTypes_t. Thin wrapper around
     // "FunctionTraits::ArgTypes_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#argtypes_t
+    // https://github.com/HexadigmSystems/Functiontraits#argtypes_t
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     using ArgTypes_t = FunctionTraitsArgTypes_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -11734,7 +13147,7 @@ namespace StdExt
     // CallingConvention_v. Thin wrapper around
     // "FunctionTraits::CallingConvention_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#callingconvention
+    // https://github.com/HexadigmSystems/FunctionTraits#callingconvention_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr CallingConvention CallingConvention_v = FunctionTraitsCallingConvention_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -11743,7 +13156,7 @@ namespace StdExt
     // CallingConventionName_v. Thin wrapper around
     // "FunctionTraits::CallingConventionName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#callingconventionname_v
+    // https://github.com/HexadigmSystems/FunctionTraits#callingconventionname_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr tstring_view CallingConventionName_v = FunctionTraitsCallingConventionName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -11752,7 +13165,7 @@ namespace StdExt
     // ForEachArg. Thin wrapper around
     // "FunctionTraits::ForEachArg".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#callingconventionname_v
+    // https://github.com/HexadigmSystems/FunctionTraits#foreacharg
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F,
               FOR_EACH_ARG_FUNCTOR_C ForEachArgFunctorT>
@@ -11765,7 +13178,7 @@ namespace StdExt
     // FunctionClassification_v. Thin wrapper around
     // "FunctionTraits::FunctionClassification_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionclassification_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionclassification_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr FunctionClassification FunctionClassification_v = FunctionTraitsFunctionClassification_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -11773,9 +13186,9 @@ namespace StdExt
 /////////////////////////////////////////////////////////////////
 // Following is deprecated and no longer supported (which we'll
 // live with - can't defer to its "FunctionClassification_v"
-// replacement above since the old name, "IsFreeFunction_v",
+// replacement just above since the old name, "IsFreeFunction_v",
 // has been reassigned for other use - code below therefore
-// just commented out for - will eventually be removed)
+// just commented out for now - will eventually be removed)
 /////////////////////////////////////////////////////////////////
 /*
 #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -11794,23 +13207,42 @@ namespace StdExt
 */
 
 #if defined(STDEXT_SUPPORT_DEPRECATED)
-    ///////////////////////////////////////////////////////////
-    // Replaced by "FunctionClassification_v" (just defers to
-    // it), but we warn user below
-    ///////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
+    // Same as "FunctionClassification_v" template above (just defers
+    // to it) but was renamed to the latter template so following
+    // name is deprecated (we warn user below)
+    //////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     [[deprecated("This template was replaced by \"FunctionClassification_v\". The old name continues to be supported for now (it just defers to the new name), but may be removed in a future release (users should update their code to invoke the new name, checking the result for \"FunctionClassification::NonStaticMember\")")]]
-    inline constexpr bool IsMemberFunction_v = (FunctionClassification_v<F> == FunctionClassification::NonStaticMember); // Just defer to new name above
+    inline constexpr bool IsMemberFunction_v = (FunctionClassification_v<F> == FunctionClassification::NonStaticMember); // Just defer to new template "FunctionClassification_v"
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionOrigin_v. Thin wrapper around
     // "FunctionTraits::FunctionOrigin_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionorigin_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionorigin_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr FunctionOrigin FunctionOrigin_v = FunctionTraitsFunctionOrigin_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionOriginType_t. Thin wrapper around
+    // "FunctionTraits::FunctionOriginType_t".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functionorigintype_t
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    using FunctionOriginType_t = FunctionTraitsFunctionOriginType_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionOriginTypeName_v. Thin wrapper around
+    // "FunctionTraits::FunctionOriginTypeName_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functionorigintypename_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    inline constexpr tstring_view FunctionOriginTypeName_v = FunctionTraitsFunctionOriginTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
 #if defined(STDEXT_SUPPORT_DEPRECATED)
     ///////////////////////////////////////////////////////////
@@ -11819,32 +13251,72 @@ namespace StdExt
     ///////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     [[deprecated("This template was replaced by \"FunctionOrigin_v\". The old name continues to be supported for now (it just defers to the new name), but may be removed in a future release (users should update their code to invoke the new name, checking the result for \"FunctionOrigin::Functor\" or \"FunctionOrigin::StaticFunctor\", usually the former)")]]
-    inline constexpr bool IsFunctor_v = (FunctionOrigin_v<F> == FunctionOrigin::Functor); // Just defer to new name above
+    inline constexpr bool IsFunctor_v = (FunctionOrigin_v<F> == FunctionOrigin::Functor); // Just defer to new template further above
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionRawType_t. Thin wrapper around
-    // "FunctionTraits::FunctionRawType".
+    // "FunctionTraits::RawType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#functionrawtype_t
+    // https://github.com/HexadigmSystems/Functiontraits#functionrawtype_t
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     using FunctionRawType_t = FunctionTraitsFunctionRawType_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
     // FunctionRawTypeName_v. Thin wrapper around
-    // "FunctionTraits::FunctionRawTypeName_v".
+    // "FunctionTraits::RawTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionrawtypename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functionrawtypename_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr tstring_view FunctionRawTypeName_v = FunctionTraitsFunctionRawTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
+    // FunctionReference_v. Thin wrapper around
+    // "FunctionTraits::FunctionReference_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functionreference_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    inline constexpr FunctionReference FunctionReference_v = FunctionTraitsFunctionReference_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+    //////////////////////////////////////////////////////////////////
+    // Same as above template (just defers to it) but was renamed to
+    // the above so following name is deprecated (we warn user below)
+    //////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    [[deprecated("Template was renamed to \"FunctionReference_v\" (and its return type renamed to \"FunctionReference\"). The old names continue to be supported for now (they just defers to the new names), but may be removed in a future release (users should update their code to invoke the new names)")]]
+    inline constexpr RefQualifier MemberFunctionRefQualifier_v = static_cast<RefQualifier>(FunctionReference_v<F>); // Just defer to new name above (and cast return value to the new name as well)
+#endif
+
+    //////////////////////////////////////////////////////////////////////////
+    // FunctionReferenceName_v. Thin wrapper around
+    // "FunctionTraits::FunctionReferenceName_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#functionreferencename_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F,
+              bool UseAmpersands = true>
+    inline constexpr tstring_view FunctionReferenceName_v = FunctionTraitsFunctionReferenceName_v<FunctionTraits<F>, UseAmpersands>;  // Defers to the "FunctionTraits" helper further above
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+    //////////////////////////////////////////////////////////////////
+    // Same as above template (just defers to it) but was renamed to
+    // the above so following name is deprecated (we warn user below)
+    //////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F,
+              bool UseAmpersands = true>
+    TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionReferenceName_v)
+    inline constexpr tstring_view MemberFunctionRefQualifierName_v = FunctionReferenceName_v<F, UseAmpersands>; // Just defer to new name above
+#endif
+
+    //////////////////////////////////////////////////////////////////////////
     // FunctionType_t. Thin wrapper around
     // "FunctionTraits::FunctionType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#functiontype_t
+    // https://github.com/HexadigmSystems/Functiontraits#functiontype_t
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     using FunctionType_t = FunctionTraitsFunctionType_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -11853,10 +13325,29 @@ namespace StdExt
     // FunctionTypeName_v. Thin wrapper around
     // "FunctionTraits::FunctionTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functiontypename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#functiontypename_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr tstring_view FunctionTypeName_v = FunctionTraitsFunctionTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+    //////////////////////////////////////////////////////////////////////////
+    // IsArgListEmpty_v. Thin wrapper around
+    // "FunctionTraits::IsArgListEmpty_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isarglistempty_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F>
+    inline constexpr bool IsArgListEmpty_v = FunctionTraitsIsArgListEmpty_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+    #if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(IsArgListEmpty_v)
+        inline constexpr bool IsEmptyArgList_v = IsArgListEmpty_v<F>; // Just defer to new template name above
+    #endif
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
 //////////////////////////////////////////////////////////////////////////
@@ -11879,8 +13370,8 @@ namespace StdExt
                                                                                  I, \
                                                                                  RETURN_FALSE_IF_ONE_HAS_ARG_OTHER_DOESNT) requires StdExt::IndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v<F1, \
                                                                                                                                                                                                   F2, \
-                                                                                                                                                                                                  I, \
-                                                                                                                                                                                                  RETURN_FALSE_IF_ONE_HAS_ARG_OTHER_DOESNT>
+                                                                                                                                                                                                  (I), \
+                                                                                                                                                                                                  (RETURN_FALSE_IF_ONE_HAS_ARG_OTHER_DOESNT)>
 #else
     #define REQUIRES_I_VALID_IN_BOTH_OR_RETURN_FALSE_IF_ONE_HAS_ARG_OTHER_DOESNT(F1, \
                                                                                  F2, \
@@ -11890,42 +13381,17 @@ namespace StdExt
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
     //////////////////////////////////////////////////////////////////////////
-    // IsArgListEmpty_v. Thin wrapper around
-    // "FunctionTraits::IsArgListEmpty_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isarglistempty_v
-    //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F>
-    inline constexpr bool IsArgListEmpty_v = FunctionTraitsIsArgListEmpty_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-    #if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(IsArgListEmpty_v)
-        inline constexpr bool IsEmptyArgList_v = IsArgListEmpty_v<F>; // Just defer to new name above
-    #endif
-
-    //////////////////////////////////////////////////////////////////////////
     // IsArgTypeMatch_v. Thin wrapper around
     // "FunctionTraits::IsArgTypeMatch_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypematch_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypematch_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F1, TRAITS_FUNCTION_C F2, std::size_t I /* Zero-based */, bool ReturnFalseIfOneHasArgOtherDoesnt = true>
+    template <TRAITS_FUNCTION_C F1,
+              TRAITS_FUNCTION_C F2,
+              std::size_t I /* Zero-based */,
+              bool ReturnFalseIfOneHasArgOtherDoesnt = true>
     REQUIRES_I_VALID_IN_BOTH_OR_RETURN_FALSE_IF_ONE_HAS_ARG_OTHER_DOESNT(F1, F2, I, ReturnFalseIfOneHasArgOtherDoesnt)
     inline constexpr bool IsArgTypeMatch_v = FunctionTraitsIsArgTypeMatch_v<FunctionTraits<F1>, FunctionTraits<F2>, I, ReturnFalseIfOneHasArgOtherDoesnt>; // Defers to the "FunctionTraits" helper further above
-
-    //////////////////////////////////////////////////////////////////////////
-    // IsArgTypesMatch_v. Thin wrapper around
-    // "FunctionTraits::IsArgTypesMatch_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems.FuntionTraits/#isargtypesmatch_v
-    //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F1, TRAITS_FUNCTION_C F2, bool IgnoreVariadic = false>
-    inline constexpr bool IsArgTypesMatch_v = FunctionTraitsIsArgTypesMatch_v<FunctionTraits<F1>, FunctionTraits<F2>, IgnoreVariadic>; // Defers to the "FunctionTraits" helper further above
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
 //////////////////////////////////////////////////////////////////////////
@@ -11933,7 +13399,9 @@ namespace StdExt
 //////////////////////////////////////////////////////////////////////////
 #if defined(USE_CONCEPTS)
     #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-        template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, bool CompareWithVoidIfInvalidIndex>
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I /* Zero-based */,
+                  bool CompareWithVoidIfInvalidIndex>
         inline constexpr bool IndexLessThanArgCountOrCompareWithVoid_v = FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v<FunctionTraits<F>, I, CompareWithVoidIfInvalidIndex>; // Defers to the "FunctionTraits" version further above
     #endif
 
@@ -11947,35 +13415,53 @@ namespace StdExt
     // IsArgTypeSame_v. Thin wrapper around
     // "FunctionTraits::IsArgTypeSame_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypesame_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypesame_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, std::size_t I /* Zero-based */, typename T, bool CompareWithVoidIfInvalidIndex = false>
+    template <TRAITS_FUNCTION_C F,
+              std::size_t I /* Zero-based */,
+              typename T,
+              bool CompareWithVoidIfInvalidIndex = false>
     REQUIRES_I_LESS_THAN_ARG_COUNT_OR_COMPARE_WITH_VOID(F, I, CompareWithVoidIfInvalidIndex)
     inline constexpr bool IsArgTypeSame_v = FunctionTraitsIsArgTypeSame_v<FunctionTraits<F>, I, T, CompareWithVoidIfInvalidIndex>; // Defers to the "FunctionTraits" helper further above
+
+    //////////////////////////////////////////////////////////////////////////
+    // IsArgTypesMatch_v. Thin wrapper around
+    // "FunctionTraits::IsArgTypesMatch_v".
+    // See here for details:
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypesmatch_v
+    //////////////////////////////////////////////////////////////////////////
+    template <TRAITS_FUNCTION_C F1,
+              TRAITS_FUNCTION_C F2,
+              bool IgnoreVariadic = false>
+    inline constexpr bool IsArgTypesMatch_v = FunctionTraitsIsArgTypesMatch_v<FunctionTraits<F1>, FunctionTraits<F2>, IgnoreVariadic>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
     // IsArgTypesSame_v. Thin wrapper around
     // "FunctionTraits::IsArgTypesSame_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypessame_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypessame_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, AndVariadic AndVariadicT, typename... ArgTypesToCompareT>
+    template <TRAITS_FUNCTION_C F,
+              AndVariadic AndVariadicT,
+              typename... ArgTypesToCompareT>
     inline constexpr bool IsArgTypesSame_v = FunctionTraitsIsArgTypesSame_v<FunctionTraits<F>, AndVariadicT, ArgTypesToCompareT...>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
     // IsArgTypesSameTuple_v. Thin wrapper around
     // "FunctionTraits::IsArgTypesSameTuple_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isargtypessametuple_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isargtypessametuple_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, TUPLE_C ArgTypesToCompareTupleT, AndVariadic AndVariadicT = AndVariadic::IsFalse>
+    template <TRAITS_FUNCTION_C F,
+              TUPLE_C ArgTypesToCompareTupleT,
+              AndVariadic AndVariadicT = AndVariadic::IsFalse>
     inline constexpr bool IsArgTypesSameTuple_v = FunctionTraitsIsArgTypesSameTuple_v<FunctionTraits<F>, ArgTypesToCompareTupleT, AndVariadicT>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
     // IsFunctionConst_v. Thin wrapper around
-    // "FunctionTraits::IsFunctionConst_v".
+    // "FunctionTraits::IsConst_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isfunctionconst_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isfunctionconst_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr bool IsFunctionConst_v = FunctionTraitsIsFunctionConst_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -11992,9 +13478,9 @@ namespace StdExt
 
     //////////////////////////////////////////////////////////////////////////
     // IsFunctionVolatile_v. Thin wrapper around
-    // "FunctionTraits::IsFunctionVolatile_v".
+    // "FunctionTraits::IsVolatile_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isfunctionvolatile_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isfunctionvolatile_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr bool IsFunctionVolatile_v = FunctionTraitsIsFunctionVolatile_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12010,48 +13496,10 @@ namespace StdExt
 #endif
 
     //////////////////////////////////////////////////////////////////////////
-    // FunctionReference_v. Thin wrapper around
-    // "FunctionTraits::FunctionReference_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionreference_v
-    //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F>
-    inline constexpr FunctionReference FunctionReference_v = FunctionTraitsFunctionReference_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-    //////////////////////////////////////////////////////////////////
-    // Same as above template (just defers to it) but was renamed to
-    // the above so following name is deprecated (we warn user below)
-    //////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F>
-    [[deprecated("Template was renamed to \"FunctionReference_v\" (and its return type renamed to \"FunctionReference\"). The old names continue to be supported for now (they just defers to the new names), but may be removed in a future release (users should update their code to invoke the new names)")]]
-    inline constexpr RefQualifier MemberFunctionRefQualifier_v = static_cast<RefQualifier>(FunctionReference_v<F>); // Just defer to new name above (and cast return value to the new name as well)
-#endif
-
-    //////////////////////////////////////////////////////////////////////////
-    // FunctionReferenceName_v. Thin wrapper around
-    // "FunctionTraits::FunctionReferenceName_v".
-    // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#functionreferencename_v
-    //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, bool UseAmpersands = true>
-    inline constexpr tstring_view FunctionReferenceName_v = FunctionTraitsFunctionReferenceName_v<FunctionTraits<F>, UseAmpersands>;  // Defers to the "FunctionTraits" helper further above
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-    //////////////////////////////////////////////////////////////////
-    // Same as above template (just defers to it) but was renamed to
-    // the above so following name is deprecated (we warn user below)
-    //////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, bool UseAmpersands = true>
-    TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionReferenceName_v)
-    inline constexpr tstring_view MemberFunctionRefQualifierName_v = FunctionReferenceName_v<F, UseAmpersands>; // Just defer to new name above
-#endif
-
-    //////////////////////////////////////////////////////////////////////////
     // IsNoexcept_v. Thin wrapper around
     // "FunctionTraits::IsNoexcept_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isnoexcept_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isnoexcept_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr bool IsNoexcept_v = FunctionTraitsIsNoexcept_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12060,25 +13508,27 @@ namespace StdExt
     // IsReturnTypeMatch_v. Thin wrapper around
     // "FunctionTraits::IsReturnTypeMatch_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isreturntypematch_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isreturntypematch_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F1, TRAITS_FUNCTION_C F2>
+    template <TRAITS_FUNCTION_C F1,
+              TRAITS_FUNCTION_C F2>
     inline constexpr bool IsReturnTypeMatch_v = FunctionTraitsIsReturnTypeMatch_v<FunctionTraits<F1>, FunctionTraits<F2>>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
     // IsReturnTypeSame_v. Thin wrapper around
     // "FunctionTraits::IsReturnTypeSame_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isreturntypesame_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isreturntypesame_v
     //////////////////////////////////////////////////////////////////////////
-    template <TRAITS_FUNCTION_C F, typename T>
+    template <TRAITS_FUNCTION_C F,
+              typename T>
     inline constexpr bool IsReturnTypeSame_v = FunctionTraitsIsReturnTypeSame_v<FunctionTraits<F>, T>; // Defers to the "FunctionTraits" helper further above
 
     //////////////////////////////////////////////////////////////////////////
     // IsReturnTypeVoid_v. Thin wrapper around
     // "FunctionTraits::IsReturnTypeVoid_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isreturntypevoid_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isreturntypevoid_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr bool IsReturnTypeVoid_v = FunctionTraitsIsReturnTypeVoid_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12090,14 +13540,14 @@ namespace StdExt
     //////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(IsReturnTypeVoid_v)
-    inline constexpr bool IsVoidReturnType_v = IsReturnTypeVoid_v<F>;
+    inline constexpr bool IsVoidReturnType_v = IsReturnTypeVoid_v<F>; // Defer to template just above
 #endif
 
     //////////////////////////////////////////////////////////////////////////
     // IsVariadic_v. Thin wrapper around
     // "FunctionTraits::IsVariadic_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#isvariadic_v
+    // https://github.com/HexadigmSystems/FunctionTraits#isvariadic_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr bool IsVariadic_v = FunctionTraitsIsVariadic_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12106,7 +13556,7 @@ namespace StdExt
     // MemberFunctionClass_t. Thin wrapper around
     // "FunctionTraits::MemberFunctionClass_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#memberfunctionclass_t
+    // https://github.com/HexadigmSystems/Functiontraits#memberfunctionclass_t
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     using MemberFunctionClass_t = FunctionTraitsMemberFunctionClass_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12115,7 +13565,7 @@ namespace StdExt
     // MemberFunctionClassName_v. Thin wrapper around
     // "FunctionTraits::MemberFunctionClassName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#memberfunctionclassname_v
+    // https://github.com/HexadigmSystems/FunctionTraits#memberfunctionclassname_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr tstring_view MemberFunctionClassName_v = FunctionTraitsMemberFunctionClassName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12124,7 +13574,7 @@ namespace StdExt
     // ReturnType_t. Thin wrapper around
     // "FunctionTraits::ReturnType_t".
     // See here for details:
-    // https://github.com/HexadigmSystems/Functiontraits/#returntype_t
+    // https://github.com/HexadigmSystems/Functiontraits#returntype_t
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     using ReturnType_t = FunctionTraitsReturnType_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12133,29 +13583,13 @@ namespace StdExt
     // ReturnTypeName_v. Thin wrapper around
     // "FunctionTraits::ReturnTypeName_v".
     // See here for details:
-    // https://github.com/HexadigmSystems/FunctionTraits/#returntypename_v
+    // https://github.com/HexadigmSystems/FunctionTraits#returntypename_v
     //////////////////////////////////////////////////////////////////////////
     template <TRAITS_FUNCTION_C F>
     inline constexpr tstring_view ReturnTypeName_v = FunctionTraitsReturnTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
-    // For internal use only
-    namespace Private
-    {
-        ////////////////////////////////////////////////////////////
-        // TODO - Declared in our private namespace for now so not
-        // intended for end users but should be made available to
-        // them in a future release.
-        ////////////////////////////////////////////////////////////
-        template <TRAITS_NON_STATIC_OR_STATIC_FUNCTOR_C F>
-        using RawFunctorType_t = FunctionTraitsRawFunctorType_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-        // TODO - See comments just above
-        template <TRAITS_NON_STATIC_OR_STATIC_FUNCTOR_C F>
-        inline constexpr tstring_view RawFunctorTypeName_v = FunctionTraitsRawFunctorTypeName_v<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-    } // namespace Private
-
     /////////////////////////////////////////////////////
-    // See this constant for details. Following helper
+    // See this macro for details. Following helper
     // templates for function write traits are declared
     // only if function write traits are supported.
     // They're preprocessed out otherwise (so function
@@ -12166,7 +13600,7 @@ namespace StdExt
         // AddNoexcept_t. Thin wrapper around
         // "FunctionTraits::AddNoexcept_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#addnoexcept_t
+        // https://github.com/HexadigmSystems/FunctionTraits#addnoexcept_t
         //////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using AddNoexcept_t = FunctionTraitsAddNoexcept_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12175,16 +13609,106 @@ namespace StdExt
         // AddVariadicArgs_t. Thin wrapper around
         // "FunctionTraits::AddVariadicArgs_t.
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#addvariadicargs_t
+        // https://github.com/HexadigmSystems/FunctionTraits#addvariadicargs_t
         //////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using AddVariadicArgs_t = FunctionTraitsAddVariadicArgs_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
+        //////////////////////////////////////////////////////////////////////
+        // "ArgsAppend_t". Thin wrapper around
+        // "FunctionTraits::ArgsAppend_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsappend_t
+        //////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT>
+        using ArgsAppend_t = FunctionTraitsArgsAppend_t<FunctionTraits<F>, ArgsToAppendT...>; // Defers to the "FunctionTraits" helper further above
+
+        ///////////////////////////////////////////////////////////////////////////////
+        // "ArgsAppendTuple_t". Thin wrapper around
+        // "FunctionTraits::ArgsAppendTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsappendtuple_t
+        ///////////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT>
+        using ArgsAppendTuple_t = FunctionTraitsArgsAppendTuple_t<FunctionTraits<F>, ArgsToAppendTupleT>; // Defers to the "FunctionTraits" helper further above
+
+        ///////////////////////////////////////////////////////////////////////
+        // "ArgsDelete_t". Thin wrapper around
+        // "FunctionTraits::ArgsDelete_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsdelete_t
+        ///////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I = 0,
+                  std::size_t Count = size_t_npos>
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
+        using ArgsDelete_t = FunctionTraitsArgsDelete_t<FunctionTraits<F>, I, Count>; // Defers to the "FunctionTraits" helper further above
+
+        //////////////////////////////////////////////////////////////////////
+        // "ArgsInsert_t". Thin wrapper around
+        // "FunctionTraits::ArgsInsert_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsinsert_t
+        //////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I,
+                  VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT>
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
+        using ArgsInsert_t = FunctionTraitsArgsInsert_t<FunctionTraits<F>, I, ArgsToInsertT...>; // Defers to the "FunctionTraits" helper further above
+
+        ///////////////////////////////////////////////////////////////////////////////
+        // "ArgsInsertTuple_t". Thin wrapper around
+        // "FunctionTraits::ArgsInsertTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsinserttuple_t
+        ///////////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT>
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
+        using ArgsInsertTuple_t = FunctionTraitsArgsInsertTuple_t<FunctionTraits<F>, I, ArgsToInsertTupleT>; // Defers to the "FunctionTraits" helper further above
+
+        ///////////////////////////////////////////////////////////////////////////////
+        // "ArgsMakeVoid_t". Thin wrapper around
+        // "FunctionTraits::ArgsMakeVoid_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsmakevoid_t
+        ///////////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using ArgsMakeVoid_t = FunctionTraitsArgsMakeVoid_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+        /////////////////////////////////////////////////////////////////////////////
+        // "ArgsModify_t". Thin wrapper around
+        // "FunctionTraits::ArgsModify_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsmodify_t
+        /////////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I,
+                  std::size_t Count,
+                  VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
+        using ArgsModify_t = FunctionTraitsArgsModify_t<FunctionTraits<F>, I, Count, NewArgsT...>; // Defers to the "FunctionTraits" helper further above
+
+        //////////////////////////////////////////////////////////////////////////////
+        // "ArgsModifyTuple_t". Thin wrapper around
+        // "FunctionTraits::ArgsModifyTuple_t"
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#argsmodifytuple_t
+        //////////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I,
+                  std::size_t Count, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
+        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
+        using ArgsModifyTuple_t = FunctionTraitsArgsModifyTuple_t<FunctionTraits<F>, I, Count, NewArgsTupleT>; // Defers to the "FunctionTraits" helper further above
+
         //////////////////////////////////////////////////////////////////////////
         // FunctionAddConst_t. Thin wrapper around
-        // "FunctionTraits::FunctionAddConst".
+        // "FunctionTraits::AddConst".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits//#functionaddconst_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddconst_t
         //////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using FunctionAddConst_t = FunctionTraitsFunctionAddConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12198,65 +13722,11 @@ namespace StdExt
         using MemberFunctionAddConst_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionAddConst_t) = FunctionAddConst_t<F>; // Just defer to new name above
 #endif
 
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionRemoveConst_t. Thin wrapper around
-        // "FunctionTraits::FunctionRemoveConst".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremoveconst_t
-        //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using FunctionRemoveConst_t = FunctionTraitsFunctionRemoveConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using MemberFunctionRemoveConst_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionRemoveConst_t) = FunctionRemoveConst_t<F>; // Just defer to new name above
-#endif
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionAddVolatile_t. Thin wrapper around
-        // "FunctionTraits::FunctionAddVolatile".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddvolatile_t
-        //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using FunctionAddVolatile_t = FunctionTraitsFunctionAddVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using MemberFunctionAddVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionAddVolatile_t) = FunctionAddVolatile_t<F>; // Just defer to new name above
-#endif
-
-        //////////////////////////////////////////////////////////////////////////
-        // FunctionRemoveVolatile_t. Thin wrapper around
-        // "FunctionTraits::FunctionRemoveVolatile".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremovevolatile_t
-        //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using FunctionRemoveVolatile_t = FunctionTraitsFunctionRemoveVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using MemberFunctionRemoveVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionRemoveVolatile_t) = FunctionRemoveVolatile_t<F>; // Just defer to new name above
-#endif
-
         ////////////////////////////////////////////////////////////////////////////
         // FunctionAddCV_t. Thin wrapper around
-        // "FunctionTraits::FunctionAddCV".
+        // "FunctionTraits::AddCV_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddcv_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddcv_t
         ////////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using FunctionAddCV_t = FunctionTraitsFunctionAddCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12270,29 +13740,11 @@ namespace StdExt
         using MemberFunctionAddCV_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionAddCV_t) = FunctionAddCV_t<F>; // Just defer to new name above
 #endif
 
-        /////////////////////////////////////////////////////////////////////////////////
-        // FunctionRemoveCV_t. Thin wrapper around
-        // "FunctionTraits::FunctionRemoveCV".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremovecv_t
-        /////////////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using FunctionRemoveCV_t = FunctionTraitsFunctionRemoveCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-#if defined(STDEXT_SUPPORT_DEPRECATED)
-        //////////////////////////////////////////////////////////////////
-        // Same as above template (just defers to it) but was renamed to
-        // the above so following name is deprecated (we warn user below)
-        //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F>
-        using MemberFunctionRemoveCV_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionRemoveCV_t) = FunctionRemoveCV_t<F>; // Just defer to new name above
-#endif
-
         //////////////////////////////////////////////////////////////////////////
         // FunctionAddLValueReference_t. Thin wrapper around
-        // "FunctionTraits::FunctionAddLValueReference.
+        // "FunctionTraits::AddLValueReference_t.
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddlvaluereference_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddlvaluereference_t
         //////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using FunctionAddLValueReference_t = FunctionTraitsFunctionAddLValueReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12308,9 +13760,9 @@ namespace StdExt
 
         //////////////////////////////////////////////////////////////////////////
         // FunctionAddRValueReference_t. Thin wrapper around
-        // "FunctionTraits::FunctionAddRValueReference.
+        // "FunctionTraits::AddRValueReference_t.
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionaddrvaluereference_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddrvaluereference_t
         //////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using FunctionAddRValueReference_t = FunctionTraitsFunctionAddRValueReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12325,10 +13777,64 @@ namespace StdExt
 #endif
 
         //////////////////////////////////////////////////////////////////////////
-        // FunctionRemoveReference_t. Thin wrapper around
-        // "FunctionTraits::FunctionRemoveReference.
+        // FunctionAddVolatile_t. Thin wrapper around
+        // "FunctionTraits::AddVolatile_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#functionremovereference_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionaddvolatile_t
+        //////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using FunctionAddVolatile_t = FunctionTraitsFunctionAddVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using MemberFunctionAddVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionAddVolatile_t) = FunctionAddVolatile_t<F>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionRemoveConst_t. Thin wrapper around
+        // "FunctionTraits::RemoveConst_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremoveconst_t
+        //////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using FunctionRemoveConst_t = FunctionTraitsFunctionRemoveConst_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using MemberFunctionRemoveConst_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionRemoveConst_t) = FunctionRemoveConst_t<F>; // Just defer to new name above
+#endif
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // FunctionRemoveCV_t. Thin wrapper around
+        // "FunctionTraits::RemoveCV_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremovecv_t
+        /////////////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using FunctionRemoveCV_t = FunctionTraitsFunctionRemoveCV_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using MemberFunctionRemoveCV_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionRemoveCV_t) = FunctionRemoveCV_t<F>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
+        // FunctionRemoveReference_t. Thin wrapper around
+        // "FunctionTraits::RemoveReference_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremovereference_t
         //////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using FunctionRemoveReference_t = FunctionTraitsFunctionRemoveReference_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
@@ -12343,12 +13849,31 @@ namespace StdExt
 #endif
 
         //////////////////////////////////////////////////////////////////////////
-        // ReplaceMemberFunctionClass_t. Thin wrapper around
-        // "FunctionTraits::ReplaceMemberFunctionClass_t.
+        // FunctionRemoveVolatile_t. Thin wrapper around
+        // "FunctionTraits::RemoveVolatile_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacememberfunctionclass_t
+        // https://github.com/HexadigmSystems/FunctionTraits#functionremovevolatile_t
         //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, IS_CLASS_OR_VOID_C NewClassT>
+        template <TRAITS_FUNCTION_C F>
+        using FunctionRemoveVolatile_t = FunctionTraitsFunctionRemoveVolatile_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
+
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+        //////////////////////////////////////////////////////////////////
+        // Same as above template (just defers to it) but was renamed to
+        // the above so following name is deprecated (we warn user below)
+        //////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F>
+        using MemberFunctionRemoveVolatile_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(FunctionRemoveVolatile_t) = FunctionRemoveVolatile_t<F>; // Just defer to new name above
+#endif
+
+        //////////////////////////////////////////////////////////////////////////
+        // ReplaceMemberFunctionClass_t. Thin wrapper around
+        // "FunctionTraits::ReplaceMemberFunctionClass_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replacememberfunctionclass_t
+        //////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  IS_CLASS_OR_VOID_C NewClassT>
         using ReplaceMemberFunctionClass_t = FunctionTraitsReplaceMemberFunctionClass_t<FunctionTraits<F>, NewClassT>; // Defers to the "FunctionTraits" helper further above
 
 #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -12356,138 +13881,37 @@ namespace StdExt
         // Same as above template (just defers to it) but was renamed to
         // the above so following name is deprecated (we warn user below)
         //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, IS_CLASS_OR_VOID_C NewClassT>
+        template <TRAITS_FUNCTION_C F,
+                  IS_CLASS_OR_VOID_C NewClassT>
         using MemberFunctionReplaceClass_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(ReplaceMemberFunctionClass_t) = ReplaceMemberFunctionClass_t<F, NewClassT>; // Just defer to new name above
 #endif
 
         //////////////////////////////////////////////////////////////////////////
         // RemoveNoexcept_t. Thin wrapper around
-        // "FunctionTraits::RemoveNoexcept_t.
+        // "FunctionTraits::RemoveNoexcept_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#removenoexcept_t
+        // https://github.com/HexadigmSystems/FunctionTraits#removenoexcept_t
         //////////////////////////////////////////////////////////////////////////
         template <TRAITS_FUNCTION_C F>
         using RemoveNoexcept_t = FunctionTraitsRemoveNoexcept_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
 
         //////////////////////////////////////////////////////////////////////////
         // RemoveVariadicArgs_t. Thin wrapper around
-        // "FunctionTraits::RemoveVariadicArgs_t.
+        // "FunctionTraits::RemoveVariadicArgs_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#removevariadicargs_t
+        // https://github.com/HexadigmSystems/FunctionTraits#removevariadicargs_t
         template <TRAITS_FUNCTION_C F>
         using RemoveVariadicArgs_t = FunctionTraitsRemoveVariadicArgs_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-        //////////////////////////////////////////////////////////////////////////
-        // ReplaceArgs_t. Thin wrapper around
-        // "FunctionTraits::ReplaceArgs_t"
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replaceargs_t
-        //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
-        using ReplaceArgs_t = FunctionTraitsReplaceArgs_t<FunctionTraits<F>, NewArgsT...>; // Defers to the "FunctionTraits" helper further above
-
-        //////////////////////////////////////////////////////////////////////////
-        // ReplaceArgsTuple_t. Thin wrapper around
-        // "FunctionTraits::ReplaceArgsTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replaceargstuple_t
-        //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
-        using ReplaceArgsTuple_t = FunctionTraitsReplaceArgsTuple_t<FunctionTraits<F>, NewArgsTupleT>; // Defers to the "FunctionTraits" helper further above
-
-        //////////////////////////////////////////////////////////////////////////
-        // ReplaceCallingConvention_t. Thin wrapper around
-        // "FunctionTraits::ReplaceCallingConvention_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacecallingconvention_t
-        //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, CallingConvention NewCallingConventionT>
-        using ReplaceCallingConvention_t = FunctionTraitsReplaceCallingConvention_t<FunctionTraits<F>, NewCallingConventionT>; // Defers to the "FunctionTraits" helper further above
-
-        /////////////////////////////////////////////////////////////////////////////
-        // "ArgsModify_t". Thin wrapper around
-        // "FunctionTraits::ArgsModify_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsmodify_t
-        /////////////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, std::size_t I, std::size_t Count, VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
-        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
-        using ArgsModify_t = FunctionTraitsArgsModify_t<FunctionTraits<F>, I, Count, NewArgsT...>; // Defers to the "FunctionTraits" helper further above
-
-        //////////////////////////////////////////////////////////////////////////////
-        // "ArgsModifyTuple_t". Thin wrapper around
-        // "FunctionTraits::ArgsModifyTuple_t"
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsmodifytuple_t
-        //////////////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, std::size_t I, std::size_t Count, VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
-        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
-        using ArgsModifyTuple_t = FunctionTraitsArgsModifyTuple_t<FunctionTraits<F>, I, Count, NewArgsTupleT>; // Defers to the "FunctionTraits" helper further above
-
-        //////////////////////////////////////////////////////////////////////
-        // "ArgsInsert_t". Thin wrapper around
-        // "FunctionTraits::ArgsInsert_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsinsert_t
-        //////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, std::size_t I, VALID_FUNCTION_ARG_TYPE_C... ArgsToInsertT>
-        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
-        using ArgsInsert_t = FunctionTraitsArgsInsert_t<FunctionTraits<F>, I, ArgsToInsertT...>; // Defers to the "FunctionTraits" helper further above
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // "ArgsInsertTuple_t". Thin wrapper around
-        // "FunctionTraits::ArgsInsertTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsinserttuple_t
-        ///////////////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, std::size_t I, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToInsertTupleT>
-        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
-        using ArgsInsertTuple_t = FunctionTraitsArgsInsertTuple_t<FunctionTraits<F>, I, ArgsToInsertTupleT>; // Defers to the "FunctionTraits" helper further above
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // "ArgsMakeVoid_t". Thin wrapper around
-        // "FunctionTraits::ArgsMakeVoid_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsmakevoid_t
-        ///////////////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F>
-        using ArgsMakeVoid_t = FunctionTraitsArgsMakeVoid_t<FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
-
-        //////////////////////////////////////////////////////////////////////
-        // "ArgsAppend_t". Thin wrapper around
-        // "FunctionTraits::ArgsAppend_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsappend_t
-        //////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, VALID_FUNCTION_ARG_TYPE_C... ArgsToAppendT>
-        using ArgsAppend_t = FunctionTraitsArgsAppend_t<FunctionTraits<F>, ArgsToAppendT...>; // Defers to the "FunctionTraits" helper further above
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // "ArgsAppendTuple_t". Thin wrapper around
-        // "FunctionTraits::ArgsAppendTuple_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsappendtuple_t
-        ///////////////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, VALID_FUNCTION_ARG_TYPES_TUPLE_C ArgsToAppendTupleT>
-        using ArgsAppendTuple_t = FunctionTraitsArgsAppendTuple_t<FunctionTraits<F>, ArgsToAppendTupleT>; // Defers to the "FunctionTraits" helper further above
-
-        ///////////////////////////////////////////////////////////////////////
-        // "ArgsDelete_t". Thin wrapper around
-        // "FunctionTraits::ArgsDelete_t".
-        // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#argsdelete_t
-        ///////////////////////////////////////////////////////////////////////
-        template<TRAITS_FUNCTION_C F, std::size_t I = 0, std::size_t Count = size_t_npos>
-        REQUIRES_I_LESS_THAN_OR_EQUAL_TO_ARG_COUNT(F, I)
-        using ArgsDelete_t = FunctionTraitsArgsDelete_t<FunctionTraits<F>, I, Count>; // Defers to the "FunctionTraits" helper further above
 
         //////////////////////////////////////////////////////////////////////////
         // ReplaceArg_t. Thin wrapper around
         // "FunctionTraits::ReplaceArg_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/FunctionTraits/#replacearg_t
+        // https://github.com/HexadigmSystems/FunctionTraits#replacearg_t
         //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, std::size_t I, VALID_FUNCTION_ARG_TYPE_C NewArgT>
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t I,
+                  VALID_FUNCTION_ARG_TYPE_C NewArgT>
         REQUIRES_I_LESS_THAN_ARG_COUNT(F, I)
         using ReplaceArg_t = FunctionTraitsReplaceArg_t<FunctionTraits<F>, I, NewArgT>; // Defers to the "FunctionTraits" helper further above
 
@@ -12496,18 +13920,51 @@ namespace StdExt
         // Same as above template (just defers to it) but was renamed to
         // the above so following name is deprecated (we warn user below)
         //////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, std::size_t N, typename NewArgT>
+        template <TRAITS_FUNCTION_C F,
+                  std::size_t N,
+                  typename NewArgT>
         REQUIRES_I_LESS_THAN_ARG_COUNT(F, N)
         using ReplaceNthArg_t TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE(ReplaceArg_t) = ReplaceArg_t<F, N, NewArgT>; // Just defer to new name above
 #endif
 
         //////////////////////////////////////////////////////////////////////////
+        // ReplaceArgs_t. Thin wrapper around
+        // "FunctionTraits::ReplaceArgs_t"
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replaceargs_t
+        //////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  VALID_FUNCTION_ARG_TYPE_C... NewArgsT>
+        using ReplaceArgs_t = FunctionTraitsReplaceArgs_t<FunctionTraits<F>, NewArgsT...>; // Defers to the "FunctionTraits" helper further above
+
+        //////////////////////////////////////////////////////////////////////////
+        // ReplaceArgsTuple_t. Thin wrapper around
+        // "FunctionTraits::ReplaceArgsTuple_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replaceargstuple_t
+        //////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  VALID_FUNCTION_ARG_TYPES_TUPLE_C NewArgsTupleT>
+        using ReplaceArgsTuple_t = FunctionTraitsReplaceArgsTuple_t<FunctionTraits<F>, NewArgsTupleT>; // Defers to the "FunctionTraits" helper further above
+
+        //////////////////////////////////////////////////////////////////////////
+        // ReplaceCallingConvention_t. Thin wrapper around
+        // "FunctionTraits::ReplaceCallingConvention_t".
+        // See here for details:
+        // https://github.com/HexadigmSystems/FunctionTraits#replacecallingconvention_t
+        //////////////////////////////////////////////////////////////////////////
+        template <TRAITS_FUNCTION_C F,
+                  CallingConvention NewCallingConventionT>
+        using ReplaceCallingConvention_t = FunctionTraitsReplaceCallingConvention_t<FunctionTraits<F>, NewCallingConventionT>; // Defers to the "FunctionTraits" helper further above
+
+        //////////////////////////////////////////////////////////////////////////
         // ReplaceReturnType_t. Thin wrapper around
         // "FunctionTraits::ReplaceReturnType_t".
         // See here for details:
-        // https://github.com/HexadigmSystems/Functiontraits/#replacereturntype_t
+        // https://github.com/HexadigmSystems/Functiontraits#replacereturntype_t
         //////////////////////////////////////////////////////////////////////////
-        template <TRAITS_FUNCTION_C F, VALID_RETURN_TYPE_C NewReturnTypeT>
+        template <TRAITS_FUNCTION_C F,
+                  VALID_RETURN_TYPE_C NewReturnTypeT>
         using ReplaceReturnType_t = FunctionTraitsReplaceReturnType_t<FunctionTraits<F>, NewReturnTypeT>; // Defers to the "FunctionTraits" helper further above
 
         //////////////////////////////////////////////////////////////////////////
@@ -12553,22 +14010,24 @@ namespace StdExt
         // to "__thiscall" as just described is going to be a problem (depending
         // on what they're doing with the type returned by this template).
         //////////////////////////////////////////////////////////////////////////
-        template <IS_CLASS_C T, TRAITS_FUNCTION_C F>
+        template <IS_CLASS_C T,
+                  TRAITS_FUNCTION_C F>
         using MakeMemberFunctionPtr_t = FunctionTraitsMakeMemberFunctionPtr_t<T, FunctionTraits<F>>; // Defers to the "FunctionTraits" helper further above
     #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
 
-    ///////////////////////////////////////////////////////////////////////
-    // Private namespace (for internal use only) used to implement
+    ////////////////////////////////////////////////////////////////////////
+    // Private namespace (for internal use only) used to implement function
     // function template "DisplayAllFunctionTraits()" declared just after
     // this namespace. Allows you to display (stream) all traits for a
-    // given function to any stream. See "DisplayAllFunctionTraits()"
-    // just after this namespace for full details (it just defers to
+    // given function to any stream. See "DisplayAllFunctionTraits()" just
+    // after this namespace for full details (it just defers to
     // "DisplayAllFunctionTraitsImpl::Process()" in the following
     // namespace).
-    ///////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     namespace Private
     {
-        template <typename CharT, typename CharTraitsT>
+        template <typename CharT,
+                  typename CharTraitsT>
         class DisplayAllFunctionTraitsImpl
         {
         public:
@@ -12618,24 +14077,25 @@ namespace StdExt
                 if constexpr (FunctionClassification_v<F> == FunctionClassification::Free)
                 {
                     m_Stream << _T("Free function");
-                    if constexpr (FunctionOrigin_v<F> == FunctionOrigin::StaticFunctor)
+                    if constexpr (FunctionOrigin_v<F> == FunctionOrigin::None)
+                    {
+                        m_Stream << _T(" (includes static member functions)");
+                    }
+                    else if constexpr (FunctionOrigin_v<F> == FunctionOrigin::StaticFunctor)
                     {
                         m_Stream << _T(" (static \"operator()\" in functor just below)");
                         m_Stream << _T("\n");
-                        streamNumBracket() << _T("Class (static functor): \"") <<
-                                              RawFunctorTypeName_v<F> <<
-                                              _T("\"");
+                        streamNumBracket() << _T("Class (static \"operator()\" functor): ") <<
+                                              FunctionOriginTypeName_v<F>;
                     }
                     else if constexpr (FunctionOrigin_v<F> == FunctionOrigin::StdFunction)
                     {
-                        DisplayFromStdFunctionMsg();
+                        m_Stream << _T(" (from \"std::function\" specialization)");
                     }
                     else
                     {
-                         // Only other possibility by design at this stage
-                        static_assert(FunctionOrigin_v<F> == FunctionOrigin::None);
-
-                        m_Stream << _T(" (includes static member functions)");
+                         // Not possible to come through here by design at this writing
+                        static_assert(AlwaysFalse_v<F>);
                     }
                 }
                 // Non-static member function? (includes functors)
@@ -12646,38 +14106,60 @@ namespace StdExt
                     {
                         m_Stream << _T(" (\"operator()\" in functor just below)");
                     }
-                    ////////////////////////////////////////////////////////////
-                    // Should always be false in theory since "std::function"
-                    // can only be legally specialized on a free function which
-                    // we handled further above (we're now processing a
-                    // non-static member function), so we should never come
-                    // through here normally. If a given compiler supports it
-                    // though (doesn't choke on a "std::function" specialized
-                    // on a non-free function) then we *will* come through here
-                    // but it's not legal in C++ (but it's the user's own
-                    // doing, not ours, so we'll allow it through - testing
-                    // shows some compilers will allow "std::function" to be
-                    // specialized on non-free functions but we're simply
-                    // displaying what the compiler allows through, not our job
-                    // to validate it - in practice it's very unlikely to occur
-                    // normally however, i.e., why would a user specialize
-                    // "std::function" on something illegal outside of an
-                    // SFINAE context anyway, unless by accident).
-                    ////////////////////////////////////////////////////////////
-                    else if constexpr (FunctionOrigin_v<F> == FunctionOrigin::StdFunction)
+                    else
                     {
-                        DisplayFromStdFunctionMsg();
+                        // Only other possibility at this writing
+                        static_assert(FunctionOrigin_v<F> == FunctionOrigin::None);
                     }
 
                     m_Stream << _T("\n");
 
                     streamNumBracket() << _T("Class");
+
                     if constexpr (FunctionOrigin_v<F> == FunctionOrigin::Functor)
                     {
                         m_Stream << _T(" (functor)");
                     }
 
-                    m_Stream << _T(": ") << MemberFunctionClassName_v<F>;
+                    m_Stream << _T(": ");
+
+                    if constexpr (FunctionOrigin_v<F> != FunctionOrigin::Functor)
+                    {
+                        m_Stream << MemberFunctionClassName_v<F>;
+                    }
+                    else
+                    {
+                        /////////////////////////////////////////////////
+                        // Note: Since "F" is a functor, we're therefore
+                        // now displaying the traits for its
+                        // non-overloaded "operator()" member. That
+                        // member is either declared directly in "F"
+                        // itself (note that "F" is the functor's class
+                        // type, not "operator()" itself), or possibly a
+                        // base class of "F". If the latter case however,
+                        // then since the caller passed "F" itself, we'll
+                        // therefore display it's own class name here
+                        // instead of the class name of the base class
+                        // where "operator()" is actually declared (which
+                        // a call to "MemberFunctionClassName_v" would
+                        // return if we called it instead). The upshot is
+                        // that since the caller passed a functor "F"
+                        // then they'll likely expect to see "F"
+                        // displayed here instead of the base class where
+                        // "operator()" is actually declared (assuming
+                        // it's not declared directly in class "F"
+                        // itself). Note that if "F has any cv-qualifiers
+                        // then the following will also display them as
+                        // well (plus the reference to "F" if it's a
+                        // reference to a functor though it's likely rare
+                        // in practice). We don't strip them off here IOW
+                        // (cv-qualifiers on "F" and the reference itself
+                        // if it is one) though we could (but we'll just
+                        // display them as well since that's what the
+                        // user passed for "F").
+                        /////////////////////////////////////////////////
+                        m_Stream << FunctionOriginTypeName_v<F>;
+                    }
                 }
                 else
                 {
@@ -12685,20 +14167,6 @@ namespace StdExt
                     static_assert(FunctionClassification_v<F> == FunctionClassification::Abominable);
 
                     m_Stream << _T("Abominable function");
-
-                    ////////////////////////////////////////////////////////////
-                    // Should always be false in theory since "std::function"
-                    // can only be legally specialized on a free function
-                    // (we're now processing an abominable function!) so we
-                    // should never come through here. If a given compiler
-                    // supports it though (doesn't choke on it) then we *will*
-                    // come through here but it's not legal (not our doing but
-                    // we'll allow it through)
-                    ////////////////////////////////////////////////////////////
-                    if constexpr (FunctionOrigin_v<F> == FunctionOrigin::StdFunction)
-                    {
-                        DisplayFromStdFunctionMsg();
-                    }
                 }
 
                 m_Stream << _T("\n");
@@ -12721,12 +14189,12 @@ namespace StdExt
                                       (IsVariadic_v<F> ? _T(" + variadic") : _T("")) <<
                                       _T("):");
 
-                //////////////////////////////////////////////
+                /////////////////////////////////////////////
                 // Function's arg list not empty, i.e., not
-                // "Func()" or (equivalently) "Func(void)"?
+                // "Func()" or (equivalently) "Func(void)"
                 // (so it has at least 1 non-variadic arg
                 // and/or is variadic)
-                //////////////////////////////////////////////
+                /////////////////////////////////////////////
                 if constexpr (!IsArgListEmpty_v<F>)
                 {
                     m_Stream << _T("\n");
@@ -12821,7 +14289,8 @@ namespace StdExt
             // (zero-based) "Ith" arg in the function we're being called for
             // (in left-to-right order) and "ArgTypeT" is its type.
             /////////////////////////////////////////////////////////////////
-            template <std::size_t I, typename ArgTypeT>
+            template <std::size_t I,
+                      typename ArgTypeT>
             void OutputArgI() const // "Ith" arg (zero-based)
             {
                 ////////////////////////////////////////
@@ -12864,7 +14333,8 @@ namespace StdExt
                     // "ForEachArg()" in "StreamArgTypes()" (which
                     // processes this class in C++ 17 only).
                     ///////////////////////////////////////////////////
-                    template <std::size_t I, typename ArgTypeT>
+                    template <std::size_t I,
+                              typename ArgTypeT>
                     bool operator()() const
                     {
                         /////////////////////////////////////////////
@@ -12892,7 +14362,7 @@ namespace StdExt
                 private:
                     const DisplayAllFunctionTraitsImpl& m_DisplayAllFunctionTraitsImpl;
                 };
-            #endif
+            #endif // #if !defined(LAMBDA_TEMPLATES_SUPPORTED)
 
             ///////////////////////////////////////////////////////////////////////////
             // "StreamArgTypes()". Displays all arguments for function "F" to
@@ -12930,27 +14400,27 @@ namespace StdExt
                     // "F" (in the call to "ForEachArg()" below).
                     ///////////////////////////////////////////////////
                     const auto streamArgType = [&]<std::size_t I, typename ArgTypeT>()
-                    {
-                        /////////////////////////////////////////////
-                        // Defer to this function (template) which
-                        // streams (zero-based) arg "I" (whose type
-                        // is "ArgTypeT") to "m_Stream". Both "I"
-                        // (actually "I+1" to make it one-based for
-                        // display purposes) and the type name of
-                        // "ArgTypeT are therefore displayed.
-                        /////////////////////////////////////////////
-                        OutputArgI<I, ArgTypeT>();
+                                               {
+                                                   /////////////////////////////////////////////
+                                                   // Defer to this function (template) which
+                                                   // streams (zero-based) arg "I" (whose type
+                                                   // is "ArgTypeT") to "m_Stream". Both "I"
+                                                   // (actually "I+1" to make it one-based for
+                                                   // display purposes) and the type name of
+                                                   // "ArgTypeT are therefore displayed.
+                                                   /////////////////////////////////////////////
+                                                   OutputArgI<I, ArgTypeT>();
 
-                        ////////////////////////////////////////////////
-                        // Return true to continue iterating so this
-                        // function gets called again with "I + 1"
-                        // (until all args in function "F" are
-                        // processed). Note that returning false would
-                        // stop iterating, equivalent to a "break"
-                        // statement in a regular "for" loop.
-                        ////////////////////////////////////////////////
-                        return true;
-                    };
+                                                   ////////////////////////////////////////////////
+                                                   // Return true to continue iterating so this
+                                                   // function gets called again with "I + 1"
+                                                   // (until all args in function "F" are
+                                                   // processed). Note that returning false would
+                                                   // stop iterating, equivalent to a "break"
+                                                   // statement in a regular "for" loop.
+                                                   ////////////////////////////////////////////////
+                                                   return true;
+                                               };
 
                     ////////////////////////////////////////////////////
                     // Roll our own functor for C++17 (identical to
@@ -12961,7 +14431,7 @@ namespace StdExt
                     ////////////////////////////////////////////////////
                 #else
                     const StreamArgType streamArgType(*this);
-                #endif
+                #endif // if defined(LAMBDA_TEMPLATES_SUPPORTED)
 
                 ////////////////////////////////////////////////////////
                 // Invoke the above functor ("streamArgType") once for
@@ -12987,11 +14457,6 @@ namespace StdExt
                 }
             }
 
-            void DisplayFromStdFunctionMsg() const
-            {
-                m_Stream << _T(" (from \"std::function\" specialization)");
-            }
-
             std::basic_ostream<CharT, CharTraitsT>& m_Stream;
         }; // class DisplayAllFunctionTraitsImpl
     } // namespace Private
@@ -13000,7 +14465,7 @@ namespace StdExt
     // DisplayAllFunctionTraits(). Displays (streams) all function traits
     // for template arg (function) "F" to the given "stream" and returns
     // "stream" (officially documented here:
-    // https://github.com/HexadigmSystems/FunctionTraits/#displayallfunctiontraits).
+    // https://github.com/HexadigmSystems/FunctionTraits#displayallfunctiontraits).
     // The general format of the streamed traits is shown in the
     // example below and will vary somewhat depending on "F", but generally
     // remains largely the same (consult the code below itself for precise
@@ -13125,15 +14590,76 @@ namespace StdExt
     }
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
-    ////////////////////////////////////////////////////////////////
-    // For internal use only (but must remain permanently #defined
-    // since the function detection macros further below depend on
-    // them - they need to remain alive in the user's environment)
-    ////////////////////////////////////////////////////////////////
-    #define DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) static constexpr StdExt::tstring_view Name = StdExt::tstring_view(STDEXT_TSTRINGIFY(STDEXT_UNBRACKET BRACKETED_CPP_NAME));
+/////////////////////////////////////////////////////////////////////////////
+// Member function detection templates follow below. Note however that some
+// of these templates depend on write traits to do their work (by necessity)
+// so the following must be #defined in order to support them (but it
+// usually is - read on). If not #defined then write traits were
+// preprocessed out earlier in this header so these member function
+// detection templates won't be available (since they depend on the write
+// traits that were preprocessed out). Note that the following macro is
+// always #defined however unless the user explicitly #defines
+// REMOVE_FUNCTION_WRITE_TRAITS if they wish to preprocess out all write
+// traits (because they don't rely on them and want to eliminate the
+// overhead though it's negligible - doing so however means they can't use
+// those function detection that depend on write traits). Note that if we're
+// now targeting a Microsoft Visual Studio 2017 release of MSVC then the
+// following will also be undefined since we don't support write traits in
+// that version (due to bugs in that version so the function detection
+// templates that depend on write traits won't be available there either).
+/////////////////////////////////////////////////////////////////////////////
+#if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+    #define WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED
+#endif
 
-#if !defined(DECLARE_PUBLIC_MACROS_ONLY)
-    #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
+////////////////////////////////////////////////////////////////
+// For internal use only (but must remain permanently #defined
+// since all function detection macros below depend on it - it
+// needs to remain alive in the user's environment).
+//
+//    Example (note that the arg must always be bracketed so
+//    that it can be passed (operator,) to handle the C++ comma
+//    operator - without the brackets the "," in "operator,"
+//    would be treated as a macro argument delimiter):
+//
+//       DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE((Whatever))
+//
+//    Resolves to this:
+//
+//       static constexpr StdExt::tstring_view Name{_T("Whatever")};
+//
+//    Where macro _T above just returns its arg as-is on
+//    non-Microsoft platforms so "operator," in this example,
+//    but on Microsoft platforms it applies the "L" prefix to
+//    its arg when compiling for Unicode (normally the case in
+//    modern day Windows), so it normally returns L"Whatever"
+//    in this example (or just "Whatever" if not compiling for
+//    Unicode but this would be very rare)
+////////////////////////////////////////////////////////////////
+#define DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) static constexpr StdExt::tstring_view Name{STDEXT_TSTRINGIFY(STDEXT_UNBRACKET BRACKETED_CPP_NAME)};
+
+/////////////////////////////////////////////////////////////////////
+// Usually true (the following macro is usually #defined - see its
+// definition for details) but if false (undefined) then the
+// following macros (and therefore the templates they create) will
+// be preprocessed out (they won't be available to end users since
+// they depend on function write traits by necessity to do their
+// job):
+//
+//     DECLARE_CLASS_HAS_FUNCTION
+//     DECLARE_CLASS_HAS_STATIC_FUNCTION
+//     DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION
+//
+// Note that the following templates also won't be available since
+// they depend on the above macros (the following are created by
+// those macros which have been preprocessed out):
+//
+//     ClassHasOperator_FunctionCall
+//     ClassHasStaticOperator_FunctionCall
+//     ClassHasNonOverloadOperator_FunctionCall
+/////////////////////////////////////////////////////////////////////
+#if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
+    #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
         // For internal use only
         namespace Private
         {
@@ -13167,295 +14693,126 @@ namespace StdExt
             // but we'll remove them anyway (to prevent any possible
             // surprises if we kept them just in case we ever run afoul of
             // some arcane rule in the language in some untested context -
-            // it's highly unlikely so removing the cv-qualifiers isn't
-            // necessary at this writing but harmless for our purposes).
+            // I'm not aware of any so removing the cv-qualifiers is very
+            // likely unnecessary at this writing but harmless for our
+            // purposes).
             ///////////////////////////////////////////////////////////////
-            template <IS_CLASS_C T, TRAITS_FUNCTION_C F>
+            template <IS_CLASS_C T,
+                      TRAITS_FUNCTION_C F>
             using ClassHasFunctionStaticCastTarget_t = RemoveCvRef_t< MakeMemberFunctionPtr_t<T, F> >;
         }
-    #endif // #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
-#endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
+    #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
-/////////////////////////////////////////////////////////////////////////////
-// Member function detection templates follow below. Note however that some
-// of these templates depend on write traits to do their work (by necessity)
-// so the following must be #defined in order to support them (but it
-// usually is - read on). If not #defined then write traits were
-// preprocessed out earlier in this header so these function detection
-// templates won't be available (since they depend on these write traits).
-// Note that the following constant is always #defined however unless the
-// user explicitly #defines REMOVE_FUNCTION_WRITE_TRAITS if they wish to
-// preprocess them out (because they don't rely on them and want to
-// eliminate the overhead though it's negligible - doing so however means
-// they can't use those function detection that depend on write traits).
-// Note that if we're now targeting a Microsoft Visual Studio 2017 release
-// of MSVC then the following will always be undefined since we don't
-// support write traits in that version (due to bugs in that version so the
-// function detection templates that depend on write traits won't be
-// available there either).
-/////////////////////////////////////////////////////////////////////////////
-#if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
-    #define WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED
-#endif
-
-////////////////////////////////////////////////////////
-// Usually true (see comments just above) but if false
-// then the DECLARE_CLASS_HAS_FUNCTION and
-// DECLARE_CLASS_HAS_STATIC_FUNCTION macros (and the
-// templates they create) are preprocessed out below.
-////////////////////////////////////////////////////////
-#if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
-    ////////////////////////////////////////////////////////////
-    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=116167.
-    // Once fixed we can #undef this constant and remove the
-    // code that checks for it just below. The GCC code below
-    // that works around this bug can then be removed. Note
-    // that the same code also works in non-GCC environments as
-    // well so either implementation below will do, but the
-    // code targeting the bug fix is much longer though as
-    // seen. Note that the bug exists in the call to:
-    //
-    //    static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, StdExt::AddNoexcept_t<F>> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)
-    //
-    // If "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for brevity
-    // we'll just call this "T::CPP_NAME" from here on) is not
-    // "noexcept" but "F" is "noexcept" then the cast is
-    // illegal so it should always fail (and our SFINAE code
-    // below handles the failure correctly). On GCC however, if
-    // "T::CPP_NAME" is not overloaded and not inherited then
-    // it erroneously succeeds (due to the bug cited above)
-    // when it should fail so our SFINAE code won't work
-    // correctly (when "T::CPP_NAME" is not overloaded). If it
-    // is overloaded then it correctly fails so our
-    // "static_cast" will work. Our work-around for GCC below
-    // therefore checks if "T::CPP_NAME" is overloaded and if
-    // so, relies on the cast above since it works correctly
-    // (so the same "static_cast" is used on all platforms
-    // including GCC). If not overloaded however then we're
-    // potentially dealing with the bug (if "CPP_NAME" isn't
-    // inherited) since the "static_cast" will erroneously
-    // succeed (again, if "CPP_NAME" isn't inherited) so we
-    // resort to "StdExt::IsNoexcept_v" instead of the
-    // "static_cast" (to check if "T::CPP_NAME" is noexcept -
-    // since it's not overloaded at this point we can avoid the
-    // "static_cast" altogether by simply calling
-    // "decltype(&T::CPP_NAME)" which, because it's not
-    // overloaded, won't fail due to overload ambiguity and we
-    // can then simply pass it to "StdExt::IsNoexcept_v" - the
-    // latter call therefore acts as an alternative to the
-    // "static_cast" to determine if "T::CPP_NAME" is noexcept
-    // or not - we can't and don't use "StdExt::IsNoexcept_v"
-    // in the overloaded case however because
-    // "decltype(&T::CPP_NAME)" will fail due to overload
-    // ambiguity)
-    ////////////////////////////////////////////////////////////
+    // GCC? (work-around required for a GCC bug - see comments just below)
     #if defined(GCC_COMPILER)
+        //////////////////////////////////////////////////////////////
+        // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=116167.
+        // The following macro is #defined unconditionally for now
+        // (when targeting GCC) but once GCC fixes this bug we can
+        // then #define it only for versions of GCC prior to the bug
+        // fix (and once we drop support for all those versions in
+        // some distant release then we can refactor the code below
+        // to eliminate the following #defined macro altogether). For
+        // now however we check this macro in the code that
+        // immediately follows below and take appropriate action to
+        // work around the bug. Note however that the work-around for
+        // this bug below also works in non-GCC compilers as well (it
+        // correctly handles things even when the bug isn't present),
+        // so the GCC bug fix version below will also do (work in
+        // non-GCC compilers). The code targeting the bug fix is a
+        // bit longer though as seen below (though not by much) so we
+        // just apply it to the buggy GCC version only. Note that the
+        // bug exists in template "IsNoexcept" seen in namespace
+        // "Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME" declared
+        // further below. In the following call of that template:
+        //
+        //    static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, StdExt::AddNoexcept_t<F>> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)
+        //
+        // If "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for brevity
+        // we'll just call this "T::CPP_NAME" from here on) is not
+        // "noexcept" but "F" is "noexcept" then the cast is illegal
+        // in C++ so it should always fail (and the SFINAE code that
+        // invokes the above handles the failure correctly). On GCC
+        // however, if "T::CPP_NAME" is not overloaded and not
+        // inherited then it erroneously succeeds instead (due to the
+        // bug), but it should fail instead so the SFINAE code that
+        // invokes the above won't work correctly (when "T::CPP_NAME"
+        // is not overloaded). If it is overloaded then it correctly
+        // fails so the "static_cast" seen above will work. Our
+        // work-around for GCC further below therefore checks if
+        // "T::CPP_NAME" is overloaded and if so, relies on the
+        // "static_cast" seen above since it works correctly (so the
+        // same "static_cast" is used on all compilers including
+        // GCC). If not overloaded however then we're potentially
+        // dealing with the bug (if "CPP_NAME" isn't inherited) since
+        // the "static_cast" will erroneously succeed (again, if
+        // "CPP_NAME" isn't inherited), so we resort to
+        // "StdExt::IsNoexcept_v" instead of the "static_cast" (to
+        // check if "T::CPP_NAME" is noexcept - since it's not
+        // overloaded at this point we can avoid the "static_cast"
+        // above altogether by simply calling
+        // "decltype(&T::CPP_NAME)" which, because it's not
+        // overloaded, won't fail due to overload ambiguity and we
+        // can then simply pass it to "StdExt::IsNoexcept_v" - the
+        // latter call therefore acts as an alternative to the
+        // "static_cast" seen above to determine if "T::CPP_NAME" is
+        // noexcept or not - we can't and don't use
+        // "StdExt::IsNoexcept_v" in the overloaded case however
+        // because "decltype(&T::CPP_NAME)" will fail due to overload
+        // ambiguity).
+        //////////////////////////////////////////////////////////////
         #define GCC_BUG_116167_IN_EFFECT
-    #endif
+    #endif // #if defined(GCC_COMPILER)
 
     ////////////////////////////////////////////////////////////
     // See GCC_BUG_116167_IN_EFFECT just above. The #else code
-    // below works around it until fixed (but that code will
-    // also work on non-GCC platforms as well).
+    // below works around it until GCC fixes it (but that code
+    // will also work on non-GCC compilers as well, i.e., even
+    // when the bug doesn't exist, but it's a bit longer so we
+    // use it on GCC only - see long comments just above).
     ////////////////////////////////////////////////////////////
     #if !defined(GCC_BUG_116167_IN_EFFECT)
-        ///////////////////////////////////////////////////
-        // For internal use only (both templates declared
-        // by this macro below)
-        ///////////////////////////////////////////////////
-        #define DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_IS_NOEXCEPT(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
-            namespace StdExt_Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME \
-            { \
-                /* Primary template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F, \
-                          typename = void> \
-                struct IsNoexcept : std::false_type \
-                { \
-                }; \
-\
-                /* Partial specialization of above template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                struct IsNoexcept<T, \
-                                  F, \
-                                  /*//////////////////////////////////////////////////////// \
-                                  // By design we only arrive here if static member          \
-                                  // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for  \
-                                  // brevity we'll just call this "T::CPP_NAME" from here    \
-                                  // on) exists and is either identical to function "F" or   \
-                                  // identical except for "noexcept" in "T::CPP_NAME" but    \
-                                  // not in "F" (in the latter case they're identical in     \
-                                  // all other respects). To determine if "noexcept" is      \
-                                  // present in "T::CPP_NAME" or not (why we're here), we    \
-                                  // first add "noexcept" to "T::CPP_NAME" via the call to   \
-                                  // "StdExt::AddNoexcept_t" seen below. We're calling the   \
-                                  // latter on "F" however since it's identical to           \
-                                  // "T::CPP_NAME" at this stage except for possibly its     \
-                                  // "noexcept" specifier as noted (again, by design). The   \
-                                  // call to "StdExt::AddNoexcept_t" therefore just yields   \
-                                  // a noexcept version of "T::CPP_NAME" itself. We then     \
-                                  // simply cast "T::CPP_NAME" to this "noexcept" version    \
-                                  // of itself but if "T::CPP_NAME" isn't actually           \
-                                  // "noexcept" then the cast is illegal in C++ since you    \
-                                  // can't cast a non-noexcept function to a noexcept        \
-                                  // function (though the reverse situation is legal - you   \
-                                  // can cast a noexcept function to a non-noexcept          \
-                                  // function but we're not doing that here). The upshot is  \
-                                  // that if the "static_cast" fails due to the illegal      \
-                                  // cast of non-noexcept to noexcept as just described      \
-                                  // then we know that "T::CPP_NAME" must not be noexcept    \
-                                  // (because if it's noexcept then the "static_cast" will   \
-                                  // succeed). SFINAE therefore fails and our primary        \
-                                  // template kicks in (meaning that "T::CPP_NAME" isn't     \
-                                  // noexcept). If the "static_cast" succeeds however then   \
-                                  // "T::CPP_NAME" must be noexcept since we're simply       \
-                                  // casting "T::CPP_NAME" back to itself in this case (and  \
-                                  // it's also a noexcept to noexcept cast which is legal    \
-                                  // but not really relevant here). The following            \
-                                  // specialization therefore kicks in meaning that          \
-                                  // "T::CPP_NAME" must be noexcept.                         \
-                                  ////////////////////////////////////////////////////////*/ \
-                                  std::void_t< decltype( static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, StdExt::AddNoexcept_t<F>> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
-                                 > \
-                                 : std::true_type \
-                { \
-                }; \
-\
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                inline constexpr bool IsNoexcept_v = IsNoexcept<T, F>::value; \
-            }
+        // For internal use only (but both must remain permanently #defined)
+        #define DECLARE_IS_NOEXCEPT_GCC_BUG_116167(...)
+        #define CLASS_HAS_FUNCTION_OR_OPERATOR_IS_NOEXCEPT IsNoexcept
     #else
-        //////////////////////////////////////////////////
-        // For internal use only (all templates declared
-        // by this macro below)
-        //////////////////////////////////////////////////
-        #define DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_IS_NOEXCEPT(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
-            namespace StdExt_Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME \
+        // For internal use only (but must remain permanently #defined)
+        #define DECLARE_IS_NOEXCEPT_GCC_BUG_116167(BRACKETED_CPP_NAME) \
+            /*//////////////////////////////////////////////////////  \
+            // Primary template. By design we only arrive here if     \
+            // non-static member function                             \
+            // "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" exists.       \
+            // Following primary template then kicks in if it's       \
+            // overloaded or the specialization just below otherwise  \
+            // (i.e., if it's *not* overloaded).                      \
+            ///////////////////////////////////////////////////////*/ \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F, \
+                      typename = void> \
+            struct IsNoexceptGccBug116167 : IsNoexcept<T, F> \
             { \
-                /* Primary template */ \
-                template <IS_CLASS_C T, \
-                          typename = void> \
-                struct IsOverloaded : std::true_type \
-                { \
-                }; \
+            }; \
 \
-                /* Partial specialization of above template */ \
-                template <IS_CLASS_C T> \
-                struct IsOverloaded<T, \
-                                    /*//////////////////////////////////////////////////// \
-                                    // By design we only arrive here if non-static member  \
-                                    // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME"   \
-                                    // exists. Following therefore succeeds SFINAE only    \
-                                    // if it's not overloaded (fails if it is overloaded)  \
-                                    ////////////////////////////////////////////////////*/ \
-                                    std::void_t< decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) > \
-                                   > \
-                                   : std::false_type \
-                { \
-                }; \
-\
-                template <IS_CLASS_C T> \
-                inline constexpr bool IsOverloaded_v = IsOverloaded<T>::value; \
-\
-                /* Partial specialization of above template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F, \
-                          typename = void> \
-                struct IsOverloadedNoexcept : std::false_type \
-                { \
-                }; \
-\
-                /* Primary template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                struct IsOverloadedNoexcept<T, \
-                                            F, \
-                                            /*//////////////////////////////////////////////////////// \
-                                            // By design we only arrive here if static member          \
-                                            // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for  \
-                                            // brevity we'll just call this "T::CPP_NAME" from here    \
-                                            // on) exists and is either identical to function "F" or   \
-                                            // identical except for "noexcept" in "T::CPP_NAME" but    \
-                                            // not in "F" (in the latter case they're identical in     \
-                                            // all other respects). To determine if "noexcept" is      \
-                                            // present in "T::CPP_NAME" or not (why we're here), we    \
-                                            // first add "noexcept" to "T::CPP_NAME" via the call to   \
-                                            // "StdExt::AddNoexcept_t" seen below. We're calling the   \
-                                            // latter on "F" however since it's identical to           \
-                                            // "T::CPP_NAME" at this stage except for possibly its     \
-                                            // "noexcept" specifier as noted (again, by design). The   \
-                                            // call to "StdExt::AddNoexcept_t" therefore just yields   \
-                                            // a noexcept version of "T::CPP_NAME" itself. We then     \
-                                            // simply cast "T::CPP_NAME" to this "noexcept" version    \
-                                            // of itself but if "T::CPP_NAME" isn't actually           \
-                                            // "noexcept" then the cast is illegal in C++ since you    \
-                                            // can't cast a non-noexcept function to a noexcept        \
-                                            // function (though the reverse situation is legal - you   \
-                                            // can cast a noexcept function to a non-noexcept          \
-                                            // function but we're not doing that here). The upshot is  \
-                                            // that if the "static_cast" fails due to the illegal      \
-                                            // cast of non-noexcept to noexcept as just described      \
-                                            // then we know that "T::CPP_NAME" must not be noexcept    \
-                                            // (because if it's noexcept then the "static_cast" will   \
-                                            // succeed). SFINAE therefore fails and our primary        \
-                                            // template kicks in (meaning that "T::CPP_NAME" isn't     \
-                                            // noexcept). If the "static_cast" succeeds however then   \
-                                            // "T::CPP_NAME" must be noexcept since we're simply       \
-                                            // casting "T::CPP_NAME" back to itself in this case (and  \
-                                            // it's also a noexcept to noexcept cast which is legal    \
-                                            // but not really relevant here). The following            \
-                                            // specialization therefore kicks in meaning that          \
-                                            // "T::CPP_NAME" must be noexcept.                         \
-                                            ////////////////////////////////////////////////////////*/ \
-                                            std::void_t< decltype( static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, StdExt::AddNoexcept_t<F>> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
-                                           > \
-                                           : std::true_type \
-                { \
-                }; \
-\
-                /* Partial specialization of above template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                inline constexpr bool IsOverloadedNoexcept_v = IsOverloadedNoexcept<T, F>::value; \
-\
-                /*//////////////////////////////////////////////////////  \
-                // Primary template (not defined since specializations    \
-                // below always guaranteed to kick in)                    \
-                ///////////////////////////////////////////////////////*/ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F, \
-                          typename = void> \
-                struct IsNoexcept; \
-\
-                /* Partial specialization of above template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                struct IsNoexcept<T, \
-                                  F, \
-                                  std::enable_if_t< !IsOverloaded_v<T> > \
-                                 > \
-                                 : std::bool_constant< StdExt::IsNoexcept_v<decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)> > \
-                { \
-                }; \
-\
-                /* Partial specialization of above template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                struct IsNoexcept<T, \
-                                  F, \
-                                  std::enable_if_t< IsOverloaded_v<T> > \
-                                  > \
-                                 : std::bool_constant< IsOverloadedNoexcept_v<T, F> > \
-                { \
-                }; \
-\
-                /* Helper variable for above template */ \
-                template <IS_CLASS_C T, \
-                          TRAITS_FUNCTION_C F> \
-                inline constexpr bool IsNoexcept_v = IsNoexcept<T, F>::value; \
-            }
+            /* Partial specialization of above template */ \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F> \
+            struct IsNoexceptGccBug116167<T, \
+                                          F, \
+                                          /*///////////////////////////////////////////////////// \
+                                          // By design we only arrive here if non-static member   \
+                                          // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME"    \
+                                          // exists. Following then succeeds SFINAE only if it's  \
+                                          // not overloaded (and fails if it is overloaded so     \
+                                          // the primary template above kicks in instead).        \
+                                          /////////////////////////////////////////////////////*/ \
+                                          std::void_t< decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) > \
+                                         > \
+                                         : std::bool_constant< StdExt::IsNoexcept_v<decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)> > \
+            { \
+            };
+
+            // For internal use only (but must remain permanently #defined)
+            #define CLASS_HAS_FUNCTION_OR_OPERATOR_IS_NOEXCEPT IsNoexceptGccBug116167
 
             // Done with this (for internal use only)
             #undef GCC_BUG_116167_IN_EFFECT
@@ -13477,13 +14834,15 @@ namespace StdExt
     // passed (representing the name of the function you're targeting,
     // "Whatever" in this case):
     //
-    //     template <IS_CLASS_C T, IS_FUNCTION_C F>
+    //     template <IS_CLASS_C T,
+    //               IS_FUNCTION_C F>
     //     struct ClassHasFunction_Whatever;
     //
     // A helper variable template with the usual "_v" suffix is also created
     // that just defers to the above in the usual C++ way (read on):
     //
-    //     template <IS_CLASS_C T, IS_FUNCTION_C F>
+    //     template <IS_CLASS_C T,
+    //               IS_FUNCTION_C F>
     //     constexpr bool ClassHasFunction_Whatever_v = ClassHasFunction_Whatever<T, F>::value;
     //
     // These templates (usually the "_v" version just above) can then be used
@@ -13546,10 +14905,67 @@ namespace StdExt
     // template arg (so that the return types match again).
     //////////////////////////////////////////////////////////////////////////
     #define DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
-        /*//////////////////////// \
-        // For internal use only   \
-        ////////////////////////*/ \
-        DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_IS_NOEXCEPT(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
+        /* For internal use only */ \
+        namespace Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME \
+        { \
+            /* Primary template */ \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F, \
+                      typename = void> \
+            struct IsNoexcept : std::false_type \
+            { \
+            }; \
+\
+            /* Partial specialization of above template */ \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F> \
+            struct IsNoexcept<T, \
+                              F, \
+                              /*//////////////////////////////////////////////////////// \
+                              // By design we only arrive here if non-static member      \
+                              // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for  \
+                              // brevity we'll just call this "T::CPP_NAME" from here    \
+                              // on) exists and is either identical to function "F" or   \
+                              // identical except for "noexcept" in "T::CPP_NAME" but    \
+                              // not in "F" (in the latter case they're identical in     \
+                              // all other respects). To determine if "noexcept" is      \
+                              // present in "T::CPP_NAME" or not (why we're here), we    \
+                              // first add "noexcept" to "F" via the call to             \
+                              // "StdExt::AddNoexcept_t" seen below. We're calling the   \
+                              // latter on "F" however since it's identical to           \
+                              // "T::CPP_NAME" at this stage except for possibly its     \
+                              // "noexcept" specifier as noted (again, by design). The   \
+                              // call to "StdExt::AddNoexcept_t" therefore just yields   \
+                              // a noexcept version of "F" itself. We then simply cast   \
+                              // "T::CPP_NAME" to this "noexcept" version of itself but  \
+                              // if "T::CPP_NAME" isn't actually "noexcept" then the     \
+                              // cast is illegal in C++ since you can't cast a           \
+                              // non-noexcept function to a noexcept function (though    \
+                              // the reverse situation is legal - you can cast a         \
+                              // noexcept function to a non-noexcept function but we're  \
+                              // not concerned about that here). The upshot is that if   \
+                              // the "static_cast" fails due to the illegal cast of      \
+                              // non-noexcept to noexcept as just described then we      \
+                              // know that "T::CPP_NAME" must not be noexcept (because   \
+                              // if it's noexcept then the "static_cast" will succeed).  \
+                              // SFINAE therefore fails and our primary template kicks   \
+                              // in (meaning that "T::CPP_NAME" isn't noexcept). If the  \
+                              // "static_cast" succeeds however then "T::CPP_NAME" must  \
+                              // be noexcept since we're simply casting "T::CPP_NAME"    \
+                              // back to itself in this case (and it's also a noexcept   \
+                              // to noexcept cast which is legal but not really relevant \
+                              // here). The following specialization therefore kicks in  \
+                              // meaning that "T::CPP_NAME" must be noexcept.            \
+                              ////////////////////////////////////////////////////////*/ \
+                              std::void_t< decltype( static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, StdExt::AddNoexcept_t<F>> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
+                             > \
+                             : std::true_type \
+            { \
+            }; \
+\
+            /* Resolves to whitespace on non-GCC compilers */ \
+            DECLARE_IS_NOEXCEPT_GCC_BUG_116167(BRACKETED_CPP_NAME) \
+        } /* namespace Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME */ \
 \
         template <IS_CLASS_C T, \
                   TRAITS_FUNCTION_C F, \
@@ -13559,13 +14975,13 @@ namespace StdExt
             STATIC_ASSERT_IS_CLASS(T) \
             STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
 \
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
@@ -13573,179 +14989,91 @@ namespace StdExt
                   TRAITS_FUNCTION_C F> \
         struct ClassHas##FUNCTION_OR_OPERATOR##_##NAME<T, \
                                                        F, \
-                                                       /*//////////////////////////////////////////////////////// \
-                                                       // The "static_cast" below will succeed SFINAE only if     \
-                                                       // "T" has a non-static member function called             \
-                                                       // STDEXT_UNBRACKET BRACKETED_CPP_NAME (for brevity we'll  \
-                                                       // just call this "CPP_NAME" from here on) with the same   \
-                                                       // type as "F" except for possible differences in their    \
-                                                       // "noexcept" specifier (but see IMPORTANT comment         \
-                                                       // further below). If so then here are the "noexcept"      \
-                                                       // possibilities:                                          \
-                                                       //                                                         \
-                                                       //    F         T::CPP_NAME   SFINAE succeeds              \
-                                                       //    -         -----------   ---------------              \
-                                                       //                            ✓                            \
-                                                       //              noexcept      ✓                            \
-                                                       //    noexcept                X (illegal cast)             \
-                                                       //    noexcept  noexcept      ✓                            \
-                                                       //                                                         \
-                                                       // If the "static_cast" succeeds (SFINAE fails             \
-                                                       // otherwise), then as per the above table it's            \
-                                                       // guaranteed that "F" and "T::CPP_NAME" are identical     \
-                                                       // non-static member function types unless we're dealing   \
-                                                       // with the "noexcept" mismatch on the 2nd row above (if   \
-                                                       // dealing with the mismatch on the 3rd row then the       \
-                                                       // "static_cast" itself is guaranteed to fail since a      \
-                                                       // non-noexcept function can't be cast to one that's       \
-                                                       // noexcept - SFINAE is therefore guaranteed to fail).     \
-                                                       // The call to "bool_constant" in the base class below is  \
-                                                       // therefore used to detect the "noexcept" mismatch on     \
-                                                       // the 2nd row in the table. It simply compares the        \
-                                                       // "noexcept" for "F" and "T::CPP_NAME", returning true    \
-                                                       // if they're equal (meaning we must be dealing with the   \
-                                                       // 1st or 4th row above), or false otherwise (meaning we   \
-                                                       // must be dealing with the 2nd row above).                \
-                                                       //                                                         \
-                                                       // The upshot is that SFINAE will succeed and the class    \
-                                                       // will inherit from "std::true_type" only if "T" has a    \
-                                                       // non-static member function called CPP_NAME with the     \
-                                                       // same type as "F" including their noexcept specifiers    \
-                                                       // (their types exactly match IOW). We're therefore        \
-                                                       // dealing with row 1 and 4 above only. Any other          \
-                                                       // scenario, i.e., "T::CPP_NAME" doesn't exist             \
-                                                       // whatsoever, or it's an alias, or it's a non-function,   \
-                                                       // or it's a static function, or it's a non-static         \
-                                                       // function but doesn't match "F" exactly (everything      \
-                                                       // must match meaning return type, calling convention,     \
-                                                       // arg types, variadic, const, volatile, & or &&           \
-                                                       // qualifiers, noexcept), in which case the class will     \
-                                                       // inherit from "std::false_type" (either via the primary  \
-                                                       // template if SFINAE fails or via this specialization's   \
-                                                       // base class but only if row 2 of the table above         \
-                                                       // occurs).                                                \
-                                                       //                                                         \
-                                                       // IMPORTANT                                               \
-                                                       // ---------                                               \
-                                                       // The above assumes that "T" is a class or struct type    \
-                                                       // and "F" is any traits function type supported by this   \
-                                                       // library. This is enforced however by the template's     \
-                                                       // IS_CLASS_C and TRAITS_FUNCTION_C concepts in C++20 or   \
-                                                       // later, or, for C++17, the corresponding static_asserts  \
-                                                       // in the primary template (in the latter case SFINAE is   \
-                                                       // guaranteed to fail so this specialization never kicks   \
-                                                       // in)                                                     \
-                                                       ////////////////////////////////////////////////////////*/ \
+                                                       /*/////////////////////////////////////////////////////// \
+                                                       // The "static_cast" below will succeed SFINAE only if    \
+                                                       // "T" has a non-static member function called            \
+                                                       // STDEXT_UNBRACKET BRACKETED_CPP_NAME (for brevity       \
+                                                       // we'll just call this "CPP_NAME" from here on) with     \
+                                                       // the same type as "F" except for possible differences   \
+                                                       // in their "noexcept" specifier (but see IMPORTANT       \
+                                                       // comment further below). If so then here are the four   \
+                                                       // (4) "noexcept" possibilities (a blank entry means "F"  \
+                                                       // has no "noexcept" specifier):                          \
+                                                       //                                                        \
+                                                       //    #   F         T::CPP_NAME   SFINAE succeeds         \
+                                                       //    -   -         -----------   ---------------         \
+                                                       //    1                           ✓                       \
+                                                       //    2             noexcept      ✓                       \
+                                                       //    3   noexcept                X (illegal cast)        \
+                                                       //    4   noexcept  noexcept      ✓                       \
+                                                       //                                                        \
+                                                       // If the "static_cast" succeeds (SFINAE fails            \
+                                                       // otherwise), then as per the above table it's           \
+                                                       // guaranteed that "F" and "T::CPP_NAME" are identical    \
+                                                       // non-static member function types unless we're dealing  \
+                                                       // with the "noexcept" mismatch on row 2 above (if        \
+                                                       // dealing with the mismatch on row 3 then the            \
+                                                       // "static_cast" itself is guaranteed to fail since a     \
+                                                       // non-noexcept function can't be cast to one that's      \
+                                                       // noexcept - SFINAE is therefore guaranteed to fail      \
+                                                       // since the cast is illegal). The call to                \
+                                                       // "bool_constant" in the base class below is therefore   \
+                                                       // used to detect the "noexcept" mismatch on row 2 in     \
+                                                       // the table. It simply compares the "noexcept" for "F"   \
+                                                       // and "T::CPP_NAME", returning true if they're equal     \
+                                                       // (meaning we must be dealing with row 1 or 4 above),    \
+                                                       // or false otherwise (meaning we must be dealing with    \
+                                                       // row 2 above).                                          \
+                                                       //                                                        \
+                                                       // The upshot is that SFINAE will succeed and the class   \
+                                                       // will inherit from "std::true_type" only if "T" has a   \
+                                                       // non-static member function called CPP_NAME with the    \
+                                                       // same type as "F" including their noexcept specifiers   \
+                                                       // (their types exactly match IOW). We're therefore       \
+                                                       // dealing with row 1 and 4 above only. Any other         \
+                                                       // scenario, i.e., if "T::CPP_NAME" doesn't exist         \
+                                                       // whatsoever, or it's an alias, or it's a non-function,  \
+                                                       // or it's a static function, or it's a non-static        \
+                                                       // function but doesn't match "F" exactly (everything in  \
+                                                       // both functions must match meaning return type,         \
+                                                       // calling convention, arg types, variadic, const,        \
+                                                       // volatile, & or && qualifiers and noexcept), in which   \
+                                                       // case the class will inherit from "std::false_type"     \
+                                                       // (either via the primary template if SFINAE fails or    \
+                                                       // via this specialization's base class but only if row   \
+                                                       // 2 of the table above occurs).                          \
+                                                       //                                                        \
+                                                       // IMPORTANT                                              \
+                                                       // ---------                                              \
+                                                       // The above assumes that "T" is a class or struct type   \
+                                                       // and "F" is any traits function type supported by this  \
+                                                       // library. This is enforced however by the template's    \
+                                                       // IS_CLASS_C and TRAITS_FUNCTION_C concepts in C++20 or  \
+                                                       // later, or, for C++17, the corresponding                \
+                                                       // static_asserts in the primary template (in the latter  \
+                                                       // case SFINAE is guaranteed to fail so this              \
+                                                       // specialization never kicks in)                         \
+                                                       ///////////////////////////////////////////////////////*/ \
                                                        std::void_t< decltype( static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, F> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
                                                       > \
-                                                      : std::bool_constant< StdExt::IsNoexcept_v<F> == StdExt_Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME::IsNoexcept_v<T, F> > \
+                                                      : std::bool_constant< StdExt::IsNoexcept_v<F> == Private_ClassHas##FUNCTION_OR_OPERATOR##_##NAME::CLASS_HAS_FUNCTION_OR_OPERATOR_IS_NOEXCEPT<T, F>::value > \
         { \
-            /*///////////////////////////////////////////////////// \
-            // Note: Neither of these "static_asserts" will ever    \
-            // kick in in C++20 or later since the macros simply    \
-            // resolve to whitespace in C++20 or later. The         \
-            // corresponding concepts above kick in instead. Even   \
-            // in C++17 however where they do resolve to actual     \
-            // "static_asserts", the "static_asserts" still won't   \
-            // ever kick in since specialization of this class      \
-            // won't kick in unless the "static_asserts" hold (due  \
-            // to what we're testing in the "std::enable_if_t" call \
-            // above). They're therefore just for documentation     \
-            // purposes only and consistency with the same          \
-            // "static_asserts" in the primary template (which      \
-            // *will* kick in in C++17 if T and/or F is illegal -   \
-            // again, concepts above will trap things in C++20 and  \
-            // later).                                              \
-            /////////////////////////////////////////////////////*/ \
-            STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
-\
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
-        template <IS_CLASS_C T, TRAITS_FUNCTION_C F> \
+        template <IS_CLASS_C T, \
+                  TRAITS_FUNCTION_C F> \
         inline constexpr bool ClassHas##FUNCTION_OR_OPERATOR##_##NAME##_v = ClassHas##FUNCTION_OR_OPERATOR##_##NAME<T, F>::value;
 
+    // See: https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_function
     #define DECLARE_CLASS_HAS_FUNCTION(NAME) DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR(Function, NAME, (NAME))
-
-    //////////////////////////////////////////////////
-    // For internal use only (all templates declared
-    // by this macro below)
-    //////////////////////////////////////////////////
-    #define DECLARE_CLASS_HAS_STATIC_FUNCTION_IS_NOEXCEPT(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
-        namespace StdExt_Private_ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME \
-        { \
-            /* Primary template (for internal use only) */ \
-            template <IS_CLASS_C T, \
-                      TRAITS_FUNCTION_C F, \
-                      typename = void> \
-            struct IsNoexcept: std::false_type \
-            { \
-            }; \
-\
-            /*//////////////////////////////////////////////// \
-            // Partial specialization of above template (for   \
-            // internal use only                               \
-            ////////////////////////////////////////////////*/ \
-            template <IS_CLASS_C T, \
-                      TRAITS_FUNCTION_C F> \
-            struct IsNoexcept<T, \
-                              F, \
-                              /*//////////////////////////////////////////////////////// \
-                              // By design we only arrive here if static member          \
-                              // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for  \
-                              // brevity we'll just call this "T::CPP_NAME" from here    \
-                              // on) exists and is either identical to function "F" or   \
-                              // identical except for "noexcept" in "T::CPP_NAME" but    \
-                              // not in "F" (in the latter case they're identical in     \
-                              // all other respects). To determine if "noexcept" is      \
-                              // present in "T::CPP_NAME" or not (why we're here), we    \
-                              // first add "noexcept" to "T::CPP_NAME" via the call to   \
-                              // "StdExt::AddNoexcept_t" seen below. We're calling the   \
-                              // latter on "F" however since it's identical to           \
-                              // "T::CPP_NAME" at this stage except for possibly its     \
-                              // "noexcept" specifier as noted (again, by design). The   \
-                              // call to "StdExt::AddNoexcept_t" therefore just yields   \
-                              // a noexcept version of "T::CPP_NAME" itself. We then     \
-                              // simply cast "T::CPP_NAME" to this "noexcept" version    \
-                              // of itself but if "T::CPP_NAME" isn't actually           \
-                              // "noexcept" then the cast is illegal in C++ since you    \
-                              // can't cast a non-noexcept function to a noexcept        \
-                              // function (though the reverse situation is legal - you   \
-                              // can cast a noexcept function to a non-noexcept          \
-                              // function but we're not doing that here). The upshot is  \
-                              // that if the "static_cast" fails due to the illegal      \
-                              // cast of non-noexcept to noexcept as just described      \
-                              // then we know that "T::CPP_NAME" must not be noexcept    \
-                              // (because if it's noexcept then the "static_cast" will   \
-                              // succeed). SFINAE therefore fails and our primary        \
-                              // template kicks in (meaning that "T::CPP_NAME" isn't     \
-                              // noexcept). If the "static_cast" succeeds however then   \
-                              // "T::CPP_NAME" must be noexcept since we're simply       \
-                              // casting "T::CPP_NAME" back to itself in this case (and  \
-                              // it's also a noexcept to noexcept cast which is legal    \
-                              // but not really relevant here). The following            \
-                              // specialization therefore kicks in meaning that          \
-                              // "T::CPP_NAME" must be noexcept.                         \
-                              ////////////////////////////////////////////////////////*/ \
-                              std::void_t< decltype( static_cast< StdExt::FunctionRawType_t<StdExt::AddNoexcept_t<F>> *>(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
-                             > \
-                             : std::true_type \
-            { \
-            }; \
-\
-            /* For internal use only */ \
-            template <IS_CLASS_C T, \
-                      TRAITS_FUNCTION_C F> \
-            inline constexpr bool IsNoexcept_v = IsNoexcept<T, F>::value; \
-        } // namespace StdExt_Private_ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME
 
     ////////////////////////////////////////////////////////////////////////////
     // DECLARE_CLASS_HAS_STATIC_FUNCTION_OR_OPERATOR (for internal use only).
@@ -13759,17 +15087,19 @@ namespace StdExt
     //     DECLARE_CLASS_HAS_STATIC_FUNCTION(Whatever)
     //
     // Doing so then declares a template struct where the name of the struct
-    // always starts with "ClassHasStaticFunction_" and ends with the NAME arg you
-    // passed (representing the name of the function you're targeting,
+    // always starts with "ClassHasStaticFunction_" and ends with the NAME arg
+    // you passed (representing the name of the function you're targeting,
     // "Whatever" in this case):
     //
-    //     template <IS_CLASS_C T, TRAITS_FUNCTION_C F>
+    //     template <IS_CLASS_C T,
+    //               TRAITS_FUNCTION_C F>
     //     struct ClassHasStaticFunction_Whatever;
     //
     // A helper variable template with the usual "_v" suffix is also created
     // that just defers to the above in the usual C++ way (read on):
     //
-    //     template <IS_CLASS_C T, TRAITS_FUNCTION_C F>
+    //     template <IS_CLASS_C T,
+    //               TRAITS_FUNCTION_C F>
     //     constexpr bool ClassHasStaticFunction_Whatever_v = ClassHasStaticFunction_Whatever<T, F>::value;
     //
     // These templates (usually the "_v" version just above) can then be used
@@ -13831,10 +15161,65 @@ namespace StdExt
     // in its 2nd template arg (so that the return types match again).
     //////////////////////////////////////////////////////////////////////////
     #define DECLARE_CLASS_HAS_STATIC_FUNCTION_OR_OPERATOR(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
-        /*//////////////////////// \
-        // For internal use only   \
-        ////////////////////////*/ \
-        DECLARE_CLASS_HAS_STATIC_FUNCTION_IS_NOEXCEPT(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
+        /* For internal use only */ \
+        namespace Private_ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME \
+        { \
+            /* Primary template */ \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F, \
+                      typename = void> \
+            struct IsNoexcept: std::false_type \
+            { \
+            }; \
+\
+            /* Partial specialization of above template */ \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F> \
+            struct IsNoexcept<T, \
+                              F, \
+                              /*//////////////////////////////////////////////////////// \
+                              // By design we only arrive here if static member          \
+                              // function "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for  \
+                              // brevity we'll just call this "T::CPP_NAME" from here    \
+                              // on) exists and is either identical to function "F" or   \
+                              // identical except for "noexcept" in "T::CPP_NAME" but    \
+                              // not in "F" (in the latter case they're identical in     \
+                              // all other respects). To determine if "noexcept" is      \
+                              // present in "T::CPP_NAME" or not (why we're here), we    \
+                              // first add "noexcept" to "F" via the call to             \
+                              // "StdExt::AddNoexcept_t" seen below. We're calling the   \
+                              // latter on "F" however since it's identical to           \
+                              // "T::CPP_NAME" at this stage except for possibly its     \
+                              // "noexcept" specifier as noted (again, by design). The   \
+                              // call to "StdExt::AddNoexcept_t" therefore just yields   \
+                              // a noexcept version of "F" itself. We then simply cast   \
+                              // "T::CPP_NAME" to this "noexcept" version of itself but  \
+                              // if "T::CPP_NAME" isn't actually "noexcept" then the     \
+                              // cast is illegal in C++ since you can't cast a           \
+                              // non-noexcept function to a noexcept function (though    \
+                              // the reverse situation is legal - you can cast a         \
+                              // noexcept function to a non-noexcept function but we're  \
+                              // not concerned about that here). The upshot is that if   \
+                              // the "static_cast" fails due to the illegal cast of      \
+                              // non-noexcept to noexcept as just described then we      \
+                              // know that "T::CPP_NAME" must not be noexcept (because   \
+                              // if it's noexcept then the "static_cast" will succeed).  \
+                              // SFINAE therefore fails and our primary template kicks   \
+                              // in (meaning that "T::CPP_NAME" isn't noexcept). If the  \
+                              // "static_cast" succeeds however then "T::CPP_NAME" must  \
+                              // be noexcept since we're simply casting "T::CPP_NAME"    \
+                              // back to itself in this case (and it's also a noexcept   \
+                              // to noexcept cast which is legal but not really relevant \
+                              // here). The following specialization therefore kicks in  \
+                              // meaning that "T::CPP_NAME" must be noexcept.            \
+                              ////////////////////////////////////////////////////////*/ \
+                              std::void_t< decltype( static_cast< StdExt::FunctionRawType_t<StdExt::AddNoexcept_t<F>> *>(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
+                             > \
+                             : std::true_type \
+            { \
+            }; \
+\
+        } /* namespace Private_ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME */ \
 \
         template <IS_CLASS_C T, \
                   TRAITS_FUNCTION_C F, \
@@ -13844,13 +15229,13 @@ namespace StdExt
             STATIC_ASSERT_IS_CLASS(T) \
             STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
 \
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
@@ -13858,106 +15243,103 @@ namespace StdExt
                   TRAITS_FUNCTION_C F> \
         struct ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME<T, \
                                                              F, \
-                                                             /*///////////////////////////////////////////////////////// \
-                                                             // The 1st condition below (the call to "static_cast")      \
-                                                             // will succeed SFINAE only if "T" has a static member      \
-                                                             // function called STDEXT_UNBRACKET BRACKETED_CPP_NAME (for \
-                                                             // brevity we'll just call this "CPP_NAME" from here on)    \
-                                                             // with the same type as "F" except for possible            \
-                                                             // differences in their "noexcept" specifier (but see       \
-                                                             // IMPORTANT comment further below). If so then here are    \
-                                                             // the "noexcept" possibilities:                            \
-                                                             //                                                          \
-                                                             //    F         T::CPP_NAME   SFINAE succeeds               \
-                                                             //    -         -----------   ---------------               \
-                                                             //                            ✓                             \
-                                                             //              noexcept      ✓                             \
-                                                             //    noexcept                X (illegal cast)              \
-                                                             //    noexcept  noexcept      ✓                             \
-                                                             //                                                          \
-                                                             // If the "static_cast" succeeds (SFINAE fails otherwise)   \
-                                                             // then as per the above table it's guaranteed that "F"     \
-                                                             // and "T::CPP_NAME" are identical static member function   \
-                                                             // types unless we're dealing with the "noexcept"           \
-                                                             // mismatch on the 2nd row above (if dealing with the       \
-                                                             // mismatch on the 3rd row then the "static_cast" itself    \
-                                                             // is guaranteed to fail since a non-noexcept function      \
-                                                             // can't be cast to one that's noexcept - SFINAE is         \
-                                                             // therefore guaranteed to fail). The 2nd condition below   \
-                                                             // is therefore used to catch the "noexcept" mismatch on    \
-                                                             // the 2nd row in the table. It simply compares the         \
-                                                             // "noexcept" for "F" and "T::CPP_NAME", returning true if  \
-                                                             // they're equal (meaning we must be dealing with the 1st   \
-                                                             // or 4th row above), or false otherwise (meaning we must   \
-                                                             // be dealing with the 2nd row above).                      \
-                                                             //                                                          \
-                                                             // The upshot is that SFINAE will succeed only if "T" has   \
-                                                             // a static member function called CPP_NAME with the same   \
-                                                             // type as "F" including their noexcept specifiers (their   \
-                                                             // types exactly match IOW). We're therefore dealing with   \
-                                                             // row 1 and 4 above only. SFINAE always fails for row 2    \
-                                                             // and 3 ("F" and "T::F" identical except for "noexcept" so \
-                                                             // they don't precisely match).                             \
-                                                             //                                                          \
-                                                             // IMPORTANT                                                \
-                                                             // ---------                                                \
-                                                             // The above assumes that "T" is a class or struct type     \
-                                                             // and "F" is a function type. This is enforced however     \
-                                                             // by the template's IS_CLASS_C and IS_FUNCTION_C concepts  \
-                                                             // in C++20 or later or, for C++17, the corresponding       \
-                                                             // static_asserts in the primary template (in the latter    \
-                                                             // case SFINAE is guaranteed to fail below).                \
-                                                             /////////////////////////////////////////////////////////*/ \
+                                                             /*/////////////////////////////////////////////////////// \
+                                                             // The "static_cast" below will succeed SFINAE only if    \
+                                                             // "T" has a static member function called                \
+                                                             // STDEXT_UNBRACKET BRACKETED_CPP_NAME (for brevity       \
+                                                             // we'll just call this "CPP_NAME" from here on) with     \
+                                                             // the same type as "F" except for possible differences   \
+                                                             // in their "noexcept" specifier (but see IMPORTANT       \
+                                                             // comment further below). If so then here are the four   \
+                                                             // (4) "noexcept" possibilities (a blank entry means "F"  \
+                                                             // has no "noexcept" specifier):                          \
+                                                             //                                                        \
+                                                             //    #   F         T::CPP_NAME   SFINAE succeeds         \
+                                                             //    -   -         -----------   ---------------         \
+                                                             //    1                           ✓                       \
+                                                             //    2             noexcept      ✓                       \
+                                                             //    3   noexcept                X (illegal cast)        \
+                                                             //    4   noexcept  noexcept      ✓                       \
+                                                             //                                                        \
+                                                             // If the "static_cast" succeeds (SFINAE fails            \
+                                                             // otherwise), then as per the above table it's           \
+                                                             // guaranteed that "F" and "T::CPP_NAME" are identical    \
+                                                             // static member function types unless we're dealing      \
+                                                             // with the "noexcept" mismatch on row 2 above (if        \
+                                                             // dealing with the mismatch on row 3 then the            \
+                                                             // "static_cast" itself is guaranteed to fail since a     \
+                                                             // non-noexcept function can't be cast to one that's      \
+                                                             // noexcept - SFINAE is therefore guaranteed to fail      \
+                                                             // since the cast is illegal). The call to                \
+                                                             // "bool_constant" in the base class below is therefore   \
+                                                             // used to detect the "noexcept" mismatch on row 2 in     \
+                                                             // the table. It simply compares the "noexcept" for "F"   \
+                                                             // and "T::CPP_NAME", returning true if they're equal     \
+                                                             // (meaning we must be dealing with row 1 or 4 above),    \
+                                                             // or false otherwise (meaning we must be dealing with    \
+                                                             // row 2 above).                                          \
+                                                             //                                                        \
+                                                             // The upshot is that SFINAE will succeed and the class   \
+                                                             // will inherit from "std::true_type" only if "T" has a   \
+                                                             // static member function called CPP_NAME with the same   \
+                                                             // type as "F" including their noexcept specifiers        \
+                                                             // (their types exactly match IOW). We're therefore       \
+                                                             // dealing with row 1 and 4 above only. Any other         \
+                                                             // scenario, i.e., if "T::CPP_NAME" doesn't exist         \
+                                                             // whatsoever, or it's an alias, or it's a non-function,  \
+                                                             // or it's a non-static function, or it's a static        \
+                                                             // function but doesn't match "F" exactly (everything in  \
+                                                             // both functions must match meaning return type,         \
+                                                             // calling convention, arg types, variadic, and           \
+                                                             // noexcept), in which case the class will inherit from   \
+                                                             // "std::false_type" (either via the primary template if  \
+                                                             // SFINAE fails or via this specialization's base class   \
+                                                             // but only if row 2 of the table above occurs).          \
+                                                             //                                                        \
+                                                             // IMPORTANT                                              \
+                                                             // ---------                                              \
+                                                             // The above assumes that "T" is a class or struct type   \
+                                                             // and "F" is any traits function type supported by this  \
+                                                             // library. This is enforced however by the template's    \
+                                                             // IS_CLASS_C and TRAITS_FUNCTION_C concepts in C++20 or  \
+                                                             // later, or, for C++17, the corresponding                \
+                                                             // static_asserts in the primary template (in the latter  \
+                                                             // case SFINAE is guaranteed to fail so this              \
+                                                             // specialization never kicks in)                         \
+                                                             ///////////////////////////////////////////////////////*/ \
                                                              std::void_t< decltype( static_cast< StdExt::FunctionRawType_t<F> *>(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ) > \
                                                             > \
-                                                            : std::bool_constant< StdExt::IsNoexcept_v<F> == StdExt_Private_ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME::IsNoexcept_v<T, F> >  \
+                                                            : std::bool_constant< StdExt::IsNoexcept_v<F> == Private_ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME::IsNoexcept<T, F>::value >  \
         { \
-            /*///////////////////////////////////////////////////// \
-            // Note: Neither of these "static_asserts" will ever    \
-            // kick in in C++20 or later since the macros simply    \
-            // resolve to whitespace in C++20 or later. The         \
-            // corresponding concepts above kick in instead. Even   \
-            // in C++17 however where they do resolve to actual     \
-            // "static_asserts", the "static_asserts" still won't   \
-            // ever kick in since specialization of this class      \
-            // won't kick in unless the "static_asserts" hold (due  \
-            // to what we're testing in the "std::enable_if_t" call \
-            // above). They're therefore just for documentation     \
-            // purposes only and consistency with the same          \
-            // "static_asserts" in the primary template (which      \
-            // *will* kick in in C++17 if T and/or F is illegal -   \
-            // again, concepts above will trap things in C++20 and  \
-            // later).                                              \
-            /////////////////////////////////////////////////////*/ \
-            STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
-\
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
-        template <IS_CLASS_C T, TRAITS_FUNCTION_C F> \
+        template <IS_CLASS_C T, \
+                  TRAITS_FUNCTION_C F> \
         inline constexpr bool ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME##_v = ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME<T, F>::value;
 
+    // See: https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_static_function
     #define DECLARE_CLASS_HAS_STATIC_FUNCTION(NAME) DECLARE_CLASS_HAS_STATIC_FUNCTION_OR_OPERATOR(Function, NAME, (NAME))
 
     ////////////////////////////////////////////////////////////////////////
     // DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_OR_OPERATOR (for internal
-    // use only). Functionally equivalent to the DECLARE_CLASS_HAS_FUNCTION
-    // macro just above but targets non-overloaded functions only. If the
-    // function you're targeting, "T::NAME", is overloaded, then the
-    // following templates will always return false (unlike the templates
-    // created by DECLARE_CLASS_HAS_FUNCTION), even if one of the overloads
-    // match the 2nd template arg you're passing to these templates. IOW,
-    // the templates are designed to target functions that are not
-    // overloaded. If they are overloaded then these templates will always
-    // return false.
+    // use only). Functionally equivalent to the
+    // DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR macro further above but
+    // targets non-overloaded functions only. If the function you're
+    // targeting, "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME", is overloaded,
+    // then the following templates will always return false (unlike the
+    // templates created by DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR), even
+    // if one of the overloads match the 2nd template arg you're passing to
+    // these templates. IOW, the templates are designed to target functions
+    // that are not overloaded. If they are overloaded then these templates
+    // will always return false.
     ////////////////////////////////////////////////////////////////////////
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_OR_OPERATOR(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
         template <IS_CLASS_C T, \
@@ -13968,13 +15350,13 @@ namespace StdExt
             STATIC_ASSERT_IS_CLASS(T) \
             STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
 \
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
@@ -13986,15 +15368,15 @@ namespace StdExt
                                                                     // For the 1st check below (the "static_cast"), see the identical   \
                                                                     // check in the "struct ClassHas##FUNCTION_OR_OPERATOR##_##NAME"    \
                                                                     // specialization (see the comments there). The 2nd check below     \
-                                                                    // simply ensures "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for     \
-                                                                    // brevity we'll just call this "CPP_NAME" from here on) isn't      \
+                                                                    // simply ensures "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" isn't    \
                                                                     // overloaded either (the purpose of the following specialization   \
                                                                     // - if SFINAE fails on the 1st check however then the 2nd check    \
                                                                     // isn't relevant). This entire specialization is therefore         \
                                                                     // effectively identical to the                                     \
                                                                     // "struct ClassHas##FUNCTION_OR_OPERATOR##_##NAME" specialization  \
-                                                                    // except for the 2nd check below (to ensure "T::CPP_NAME" isn't    \
-                                                                    // overloaded as noted). See the latter struct for details.         \
+                                                                    // except for the 2nd check below (to ensure                        \
+                                                                    // "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" isn't overloaded as     \
+                                                                    // noted). See the latter struct for details.                       \
                                                                     /////////////////////////////////////////////////////////////////*/ \
                                                                     std::void_t< decltype( static_cast< StdExt::Private::ClassHasFunctionStaticCastTarget_t<T, F> >(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ), \
                                                                                  decltype( &T::STDEXT_UNBRACKET BRACKETED_CPP_NAME ) \
@@ -14014,33 +15396,13 @@ namespace StdExt
                                                                    ///////////////////////////////////////////////////////////////////*/ \
                                                                    : std::bool_constant< StdExt::IsNoexcept_v<F> == StdExt::IsNoexcept_v<decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)> > \
         { \
-            /*///////////////////////////////////////////////////// \
-            // Note: Neither of these "static_asserts" will ever    \
-            // kick in in C++20 or later since the macros simply    \
-            // resolve to whitespace in C++20 or later. The         \
-            // corresponding concepts above kick in instead. Even   \
-            // in C++17 however where they do resolve to actual     \
-            // "static_asserts", the "static_asserts" still won't   \
-            // ever kick in since specialization of this class      \
-            // won't kick in unless the "static_asserts" hold (due  \
-            // to what we're testing in the "std::enable_if_t" call \
-            // above). They're therefore just for documentation     \
-            // purposes only and consistency with the same          \
-            // "static_asserts" in the primary template (which      \
-            // *will* kick in in C++17 if T and/or F is illegal -   \
-            // again, concepts above will trap things in C++20 and  \
-            // later).                                              \
-            /////////////////////////////////////////////////////*/ \
-            STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
-\
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
@@ -14048,21 +15410,22 @@ namespace StdExt
                   TRAITS_FUNCTION_C F> \
         inline constexpr bool ClassHasNonOverloaded##FUNCTION_OR_OPERATOR##_##NAME##_v = ClassHasNonOverloaded##FUNCTION_OR_OPERATOR##_##NAME<T, F>::value;
 
+    // See: https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_non_overloaded_function
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION(NAME) DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_OR_OPERATOR(Function, NAME, (NAME))
 #endif // if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
 
     ////////////////////////////////////////////////////////////////////////
     // DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_OR_OPERATOR (for
     // internal use only). Functionally equivalent to the
-    // DECLARE_CLASS_HAS_STATIC_FUNCTION macro just above but targets
+    // DECLARE_CLASS_HAS_STATIC_FUNCTION macro further above but targets
     // non-overloaded functions only. If the function you're targeting,
-    // "T::NAME", is overloaded, then the following templates will always
-    // return false (unlike the templates created by
-    // DECLARE_CLASS_HAS_STATIC_FUNCTION), even if one of the overloads
-    // match the 2nd template arg you're passing to these templates. IOW,
-    // the templates are designed to handle functions that are not
-    // overloaded. If they are overloaded these templates will always
-    // return false.
+    // "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME", is overloaded, then the
+    // following templates will always return false (unlike the templates
+    // created by DECLARE_CLASS_HAS_STATIC_FUNCTION), even if one of the
+    // overloads match the 2nd template arg you're passing to these
+    // templates. IOW, the templates are designed to handle functions that
+    // are not overloaded. If they are overloaded these templates will
+    // always return false.
     ////////////////////////////////////////////////////////////////////////
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_OR_OPERATOR(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
         template <IS_CLASS_C T, \
@@ -14073,13 +15436,13 @@ namespace StdExt
             STATIC_ASSERT_IS_CLASS(T) \
             STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
 \
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
@@ -14091,14 +15454,14 @@ namespace StdExt
                                                                           // For the 1st check below (the "static_cast"), see the identical check    \
                                                                           // in the "struct ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME"           \
                                                                           // specialization (see the comments there). The 2nd check below simply     \
-                                                                          // ensures "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" (for brevity we'll     \
-                                                                          // just call this "CPP_NAME" from here on) isn't overloaded either (the    \
-                                                                          // purpose of the following specialization - if SFINAE fails on the 1st    \
-                                                                          // check however then the 2nd check isn't relevant). This entire           \
-                                                                          // specialization is identical to the                                      \
-                                                                          // "struct ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME"                  \
-                                                                          // specialization except for the 2nd check below (to ensure "T::CPP_NAME"  \
-                                                                          // isn't overloaded as noted). See the latter struct for details.          \
+                                                                          // ensures "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" isn't overloaded       \
+                                                                          // either (the purpose of the following specialization - if SFINAE fails   \
+                                                                          // on the 1st check however then the 2nd check isn't relevant). This       \
+                                                                          // entire specialization is identical to the                               \
+                                                                          // "struct ClassHasStatic##FUNCTION_OR_OPERATOR##_##NAME" specialization   \
+                                                                          // except for the 2nd check below (to ensure                               \
+                                                                          // "T::STDEXT_UNBRACKET BRACKETED_CPP_NAME" isn't overloaded as noted).    \
+                                                                          // See the latter struct for details.                                      \
                                                                           ////////////////////////////////////////////////////////////////////////*/ \
                                                                           std::void_t< decltype( static_cast< StdExt::FunctionRawType_t<F> *>(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME) ), \
                                                                                        decltype( &T::STDEXT_UNBRACKET BRACKETED_CPP_NAME ) \
@@ -14125,33 +15488,13 @@ namespace StdExt
                                                                          //////////////////////////////////////////////////////////////////////////*/ \
                                                                          : std::bool_constant< StdExt::IsNoexcept_v<F> == StdExt::IsNoexcept_v<decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)> > \
         { \
-            /*///////////////////////////////////////////////////// \
-            // Note: Neither of these "static_asserts" will ever    \
-            // kick in in C++20 or later since the macros simply    \
-            // resolve to whitespace in C++20 or later. The         \
-            // corresponding concepts above kick in instead. Even   \
-            // in C++17 however where they do resolve to actual     \
-            // "static_asserts", the "static_asserts" still won't   \
-            // ever kick in since specialization of this class      \
-            // won't kick in unless the "static_asserts" hold (due  \
-            // to what we're testing in the "std::enable_if_t" call \
-            // above). They're therefore just for documentation     \
-            // purposes only and consistency with the same          \
-            // "static_asserts" in the primary template (which      \
-            // *will* kick in in C++17 if T and/or F is illegal -   \
-            // again, concepts above will trap things in C++20 and  \
-            // later).                                              \
-            /////////////////////////////////////////////////////*/ \
-            STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_TRAITS_FUNCTION(F) \
-\
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
@@ -14159,6 +15502,7 @@ namespace StdExt
                   TRAITS_FUNCTION_C F> \
         inline constexpr bool ClassHasNonOverloadedStatic##FUNCTION_OR_OPERATOR##_##NAME##_v = ClassHasNonOverloadedStatic##FUNCTION_OR_OPERATOR##_##NAME<T, F>::value;
 
+    // See: https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_non_overloaded_static_function
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION(NAME) DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_OR_OPERATOR(Function, NAME, (NAME))
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -14167,15 +15511,18 @@ namespace StdExt
     {
         // Primary template
         template <typename T,
-                  typename = void>
+                  bool FreeFunc,
+                  typename = void> // Arg for internal use only (never explicitly passed)
         struct HasFunctionCallOperatorWithOneTemplateArg : std::false_type
         {
         };
 
         // Partial specialization of above template
-        template <typename T>
+        template <typename T,
+                  bool FreeFunc>
         struct HasFunctionCallOperatorWithOneTemplateArg<T,
-                                                         std::enable_if_t< std::is_same_v< decltype(T().template operator()<void (AnyClass::*)()>()),
+                                                         FreeFunc,
+                                                         std::enable_if_t< std::is_same_v< decltype(T().template operator()<TestFunc_t<FreeFunc>>()),
                                                                                            bool
                                                                                          >
                                                                          >
@@ -14184,72 +15531,79 @@ namespace StdExt
         {
         };
 
-        // Helper variable for above templates
-        template <typename T>
-        inline constexpr bool HasFunctionCallOperatorWithOneTemplateArg_v = HasFunctionCallOperatorWithOneTemplateArg<T>::value;
-
         // Primary template
         template <typename T,
                   typename UserTypeT,
-                  typename = void>
+                  bool FreeFunc,
+                  typename = void> // Arg for internal use only (never explicitly passed)
         struct HasFunctionCallOperatorWithTwoTemplateArgs : std::false_type
         {
+            // By design (should always hold)
+            static_assert(!std::is_void_v<UserTypeT>);
         };
 
         // Partial specialization of above template
         template <typename T,
-                  typename UserTypeT>
+                  typename UserTypeT,
+                  bool FreeFunc>
         struct HasFunctionCallOperatorWithTwoTemplateArgs<T,
                                                           UserTypeT,
-                                                          std::enable_if_t< std::is_same_v< decltype(T().template operator()<void (AnyClass::*)(), UserTypeT>()),
+                                                          FreeFunc,
+                                                          std::enable_if_t< std::is_same_v< decltype(T().template operator()<TestFunc_t<FreeFunc>, UserTypeT>()),
                                                                                             bool
                                                                                           >
                                                                           >
                                                          >
                                                          : std::true_type
         {
+            // By design (should always hold)
+            static_assert(!std::is_void_v<UserTypeT>);
         };
 
-        // Helper variable for above templates
-        template <typename T,
-                  typename UserTypeT>
-        inline constexpr bool HasFunctionCallOperatorWithTwoTemplateArgs_v = HasFunctionCallOperatorWithTwoTemplateArgs<T, UserTypeT>::value;
-
-        /////////////////////////////////////////////////
-        // Primary template (undefined since our partial
-        // specializations below will always kick in)
-        /////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        // Primary template. Kicks in if "UserType"T is (optionally
+        // cv-qualified) void. Partial specialization just below
+        // kicks in otherwise (i.e., if "UserType"T is *not*
+        // optionally cv-qualified void)
+        ////////////////////////////////////////////////////////////
         template <typename T,
                   typename UserTypeT,
-                  typename = void>
-        struct IsHasFunctionTraits;
-
-        // Partial specialization of above template
-        template <typename T,
-                  typename UserTypeT>
-        struct IsHasFunctionTraits<T,
-                                   UserTypeT,
-                                   std::enable_if_t< std::is_void_v<UserTypeT> >
-                                  >
-                                  : std::bool_constant< HasFunctionCallOperatorWithOneTemplateArg_v<T> >
+                  bool FreeFunc,
+                  typename = void> // Arg for internal use only (never explicitly passed)
+        struct IsHasFunctionTraits : std::bool_constant< HasFunctionCallOperatorWithOneTemplateArg<T,
+                                                                                                   FreeFunc
+                                                                                                  >::value
+                                                       >
         {
         };
 
-        // Partial specialization of above template
+        ////////////////////////////////////////////////////////////
+        // Partial specialization of primary template just above.
+        // Kicks in if "UserType"T isn't (optionally cv-qualified)
+        // void. Primary template just above kicks in otherwise
+        // (i.e., if "UserType"T *is* optionally cv-qualified void)
+        ////////////////////////////////////////////////////////////
         template <typename T,
-                  typename UserTypeT>
+                  typename UserTypeT,
+                  bool FreeFunc>
         struct IsHasFunctionTraits<T,
                                    UserTypeT,
+                                   FreeFunc,
                                    std::enable_if_t< !std::is_void_v<UserTypeT> >
                                   >
-                                  : std::bool_constant< HasFunctionCallOperatorWithTwoTemplateArgs_v<T, UserTypeT> >
+                                  : std::bool_constant< HasFunctionCallOperatorWithTwoTemplateArgs<T,
+                                                                                                   UserTypeT,
+                                                                                                   FreeFunc
+                                                                                                  >::value
+                                                      >
         {
         };
     } // namespace Private
 
     template <typename T,
-              typename UserTypeT>
-    inline constexpr bool IsHasFunctionTraits_v = Private::IsHasFunctionTraits<T, UserTypeT>::value;
+              typename UserTypeT,
+              bool FreeFunc>
+    inline constexpr bool IsHasFunctionTraits_v = Private::IsHasFunctionTraits<T, UserTypeT, FreeFunc>::value;
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
     /////////////////////////////////////////////////////////////////////////
@@ -14265,72 +15619,67 @@ namespace StdExt
     #if defined(USE_CONCEPTS)
         #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
             template <typename T,
-                      typename UserTypeT>
-            concept IsHasFunctionTraits_c = IsHasFunctionTraits_v<T, UserTypeT>;
+                      typename UserTypeT,
+                      bool FreeFunc>
+            concept IsHasFunctionTraits_c = IsHasFunctionTraits_v<T, UserTypeT, FreeFunc>;
         #endif
 
-        #define REQUIRES_IS_HAS_FUNCTION_TRAITS_C(T, UserTypeT) requires StdExt::IsHasFunctionTraits_c<T, UserTypeT>
-        #define STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(T, UserTypeT)
+        #define REQUIRES_IS_HAS_FUNCTION_TRAITS_C(T, UserTypeT, FreeFunc) requires StdExt::IsHasFunctionTraits_c<T, UserTypeT, FreeFunc>
+        #define STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(T, UserTypeT, FreeFunc)
     #else
-        #define REQUIRES_IS_HAS_FUNCTION_TRAITS_C(T, UserTypeT)
-        #define STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(T, UserTypeT) static_assert(StdExt::IsHasFunctionTraits_v<T, UserTypeT>, \
-                                                                                 "An invalid type was passed for the " QUOTE_STRINGIFY(T) \
-                                                                                 " template arg of a member function detection template " \
-                                                                                 "created by the library's " \
-                                                                                 "DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_TRAITS or " \
-                                                                                 "DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_TRAITS " \
-                                                                                 "macros. " QUOTE_STRINGIFY(T) " must be a class/struct " \
-                                                                                 "with a non-static, template-based function call operator " \
-                                                                                 "as follows (both templates below identical except the " \
-                                                                                 "2nd takes an optional user-defined (pass-through) " \
-                                                                                 "template arg which you can pass via the \"UserTypeT\" " \
-                                                                                 "template arg described under " \
-                                                                                 "https://github.com/HexadigmSystems/FunctionTraits/#declare_class_has_non_overloaded_function_traits):\n" \
-                                                                                 "\n" \
-                                                                                 "template <TRAITS_FUNCTION_C F>\n" \
-                                                                                 "constexpr bool operator()() const noexcept;\n" \
-                                                                                 "\n" \
-                                                                                 "template <TRAITS_FUNCTION_C F, typename UserTypeT>\n" \
-                                                                                 "constexpr bool operator()() const noexcept;\n" \
-                                                                                 "\n" \
-                                                                                 "The above function call operators should return true if " \
-                                                                                 "the template arg \"F\" meets your search criteria (usually " \
-                                                                                 "by invoking the templates in this library), or false  " \
-                                                                                 "otherwise. See link in this message above for details.");
+        #define REQUIRES_IS_HAS_FUNCTION_TRAITS_C(T, UserTypeT, FreeFunc)
+        #define STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(T, UserTypeT, FreeFunc) static_assert(StdExt::IsHasFunctionTraits_v<T, UserTypeT, FreeFunc>, \
+                                                                                           "An invalid type was passed for the " QUOTE_STRINGIFY(T) \
+                                                                                           " template arg of a member function detection template " \
+                                                                                           "created by the library's " \
+                                                                                           "DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_TRAITS or " \
+                                                                                           "DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_TRAITS " \
+                                                                                           "macros. " QUOTE_STRINGIFY(T) " must be a class/struct " \
+                                                                                           "with a non-static, template-based function call operator " \
+                                                                                           "as follows (both templates below identical except the " \
+                                                                                           "2nd takes an optional user-defined (pass-through) " \
+                                                                                           "template arg which you can pass via the \"UserTypeT\" " \
+                                                                                           "template arg described under " \
+                                                                                           "https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_non_overloaded_function_traits):\n" \
+                                                                                           "\n" \
+                                                                                           "template <TRAITS_FUNCTION_C F>\n" \
+                                                                                           "constexpr bool operator()() const noexcept;\n" \
+                                                                                           "\n" \
+                                                                                           "template <TRAITS_FUNCTION_C F, typename UserTypeT>\n" \
+                                                                                           "constexpr bool operator()() const noexcept;\n" \
+                                                                                           "\n" \
+                                                                                           "The above function call operators should return true if " \
+                                                                                           "the template arg \"F\" meets your search criteria (usually " \
+                                                                                           "by invoking the templates in this library), or false  " \
+                                                                                           "otherwise. See link in this message above for details.");
     #endif // #if defined(USE_CONCEPTS)
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
     // For internal use only
     namespace Private
     {
-        /////////////////////////////////////////////////
-        // Primary template (undefined since our partial
-        // specializations below will always kick in)
-        /////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        // Primary template. Kicks in if "UserType"T is (optionally
+        // cv-qualified) void. Partial specialization just below
+        // kicks in otherwise (i.e., if "UserType"T is *not*
+        // optionally cv-qualified) void)
+        ////////////////////////////////////////////////////////////
         template <IS_CLASS_C HasFunctionTraitsT,
-                  FREE_OR_MEMBER_FUNCTION_POINTER_C,
-                  typename UserTypeT, typename = void>
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
-        struct InvokeHasFunctionTraits;
-
-        // // Partial specialization of (primary) template just above
-        template <IS_CLASS_C HasFunctionTraitsT,
-                  FREE_OR_MEMBER_FUNCTION_POINTER_C F,
-                  typename UserTypeT>
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
-        struct InvokeHasFunctionTraits<HasFunctionTraitsT,
-                                       F,
-                                       UserTypeT,
-                                       std::enable_if_t< std::is_void_v<UserTypeT> >
-                                      >
+                  FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER_C F,
+                  typename UserTypeT,
+                  bool IsFreeFunc,
+                  typename = void
+                 >
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, IsFreeFunc)
+        struct InvokeHasFunctionTraits
         {
-            // See this constant for details
+            // See this macro for details
             #if !defined(USE_CONCEPTS)
                 //////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead (macro for these
-                // above resolves to the "typename" keyword when
+                // corresponding concepts kick in in the template
+                // declaration above instead (macros for these
+                // above resolve to the "typename" keyword when
                 // concepts aren't supported and
                 // REQUIRES_IS_HAS_FUNCTION_TRAITS_C resolves to
                 // whitespace, and the following "static_asserts"
@@ -14340,8 +15689,8 @@ namespace StdExt
                 // need to call STATIC_ASSERT_IS_CLASS on it
                 // below - it would be redundant)
                 //////////////////////////////////////////////////
-                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT)
-                STATIC_ASSERT_IS_FREE_OR_MEMBER_FUNCTION_POINTER(F)
+                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, IsFreeFunc)
+                STATIC_ASSERT_IS_FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER(F)
             #endif
 
             ///////////////////////////////////////////////////////////
@@ -14356,24 +15705,32 @@ namespace StdExt
             static constexpr bool Value = HasFunctionTraitsT().template operator()<F>();
         }; // struct InvokeHasFunctionTraits
 
-        // Partial specialization of (primary) template above
+        ////////////////////////////////////////////////////////////
+        // Partial specialization of primary template just above.
+        // Kicks in if "UserType"T isn't (optionally cv-qualified)
+        // void. Primary template just above kicks in otherwise
+        // (i.e., if "UserType"T *is* optionally cv-qualified void)
+        ////////////////////////////////////////////////////////////
         template <IS_CLASS_C HasFunctionTraitsT,
-                  FREE_OR_MEMBER_FUNCTION_POINTER_C F,
-                  typename UserTypeT>
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
+                  FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER_C F,
+                  typename UserTypeT,
+                  bool IsFreeFunc
+                 >
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, IsFreeFunc)
         struct InvokeHasFunctionTraits<HasFunctionTraitsT,
                                        F,
                                        UserTypeT,
+                                       IsFreeFunc,
                                        std::enable_if_t< !std::is_void_v<UserTypeT> >
                                       >
         {
-            // See this constant for details
+            // See this macro for details
             #if !defined(USE_CONCEPTS)
                 //////////////////////////////////////////////////
                 // Kicks in if concepts not supported, otherwise
-                // corresponding concept kicks in in the template
-                // declaration above instead (macro for these
-                // above resolves to the "typename" keyword when
+                // corresponding concepts kick in in the template
+                // declaration above instead (macros for these
+                // above resolve to the "typename" keyword when
                 // concepts aren't supported and
                 // REQUIRES_IS_HAS_FUNCTION_TRAITS_C resolves to
                 // whitespace, and the following "static_asserts"
@@ -14383,8 +15740,8 @@ namespace StdExt
                 // need to call STATIC_ASSERT_IS_CLASS on it
                 // below - it would be redundant)
                 //////////////////////////////////////////////////
-                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT)
-                STATIC_ASSERT_IS_FREE_OR_MEMBER_FUNCTION_POINTER(F)
+                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, IsFreeFunc)
+                STATIC_ASSERT_IS_FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER(F)
             #endif
 
             ///////////////////////////////////////////////////////////
@@ -14419,13 +15776,15 @@ namespace StdExt
         //   https://godbolt.org/z/cYKxb3f3a
         ////////////////////////////////////////////////////////
         template <IS_CLASS_C HasFunctionTraitsT,
-                  FREE_OR_MEMBER_FUNCTION_POINTER_C F,
-                  typename UserTypeT>
-        #undef FREE_OR_MEMBER_FUNCTION_POINTER_C // Done with this just above (for internal use only)
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
-        inline constexpr bool InvokeHasFunctionTraits_v = InvokeHasFunctionTraits<HasFunctionTraitsT, F, UserTypeT>::Value;
+                  FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER_C F,
+                  typename UserTypeT,
+                  bool IsFreeFunc
+                 >
+        #undef FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER_C // Done with this just above (for internal use only)
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, IsFreeFunc)
+        inline constexpr bool InvokeHasFunctionTraits_v = InvokeHasFunctionTraits<HasFunctionTraitsT, F, UserTypeT, IsFreeFunc>::Value;
          // Done with this (for internal use only)
-        #undef STATIC_ASSERT_IS_FREE_OR_MEMBER_FUNCTION_POINTER
+        #undef STATIC_ASSERT_IS_FREE_FUNCTION_OR_MEMBER_FUNCTION_POINTER
     } // namespace Private
 #endif // #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
@@ -14436,28 +15795,28 @@ namespace StdExt
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_OR_OPERATOR_TRAITS(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
         template <IS_CLASS_C T, \
                   IS_CLASS_C HasFunctionTraitsT, \
-                  typename UserTypeT, \
+                  typename UserTypeT = void, \
                   typename = void> \
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, false) \
         struct ClassHasNonOverloaded##FUNCTION_OR_OPERATOR##Traits_##NAME : std::false_type \
         { \
             STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT) \
+            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, false) \
 \
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
         template <IS_CLASS_C T, \
                   IS_CLASS_C HasFunctionTraitsT, \
                   typename UserTypeT> \
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, false) \
         struct ClassHasNonOverloaded##FUNCTION_OR_OPERATOR##Traits_##NAME<T, \
                                                                           HasFunctionTraitsT, \
                                                                           UserTypeT, \
@@ -14469,43 +15828,25 @@ namespace StdExt
                                                                           ///////////////////////////////////////////*/ \
                                                                           std::enable_if_t< std::is_member_function_pointer_v<decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)> > \
                                                                          > \
-                                                                         : std::bool_constant< StdExt::Private::InvokeHasFunctionTraits_v<HasFunctionTraitsT, decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME), UserTypeT> > \
+                                                                         : std::bool_constant< StdExt::Private::InvokeHasFunctionTraits_v<HasFunctionTraitsT, decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME), UserTypeT, false> > \
         { \
-            /*////////////////////////////////////////////////////// \
-            // Note: In C++17 only (since the following macros       \
-            // resolve to nothing in C++20 - the corresponding       \
-            // concepts above kick in instead), the first            \
-            // "static_assert" below will never kick in since        \
-            // specialization of this class won't kick in unless     \
-            // the "static_assert" holds (due to what we're testing  \
-            // in the "std::enable_if_t" call above). The first      \
-            // "static_assert" is therefore just for documentation   \
-            // purposes only and consistency with the same           \
-            // "static_assert" in the primary template which can     \
-            // kick in. The 2nd "static_assert" below *will* kick in \
-            // however if the "std::enable_if_t" above succeeds but  \
-            // "HasFunctionTraitsT" is illegal (again, in C++17      \
-            // only)                                                 \
-            //////////////////////////////////////////////////////*/ \
-            STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT) \
-\
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
         template <IS_CLASS_C T, \
                   IS_CLASS_C HasFunctionTraitsT, \
                   typename UserTypeT = void> \
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, false) \
         inline constexpr bool ClassHasNonOverloaded##FUNCTION_OR_OPERATOR##Traits_##NAME##_v = ClassHasNonOverloaded##FUNCTION_OR_OPERATOR##Traits_##NAME<T, HasFunctionTraitsT, UserTypeT>::value;
 
+    // See: https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_non_overloaded_function_traits
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_TRAITS(NAME) DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_OR_OPERATOR_TRAITS(Function, NAME, (NAME))
 
     ////////////////////////////////////////////////////////////////////////
@@ -14515,28 +15856,28 @@ namespace StdExt
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_OR_OPERATOR_TRAITS(FUNCTION_OR_OPERATOR, NAME, BRACKETED_CPP_NAME) \
         template <IS_CLASS_C T, \
                   IS_CLASS_C HasFunctionTraitsT, \
-                  typename UserTypeT, \
+                  typename UserTypeT = void, \
                   typename = void> \
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, true) \
         struct ClassHasNonOverloadedStatic##FUNCTION_OR_OPERATOR##Traits_##NAME : std::false_type \
         { \
             STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT) \
+            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, true) \
 \
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
         template <IS_CLASS_C T, \
                   IS_CLASS_C HasFunctionTraitsT, \
                   typename UserTypeT> \
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, true) \
         struct ClassHasNonOverloadedStatic##FUNCTION_OR_OPERATOR##Traits_##NAME<T, \
                                                                                 HasFunctionTraitsT, \
                                                                                 UserTypeT, \
@@ -14547,43 +15888,25 @@ namespace StdExt
                                                                                 //////////////////////////////////////////////*/ \
                                                                                 std::enable_if_t< StdExt::IsFreeFunctionPointer_v<decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME)> > \
                                                                                > \
-                                                                               : std::bool_constant< StdExt::Private::InvokeHasFunctionTraits_v<HasFunctionTraitsT, decltype(&T::STDEXT_UNBRACKET BRACKETED_CPP_NAME), UserTypeT> > \
+                                                                               : std::bool_constant< StdExt::Private::InvokeHasFunctionTraits_v<HasFunctionTraitsT, decltype(T::STDEXT_UNBRACKET BRACKETED_CPP_NAME), UserTypeT, true> > \
         { \
-            /*////////////////////////////////////////////////////// \
-            // Note: In C++17 only (since the following macros       \
-            // resolve to nothing in C++20 - the corresponding       \
-            // concepts above kick in instead), the first            \
-            // "static_assert" below will never kick in since        \
-            // specialization of this class won't kick in unless     \
-            // the "static_assert" holds (due to what we're testing  \
-            // in the "std::enable_if_t" call above). The first      \
-            // "static_assert" is therefore just for documentation   \
-            // purposes only and consistency with the same           \
-            // "static_assert" in the primary template which can     \
-            // kick in. The 2nd "static_assert" below *will* kick in \
-            // however if the "std::enable_if_t" above succeeds but  \
-            // "HasFunctionTraitsT" is illegal (again, in C++17      \
-            // only)                                                 \
-            //////////////////////////////////////////////////////*/ \
-            STATIC_ASSERT_IS_CLASS(T) \
-            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT) \
-\
-            /*/////////////////////////////////////////////////////////////////////// \
-            // Declare "Name" (tstring_view) member storing the target function       \
-            // name (though probably rarely used by most)                             \
-            //                                                                        \
-            //    E.g.,                                                               \
-            //    static constexpr auto Name = StdExt::tstring_view(_T("Whatever"));  \
-            ///////////////////////////////////////////////////////////////////////*/ \
+            /*/////////////////////////////////////////////////////////////////// \
+            // Declare "Name" (tstring_view) member storing the target function   \
+            // name (though probably rarely used by most)                         \
+            //                                                                    \
+            //    E.g., if BRACKETED_CPP_NAME is passed (Whatever)                \
+            //    static constexpr StdExt::tstring_view Name{_T("Whatever")};     \
+            ///////////////////////////////////////////////////////////////////*/ \
             DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR_NAME_VARIABLE(BRACKETED_CPP_NAME) \
         }; \
 \
         template <IS_CLASS_C T, \
                   IS_CLASS_C HasFunctionTraitsT, \
                   typename UserTypeT = void> \
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, true) \
         inline constexpr bool ClassHasNonOverloadedStatic##FUNCTION_OR_OPERATOR##Traits_##NAME##_v = ClassHasNonOverloadedStatic##FUNCTION_OR_OPERATOR##Traits_##NAME<T, HasFunctionTraitsT, UserTypeT>::value;
 
+    // See: https://github.com/HexadigmSystems/FunctionTraits#declare_class_has_non_overloaded_static_function_traits
     #define DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_TRAITS(NAME) DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_OR_OPERATOR_TRAITS(Function, NAME, (NAME))
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
@@ -14596,7 +15919,7 @@ namespace StdExt
     // implement operator detection).
     //////////////////////////////////////////////////////////////
     #if !defined(STDEXT_SUPPORTS_OPERATOR_DETECTION_TEMPLATES)
-        // See this constant's definition for details
+        // See this macro's definition for details
         #if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
             // For internal use only (we #undef it later)
             #define DECLARE_CLASS_HAS_OPERATOR(OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
@@ -14708,7 +16031,7 @@ namespace StdExt
             #endif
         };
 
-        // See this constant's definition for details
+        // See this macro's definition for details
         #if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
             ////////////////////////////////////////////////////////////
             // For internal use only for now (still a work-in-progress
@@ -14717,7 +16040,7 @@ namespace StdExt
             template <IS_CLASS_C T,
                       OperatorFunctions OperatorFunctionT,
                       TRAITS_FUNCTION_C F,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct ClassHasOperator : std::false_type
             {
                 STATIC_ASSERT_IS_CLASS(T)
@@ -14734,7 +16057,8 @@ namespace StdExt
             #define DECLARE_CLASS_HAS_OPERATOR(OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
                 DECLARE_CLASS_HAS_FUNCTION_OR_OPERATOR(Operator, OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
 \
-                template <IS_CLASS_C T, TRAITS_FUNCTION_C F> \
+                template <IS_CLASS_C T, \
+                          TRAITS_FUNCTION_C F> \
                 struct ClassHasOperator<T, \
                                         OperatorFunctions::OPERATOR_ENUM_NAME, \
                                         F, \
@@ -14779,7 +16103,7 @@ namespace StdExt
             template <IS_CLASS_C T,
                       OperatorFunctions OperatorFunctionT,
                       TRAITS_FUNCTION_C F,
-                      typename = void> // Arg for internal use only (users should never explicitly pass it)
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct ClassHasStaticOperator : std::false_type
             {
                 STATIC_ASSERT_IS_CLASS(T)
@@ -14795,7 +16119,8 @@ namespace StdExt
             #define DECLARE_CLASS_HAS_STATIC_OPERATOR(OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
                 DECLARE_CLASS_HAS_STATIC_FUNCTION_OR_OPERATOR(Operator, OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
 \
-                template <IS_CLASS_C T, TRAITS_FUNCTION_C F> \
+                template <IS_CLASS_C T, \
+                          TRAITS_FUNCTION_C F> \
                 struct ClassHasStaticOperator<T, \
                                               OperatorFunctions::OPERATOR_ENUM_NAME, \
                                               F, \
@@ -14813,7 +16138,6 @@ namespace StdExt
                                               //              noexcept    ?                              \
                                               //    noexcept              X (illegal cast)               \
                                               //    noexcept  noexcept    ?                              \
-                                              //                                                         \
                                               //                                                         \
                                               // If the "static_cast" succeeds (SFINAE fails otherwise)  \
                                               // then as per the above table it's guaranteed that "F"    \
@@ -14894,7 +16218,7 @@ namespace StdExt
             template <IS_CLASS_C T,
                       OperatorFunctions OperatorFunctionT,
                       TRAITS_FUNCTION_C F,
-                      typename = void>
+                      typename = void> // Arg for internal use only (never explicitly passed)
             struct ClassHasNonOverloadedOperator : std::false_type
             {
                 STATIC_ASSERT_IS_CLASS(T)
@@ -14911,7 +16235,8 @@ namespace StdExt
             #define DECLARE_CLASS_HAS_NON_OVERLOADED_OPERATOR(OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
                 DECLARE_CLASS_HAS_NON_OVERLOADED_FUNCTION_OR_OPERATOR(Operator, OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
 \
-                template <IS_CLASS_C T, TRAITS_FUNCTION_C F> \
+                template <IS_CLASS_C T, \
+                          TRAITS_FUNCTION_C F> \
                 struct ClassHasNonOverloadedOperator<T, \
                                                      OperatorFunctions::OPERATOR_ENUM_NAME, \
                                                      F, \
@@ -14956,7 +16281,7 @@ namespace StdExt
         template <IS_CLASS_C T,
                   OperatorFunctions OperatorFunctionT,
                   TRAITS_FUNCTION_C F,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
+                  typename = void> // Arg for internal use only (never explicitly passed)
         struct ClassHasNonOverloadedStaticOperator : std::false_type
         {
             STATIC_ASSERT_IS_CLASS(T)
@@ -14973,7 +16298,8 @@ namespace StdExt
         #define DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_OPERATOR(OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
             DECLARE_CLASS_HAS_NON_OVERLOADED_STATIC_FUNCTION_OR_OPERATOR(Operator, OPERATOR_ENUM_NAME, BRACKETED_OPERATOR_CPP_NAME) \
 \
-            template <IS_CLASS_C T, TRAITS_FUNCTION_C F> \
+            template <IS_CLASS_C T, \
+                      TRAITS_FUNCTION_C F> \
             struct ClassHasNonOverloadedStaticOperator<T, \
                                                        OperatorFunctions::OPERATOR_ENUM_NAME, \
                                                        F, \
@@ -15014,12 +16340,12 @@ namespace StdExt
                   OperatorFunctions OperatorFunctionT,
                   IS_CLASS_C HasFunctionTraitsT,
                   typename UserTypeT,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
+                  typename = void> // Arg for internal use only (never explicitly passed)
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, false)
         struct ClassHasNonOverloadedOperatorTraits : std::false_type
         {
             STATIC_ASSERT_IS_CLASS(T)
-            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT)
+            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, false)
         };
 
         /////////////////////////////////////////////////////////////////////
@@ -15035,7 +16361,7 @@ namespace StdExt
             template <IS_CLASS_C T,
                       IS_CLASS_C HasFunctionTraitsT,
                       typename UserTypeT> \
-            REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+            REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, false) \
             struct ClassHasNonOverloadedOperatorTraits<T, \
                                                         OperatorFunctions::OPERATOR_ENUM_NAME, \
                                                         HasFunctionTraitsT, \
@@ -15062,7 +16388,7 @@ namespace StdExt
                 // above will trap things in C++20 and later).          \                                   \
                 /////////////////////////////////////////////////////*/ \
                 STATIC_ASSERT_IS_CLASS(T) \
-                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT) \
+                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, false) \
             };
 
         ////////////////////////////////////////////////////////////
@@ -15072,8 +16398,8 @@ namespace StdExt
         template <IS_CLASS_C T,
                   OperatorFunctions OperatorFunctionT,
                   IS_CLASS_C HasFunctionTraitsT,
-                  typename UserTypeT = void> // Arg for internal use only (users should never explicitly pass it)
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
+                  typename UserTypeT = void> // Arg for internal use only (never explicitly passed)
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, false)
         inline constexpr bool ClassHasNonOverloadedOperatorTraits_v = ClassHasNonOverloadedOperatorTraits<T, OperatorFunctionT, HasFunctionTraitsT, UserTypeT>::value;
 
         // For internal use only
@@ -15081,12 +16407,12 @@ namespace StdExt
                   OperatorFunctions OperatorFunctionT,
                   IS_CLASS_C HasFunctionTraitsT,
                   typename UserTypeT,
-                  typename = void> // Arg for internal use only (users should never explicitly pass it)
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
+                  typename = void> // Arg for internal use only (never explicitly passed)
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, true)
         struct ClassHasNonOverloadedStaticOperatorTraits : std::false_type
         {
             STATIC_ASSERT_IS_CLASS(T)
-            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT)
+            STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, true)
         };
 
         /////////////////////////////////////////////////////////////////////
@@ -15102,7 +16428,7 @@ namespace StdExt
             template <IS_CLASS_C T, \
                       IS_CLASS_C HasFunctionTraitsT, \
                       typename UserTypeT> \
-            REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT) \
+            REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, true) \
             struct ClassHasNonOverloadedStaticOperatorTraits<T, \
                                                               OperatorFunctions::OPERATOR_ENUM_NAME, \
                                                               HasFunctionTraitsT, \
@@ -15129,7 +16455,7 @@ namespace StdExt
                 // above will trap things in C++20 and later).          \                                   \
                 /////////////////////////////////////////////////////*/ \
                 STATIC_ASSERT_IS_CLASS(T) \
-                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT) \
+                STATIC_ASSERT_IS_HAS_FUNCTION_TRAITS(HasFunctionTraitsT, UserTypeT, true) \
             };
 
         ////////////////////////////////////////////////////////////
@@ -15140,7 +16466,7 @@ namespace StdExt
                   OperatorFunctions OperatorFunctionT,
                   IS_CLASS_C HasFunctionTraitsT,
                   typename UserTypeT = void>
-        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT)
+        REQUIRES_IS_HAS_FUNCTION_TRAITS_C(HasFunctionTraitsT, UserTypeT, true)
         inline constexpr bool ClassHasNonOverloadedStaticOperatorTraits_v = ClassHasNonOverloadedStaticOperatorTraits<T, OperatorFunctionT, HasFunctionTraitsT, UserTypeT>::value;
     #endif // #if !defined(STDEXT_SUPPORTS_OPERATOR_DETECTION_TEMPLATES)
 
@@ -15160,7 +16486,7 @@ namespace StdExt
     DECLARE_CLASS_HAS_NON_STATIC_OPERATORS(FunctionCall, (operator()))
 
     // https://wg21.link/P1169R4 (C++23 or later)
-    #if __cpp_static_call_operator
+    #if CPP23_OR_LATER && defined(__cpp_static_call_operator)
         // Can be an (optionally) static member starting in C++23
         DECLARE_CLASS_HAS_STATIC_OPERATORS(FunctionCall, (operator()))
     #endif
@@ -15325,13 +16651,16 @@ namespace StdExt
 
 #if !defined(DECLARE_PUBLIC_MACROS_ONLY)
 
-////////////////////////////////////////////////////////////////
-// Done with these (#defined only if STDEXT_SUPPORT_DEPRECATED
-// is #defined - for internal use only)
-////////////////////////////////////////////////////////////////
-#undef ENUM_DEPRECATED_DUE_TO_NAME_CHANGE
-#undef TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE
-#undef ELEMENT_DEPRECATED_DUE_TO_NAME_CHANGE
+#if defined(STDEXT_SUPPORT_DEPRECATED)
+    ////////////////////////////////////////////////////////////////
+    // Done with these (#defined only if STDEXT_SUPPORT_DEPRECATED
+    // is #defined as checked just above - for internal use only)
+    ////////////////////////////////////////////////////////////////
+    #undef ENUM_DEPRECATED_DUE_TO_NAME_CHANGE
+    #undef VARIABLE_DEPRECATED_DUE_TO_NAME_CHANGE
+    #undef TEMPLATE_DEPRECATED_DUE_TO_NAME_CHANGE
+    #undef ENTITY_DEPRECATED_DUE_TO_NAME_CHANGE
+#endif
 } // namespace StdExt
 #else
     // Done with this (for internal use only)

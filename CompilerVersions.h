@@ -14,30 +14,30 @@
 //
 // DESCRIPTION
 // -----------
-// Contains miscellaneous #defined constants to identify the target compiler
-// in effect (see "Compiler Identification Macros" below), the version of
-// C++ in effect (see "C++ Version Macros" below), and a few other
-// miscellaneous compiler-related declarations. Should typically be
-// #included first in all other files so they're immediately available if
-// you need to test these #defined constants for anything in those files (so
-// while #including it first isn't mandatory, it's usually a good idea so
-// they're immediately ready for use).
+// Contains miscellaneous #defined macros to identify the target compiler in
+// effect (see "Compiler Identification Macros" below), the version of C++
+// in effect (see "C++ Version Macros" below), and a few other miscellaneous
+// compiler-related declarations. Should typically be #included first in all
+// other files so they're immediately available if you need to test these
+// #defined macros for anything in those files (so while #including it first
+// isn't mandatory, it's usually a good idea so they're immediately ready
+// for use).
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 // Compiler Identification Macros
 // ------------------------------
 // The following #ifs are used to define one and only one of the following
-// #defined constants in order to indicate which compiler is currently in
-// use. Only one of the following will therefore ever be #defined (they are
-// all mutually exclusive):
+// #defined macros in order to indicate which compiler is currently in use.
+// Only one of the following will therefore ever be #defined (they are all
+// mutually exclusive):
 //
 //   GCC_COMPILER
 //   MICROSOFT_COMPILER
 //   CLANG_COMPILER
 //   INTEL_COMPILER
 //
-// Note that we rely on the following predefined (compiler-specific) constants
+// Note that we rely on the following predefined (compiler-specific) macros
 // to determine the above (respectively):
 //
 //   __GNUC__
@@ -45,42 +45,43 @@
 //   __clang__
 //   __INTEL_LLVM_COMPILER
 //
-// The reason for having to #define our own constants rather than just
-// rely on the native predefined compiler constants just above (though our own
-// constants are determined by them), is because the predefined constants are
-// sometimes #defined by other compilers as well. This makes it impossible to
-// tell which compiler is actually running based on checks of these predefined
-// constants alone. For instance, both the Clang compiler and Intel oneAPI
+// The reason for having to #define our own macros rather than just rely on
+// the native predefined compiler macros just above (though our own macros
+// are determined by them), is because the predefined macros are sometimes
+// #defined by other compilers as well. This makes it impossible to tell
+// which compiler is actually running based on checks of these predefined
+// macros alone. For instance, both the Clang compiler and Intel oneAPI
 // DPC++/C compiler #define __clang__ (since the Intel compiler is based on
 // Clang), so you can't rely on __clang__ to determine if the real Clang
-// compiler is actually running and not the Intel compiler, assuming you need to
-// know this (depending on what you're checking __clang__ for). Similarly, both
-// Clang and Intel also #define _MSC_VER when running in Microsoft VC++
-// compatibility mode (i.e., when compiling code for Windows), so if _MSC_VER is
-// #defined then you don't know if it's actually the native (Microsoft) VC++
-// compiler running or possibly Clang or Intel running in Microsoft VC++
-// compatibility mode (such as when you install Clang and/or Intel on Windows
-// and then select one of them to compile your app, overriding the native
-// Microsoft VC++ compiler - they can also be run from other OSs to explicitly
-// compile Windows apps).
+// compiler is actually running and not the Intel compiler, assuming you
+// need to know this (depending on what you're checking __clang__ for).
+// Similarly, both Clang and Intel also #define _MSC_VER when running in
+// Microsoft VC++ compatibility mode (i.e., when compiling code for
+// Windows), so if _MSC_VER is #defined then you don't know if it's actually
+// the native (Microsoft) VC++ compiler running or possibly Clang or Intel
+// running in Microsoft VC++ compatibility mode (such as when you install
+// Clang and/or Intel on Windows and then select one of them to compile your
+// app, overriding the native Microsoft VC++ compiler - they can also be run
+// from other OSs to explicitly compile Windows apps).
 //
-// The following #ifs therefore #define our own constants (the first group
+// The following #ifs therefore #define our own macros (the first group
 // above), for use when you need to know the real compiler that's actually
-// in use. The predefined constants above (the native constants for each
-// compiler), can still be applied however whenever the actual, real
-// compiler doesn't matter (for whatever your purpose is). For instance, you
-// would check _MSC_VER instead of MICROSOFT_COMPILER when the actual (real)
-// Microsoft VC++ compiler doesn't matter, i.e., all that matters is that a
-// compiler that's compatible with VC++ is running, namely Clang or Intel
-// running in Microsoft VC++ compatibility mode (so for all intents and
-// purposes if _MSC_VER is #defined then you can proceed as if the real VC++
-// compiler is running - if another like Clang or Intel is actually running
-// then because they've #defined _MSC_VER it means they're running in
-// Microsoft compatibility VC++ mode so their behavior should be the same
-// as VC++ - caution advised however as you should make sure the behavior
-// is in fact the same depending on what you're doing, since it's not always
-// 100% compatible). If you need to know if the real Microsoft VC++ compiler
-// is running however then you would simply check MICROSOFT_COMPILER instead.
+// in use. The predefined macros above (the native macros for each compiler)
+// can still be applied however whenever the actual, real compiler doesn't
+// matter (for whatever your purpose is). For instance, you would check
+// _MSC_VER instead of MICROSOFT_COMPILER when the actual (real) Microsoft
+// VC++ compiler doesn't matter, i.e., all that matters is that a compiler
+// that's compatible with VC++ is running, namely Clang or Intel running in
+// Microsoft VC++ compatibility mode (so for all intents and purposes if
+// _MSC_VER is #defined then you can proceed as if the real VC++ compiler is
+// running - if another like Clang or Intel is actually running then because
+// they've #defined _MSC_VER it means they're running in Microsoft
+// compatibility VC++ mode so their behavior should be the same as VC++ -
+// caution advised however as you should make sure the behavior is in fact
+// the same depending on what you're doing, since it's not always 100%
+// compatible though in theory it's supposed to be). If you need to know if
+// the real Microsoft VC++ compiler is running however then you would simply
+// check MICROSOFT_COMPILER instead.
 //
 // IMPORTANT:
 // ---------
@@ -96,9 +97,16 @@
     #define INTEL_COMPILER __INTEL_LLVM_COMPILER
 #elif defined(__clang__) // See https://clang.llvm.org/docs/LanguageExtensions.html#builtin-macros
     #define CLANG_COMPILER __clang__
-#elif defined(__GNUC__) // See: https://gcc.gnu.org/onlinedocs/cpp/macros/predefined-macros.html#c.__GNUC__
-                        //      https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros
-                        //      https://stackoverflow.com/a/55926503
+#elif defined(__GNUC__) && /* See: https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#%22Common-Predefined-Macros-1 \
+                           //      https://stackoverflow.com/a/55926503 */ \
+      !defined(__NVCOMPILER) // See https://docs.nvidia.com/hpc-sdk/compilers/hpc-compilers-ref-guide/index.html#id39
+                             // NVC++ compiler also #defines __GNUC__ but doesn't handle calling
+                             // conventions the same way as GCC so some research required before
+                             // support for it can be added (testing shows that with minor work
+                             // it can likely be quickly added though suppressing warnings about 
+                             // unused calling conventions may be an issue since it doesn't respect
+                             // the GCC pragma for this and seems to have no pragma of its own -
+                             // in any case it's a niche compiler so for now we don't support it).
     #define GCC_COMPILER __GNUC__
 #elif defined(_MSC_VER) // See: https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
                         //      https://devblogs.microsoft.com/cppblog/visual-c-compiler-version/
@@ -109,13 +117,100 @@
     #error "Unsupported compiler (GCC, Microsoft, Clang and Intel DPC++/C++ are the only ones supported at this writing)"
 #endif
 
+// Useful push/pop macros for diagnostic pragmas
+#if defined(GCC_COMPILER)
+    #define GCC_DIAGNOSTIC_PUSH _Pragma("GCC diagnostic push") // Search for it here: https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html
+    #define GCC_DIAGNOSTIC_POP _Pragma("GCC diagnostic pop") // Ditto (see link just above)
+    #define DIAGNOSTIC_PUSH GCC_DIAGNOSTIC_PUSH // Compiler agnostic version
+    #define DIAGNOSTIC_POP GCC_DIAGNOSTIC_POP // Compiler agnostic version
+#elif defined(MICROSOFT_COMPILER)
+    #define MICROSOFT_DIAGNOSTIC_PUSH _Pragma("warning (push)") // See here: https://learn.microsoft.com/en-us/cpp/preprocessor/warning?view=msvc-170#push-and-pop
+    #define MICROSOFT_DIAGNOSTIC_POP _Pragma("warning (pop)") // Ditto (see link just above)
+    #define DIAGNOSTIC_PUSH MICROSOFT_DIAGNOSTIC_PUSH // Compiler agnostic version
+    #define DIAGNOSTIC_POP MICROSOFT_DIAGNOSTIC_POP // Compiler agnostic version
+#elif defined(CLANG_COMPILER) || \
+      defined(INTEL_COMPILER)
+    /////////////////////////////////////////////////
+    // According to the Intel DPC++/C++ docs, it
+    // uses the same compiler options as Clang. See
+    // here:
+    //
+    //   Clang Option Support
+    //   https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2025-2/overview.html#GUID-0DCE3863-9039-4C95-88D9-4C09953BE3E9
+    //
+    // Where the "Clang documentation" is here (as
+    // cited in the above link):
+    //
+    //   https://clang.llvm.org/docs/ClangCommandLineReference.html
+    //
+    // Hence the following works for Intel as well
+    // as Clang since Intel's options are
+    // effectively the same as Clang (when targeting
+    // the Intel DPC++/C++ compiler which is what we
+    // support, not the "Classic" Intel compiler
+    // which they've deprecated and replaced with
+    // the DPC++/C++ compiler - we don't support the
+    // "Classic" compiler)
+    //
+    // Also see:
+    //    https://clang.llvm.org/docs/UsersManual.html#controlling-diagnostics-via-pragmas
+    /////////////////////////////////////////////////
+    #define CLANG_OR_INTEL_DIAGNOSTIC_PUSH _Pragma("clang diagnostic push") // See here: https://clang.llvm.org/docs/UsersManual.html#controlling-diagnostics-via-pragmas
+    #define CLANG_OR_INTEL_DIAGNOSTIC_POP _Pragma("clang diagnostic pop") // Ditto (see link just above)
+    #define DIAGNOSTIC_PUSH CLANG_OR_INTEL_DIAGNOSTIC_PUSH // Compiler agnostic version
+    #define DIAGNOSTIC_POP CLANG_OR_INTEL_DIAGNOSTIC_POP // Compiler agnostic version
+#endif
+
+////////////////////////////////////////////////////////
+// STDEXT_IS_X86_32 (macro to identify x86-32, AKA x86
+// which normally implies 32 bit but we include "_32"
+// in the macro name to make things clear as well as
+// consistent with the naming convention of macro
+// STDEXT_IS_X86_64 just below)
+////////////////////////////////////////////////////////
+#if defined(__i386__) /* GCC, Clang or Intel */ || \
+    defined(_M_IX86) // Microsoft
+    #define STDEXT_IS_X86_32 1
+#else
+    #define STDEXT_IS_X86_32 0
+#endif
+
+////////////////////////////////////////////////////////
+// STDEXT_IS_X86_64 (macro to identify x86-64, AKA x64
+// though x86-64 is the more technical term)
+////////////////////////////////////////////////////////
+#if defined(__x86_64__) /* GCC, Clang or Intel */ || \
+    ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC)) // Microsoft (checking that _M_ARM64EC isn't #defined here ensures we're targeting pure x64)
+    #define STDEXT_IS_X86_64 1
+#else
+    #define STDEXT_IS_X86_64 0
+#endif
+
+/////////////////////////////////////////////////////////
+// Sanity check only (should never happen normally) but
+// it's possible under rare conditions (e.g., while the
+// x86-32 and x86-64 macros we're checking above are
+// normally compiler-generated and should therefore be
+// mutually exclusive - you can't target both 32 and 64
+// apps simultaneously - someone could theoretically
+// redefine them so they're both #defined and testing
+// shows this is possible but it wouldn't be sane of
+// course - other weird scenarios may also exist but the
+// following will catch it):
+/////////////////////////////////////////////////////////
+#if STDEXT_IS_X86_32 && STDEXT_IS_X86_64
+    #error "Conflicting architecture macros: both x86-32 and x86-64 are #defined"
+#endif
+
+#define STDEXT_IS_X86_32_OR_64 ((STDEXT_IS_X86_32) || (STDEXT_IS_X86_64))
+
 //////////////////////////////////////////////////////////////////
 // C++ Version Macros
 // ------------------
-// The code that follows below #defines our C++ version constants
+// The code that follows below #defines our C++ version macros
 // (macros) which are all of the form CPPXX_OR_LATER,
 // CPPXX_OR_EARLIER and CPPXX, where "XX" is the C++ release year
-// (C++14, C++17, C++20, etc.). One such constant is #defined for
+// (C++14, C++17, C++20, etc.). One such macro is #defined for
 // each C++ release year starting at C++14 (read on for C++11).
 // These can be used to determine which version of C++ is in
 // effect (currently running). See examples just below (WYSIWYG).
@@ -126,11 +221,11 @@
 // true so no need to ever explicitly test it (C++11 or later is
 // always assumed), and the latter also never needs to be
 // explicitly tested (since no version earlier than C++11 is ever
-// assumed), leaving only the need for #defined constant CPP11 to
+// assumed), leaving only the need for #defined macro CPP11 to
 // specifically test for that version (if required but in reality
 // most users will be using much later versions by now). Lastly,
-// note that new constants should be added for each new release
-// of C++ (CPPXX_OR_LATER, CPPXX_OR_EARLIER and CPPXX).
+// note that new macros should be added for each new release of
+// C++ (CPPXX_OR_LATER, CPPXX_OR_EARLIER and CPPXX).
 //
 //     Example Usage (for C++17)
 //     -------------------------
@@ -187,32 +282,32 @@
 // __cplusplus is guaranteed to be 199711L at this
 // point, as just described (again, erroneously
 // indicating C++98). That's fine for our purposes
-// however, since all the CPPXX_OR_LATER constants
-// #defined below will be set to 0 in this case, and all
-// CPPXX_OR_EARLIER constants will be set to 1. Since
-// "XX" is always >= 14 (CPPXX_OR_LATER and
-// CPPXX_OR_EARLIER are only #defined for XX >= 14, no
-// such constants exists for XX=11), only C++11 should
-// therefore be considered in effect by default (CPP11
-// will be set to 1), not any later versions nor earlier
-// versions (all CPPXX_OR_LATER constants will be set to
-// 0, and all CPPXX_OR_EARLIER constants will be set to
-// 1). Note that C++98 is the only other official
-// earlier version though and __cplusplus actually
-// targets it in this case (because it's always 199711L
-// as described), but that value is erroneous since MSFT
-// didn't start setting it until VS 2017 15.7 Preview 3
-// (as described above), so we just ignore the value and
-// always implicitly assume C++11 instead (since all
-// modern MSFT compilers now support it - we don't
-// support C++98 since it's ancient now, and even C++11
-// is likely rarely used anymore).
+// however, since all the CPPXX_OR_LATER macros #defined
+// below will be set to 0 in this case, and all
+// CPPXX_OR_EARLIER macros will be set to 1. Since "XX"
+// is always >= 14 (CPPXX_OR_LATER and CPPXX_OR_EARLIER
+// are only #defined for XX >= 14, no such macros exists
+// for XX=11), only C++11 should therefore be considered
+// in effect by default (CPP11 will be set to 1), not
+// any later versions nor earlier versions (all
+// CPPXX_OR_LATER macros will be set to 0, and all
+// CPPXX_OR_EARLIER macros will be set to 1). Note that
+// C++98 is the only other official earlier version
+// though and __cplusplus actually targets it in this
+// case (because it's always 199711L as described), but
+// that value is erroneous since MSFT didn't start
+// setting it until VS 2017 15.7 Preview 3 (as described
+// above), so we just ignore the value and always
+// implicitly assume C++11 instead (since all modern
+// MSFT compilers now support it - we don't support
+// C++98 since it's ancient now, and even C++11 is
+// likely rarely used anymore).
 /////////////////////////////////////////////////////////
 #elif defined(__cplusplus)
     #define CPP_VERSION __cplusplus // For internal use only
 #else
     #define CPP_VERSION 0L // For internal use only (if we arrive here then the #defined
-                           // constants that follow below will now target C++11 - we don't
+                           // macros that follow below will now target C++11 - we don't
                            // support anything earlier, namely C++98)
 #endif
 
@@ -345,15 +440,15 @@
 #undef CPP_VERSION // Done with this (for internal use only)
 
 //////////////////////////////////////////////////////////////////
-// CPPXX_OR_EARLIER (#defined) constants that can be tested
-// instead of the CPPXX_OR_LATER #defined constants above. You
-// can use either the CPPXX_OR_LATER and/or CPPXX_OR_EARLIER
-// constants based on your needs (to determine which version of
-// C++ is in effect, C++14, C++17, C++20, etc.). We always assume
-// C++11 or greater however so no specific constant exists to
-// target earlier versions (C++98 the only official earlier
-// version). Note that a new CPPXX_OR_EARLIER constant should be
-// added for each new release of C++
+// CPPXX_OR_EARLIER (#defined) macros that can be tested instead
+// of the CPPXX_OR_LATER #defined macros above. You can use
+// either the CPPXX_OR_LATER and/or CPPXX_OR_EARLIER macros based
+// on your needs (to determine which version of C++ is in effect,
+// C++14, C++17, C++20, etc.). We always assume C++11 or greater
+// however so no specific macro exists to target earlier versions
+// (C++98 the only official earlier version). Note that a new
+// CPPXX_OR_EARLIER macro should be added for each new release of
+// C++
 //
 // Example usage:
 //
@@ -498,7 +593,7 @@
     #endif
 
     //////////////////////////////////////////////////////////////////
-    // USE_CONCEPTS. #defined constant to control whether concepts
+    // USE_CONCEPTS. #defined macro to control whether concepts
     // should be used or not wherever required in all remaining code.
     // Concepts only became available in C++20 so by default we
     // #define USE_CONCEPTS in C++20 or later (assuming the C++
@@ -507,18 +602,19 @@
     // USE_CONCEPTS is #undefined in C++17 and earlier so we
     // therefore rely on "static_assert" instead of concepts. If you
     // prefer to always rely on "static_assert" even in C++20 and
-    // later however then you can just #undef it below. This may even
-    // be preferable since I often find "static_assert" messages more
-    // visible and clear than concept messages (in some situations
-    // anyway). In any case, it's your responsibility to explicitly
-    // test if USE_CONCEPTS is #defined and apply concepts if so or
-    // "static_assert" otherwise (or you can just explicitly check
-    // the feature-test macro __cpp_lib_concepts instead but unlike
-    // the latter, USE_CONCEPTS can be turned off by #undefining it
-    // here - you wouldn't want to do that for __cpp_lib_concepts).
-    // One way to do this (rely on USE_CONCEPTS) that we consistently
-    // rely on ourselves is as per the following example (though you
-    // need not follow this model but it works well IMHO).
+    // later however then you can just #undef USE_CONCEPTS below.
+    // This may even be preferable for some if you find
+    // "static_assert" messages more visible and clear than concept
+    // messages (in some situations anyway). In any case, it's your
+    // responsibility to explicitly test if USE_CONCEPTS is #defined
+    // and apply concepts if so or "static_assert" otherwise (or you
+    // can just explicitly check the feature-test macro
+    // __cpp_lib_concepts instead but unlike the latter, USE_CONCEPTS
+    // can be turned off by #undefining it here - you wouldn't want
+    // to do that for __cpp_lib_concepts). One way to do this (rely
+    // on USE_CONCEPTS) that we consistently rely on ourselves is as
+    // per the following example (though you need not follow this
+    // model but it works well).
     //
     // Let's say you want a concept to ensure some type is "const"
     // using "std::is_const". You could therefore declare a concept
@@ -565,7 +661,13 @@
     // and the STATIC_ASSERT_IS_CONST macro then kicks in to do a
     // "static_assert". You can therefore apply the above technique
     // to all your concepts and we do throughout all remaining code
-    // where applicable.
+    // where applicable. Note that you don't even need to explicitly
+    // invoke "#if !defined(USE_CONCEPTS)" as seen in the example
+    // above since the call to STATIC_ASSERT_IS_CONST(T) above
+    // resolves to whitespace anyway when USE_CONCEPTS is #defined
+    // (but including the call to "#if !defined(USE_CONCEPTS)" makes
+    // it more visible that the code only applies when concepts
+    // aren't supported)
     //////////////////////////////////////////////////////////////////
     #if defined(__cpp_lib_concepts) // See https://en.cppreference.com/w/cpp/feature_test#cpp_lib_concepts
                                     // There's also cpp_concepts: https://en.cppreference.com/w/cpp/feature_test#cpp_concepts
@@ -620,7 +722,7 @@
     // errors or other possible issues).
     ////////////////////////////////////////////////////////////////
     #if defined(__cpp_generic_lambdas)
-        #if __cpp_generic_lambdas >= 201707
+        #if __cpp_generic_lambdas >= 201707L
             #define LAMBDA_TEMPLATES_SUPPORTED
         #endif
     #endif
@@ -632,7 +734,7 @@
     // the user may have renamed the latter file's extension to). In this case
     // we know modules (a C++20 feature) are supported (we already tested
     // CPP20_OR_LATER above), but we'll also add a check for the official C++
-    // feature constant "__cpp_modules" in a later release since it's not yet
+    // feature macro "__cpp_modules" in a later release since it's not yet
     // supported by all compilers (we'll add that check to the following). The
     // 2nd condition just below then checks if STDEXT_USE_MODULES was #defined
     // by the user themself, indicating they've added the ".cppm" files to their
@@ -645,15 +747,15 @@
     // might also do this themself). Therefore, when a user #includes this
     // header in the module version, only the macros in the header will need to
     // be declared since C++ modules don't export #defined macros (we #define an
-    // internal constant DECLARE_PUBLIC_MACROS_ONLY below to facilitate this).
-    // If the user hasn't #defined STDEXT_USE_MODULES however then they wish to
-    // use this header normally (declare everything as usual), even if they've
-    // also added the module to their project as well (which will still be
+    // internal macro DECLARE_PUBLIC_MACROS_ONLY below to facilitate this). If
+    // the user hasn't #defined STDEXT_USE_MODULES however then they wish to use
+    // this header normally (declare everything as usual), even if they've also
+    // added the module to their project as well (which will still be
     // successfully compiled), though that would be very unlikely (why add the
     // module if they're not going to use it? - if they've added it then they'll
     // normally #define STDEXT_USE_MODULES as well). As for the 2nd condition
     // we're testing here, STDEXT_BUILDING_MODULE_COMPILERVERSIONS (an internal
-    // constant), this is #defined by the module itself (CompilerVersions.cppm)
+    // macro), this is #defined by the module itself (CompilerVersions.cppm)
     // before #including this header in its global fragment section. The module
     // then simply exports all public declarations from this header in its
     // purview section via "using" declarations.
@@ -724,16 +826,16 @@
         //////////////////////////////////////////////////////////////
         // Go on to #include <string_view> if available, a C++17
         // feature so we check for that first (using our own
-        // CPP17_OR_LATER constant #defined earlier). Note that for
-        // our purposes and likely those of most users, if C++17 or
-        // later is detected, then it's assumed that <string_view> is
-        // also available even though it might not be (due to
-        // compliancy issues with a given compiler, in particular
-        // early versions of C++17, where <string_view> may not have
-        // been available in some compilers yet). For most users who
-        // #include "CompilerVersions.h" however, it's just easier to
-        // test CPP17_OR_LATER and if true, assume that <string_view>
-        // is always available, otherwise they'd have to check if
+        // CPP17_OR_LATER macro #defined earlier). Note that for our
+        // purposes and likely those of most users, if C++17 or later
+        // is detected, then it's assumed that <string_view> is also
+        // available even though it might not be (due to compliancy
+        // issues with a given compiler, in particular early versions
+        // of C++17, where <string_view> may not have been available
+        // in some compilers yet). For most users who #include
+        // "CompilerVersions.h" however, it's just easier to test
+        // CPP17_OR_LATER and if true, assume that <string_view> is
+        // always available, otherwise they'd have to check if
         // "__has_include" is both #defined (it might not be in early
         // versions of C++17), AND returns true for <string_view>
         // (also not guaranteed). In very rare cases <string_view>
@@ -769,7 +871,7 @@
             // above). If not then we're not dealing with a compliant
             // C++17 compiler so we abort compilation as described
             // above (would be very rare though these days). Note
-            // that in C++20 and later the feature testing constant
+            // that in C++20 and later the feature testing macro
             // "__cpp_lib_string_view" could also be checked as an
             // alternative (Google this for details) but the
             // following does the job.
@@ -841,16 +943,16 @@
 
     //////////////////////////////////////////////////////////////////
     // Macros to extract the major and minor version numbers from the
-    // predefined Microsoft constant _MSC_VER (pass the latter
-    // constant to macros MSC_GET_VER_MAJOR or MSC_GET_VER_MINOR as
-    // required), or the build number from the predefined Microsoft
-    // constant _MSC_FULL_VER (pass the latter constant to macro
+    // predefined Microsoft macro _MSC_VER (pass the latter macro to
+    // macros MSC_GET_VER_MAJOR or MSC_GET_VER_MINOR as required), or
+    // the build number from the predefined Microsoft macro
+    // _MSC_FULL_VER (pass the latter macro to macro
     // MSC_GET_VER_BUILD). For instance, if you're currently running
     // Visual C++ 2019 and _MSC_VER is 1920 and _MSC_FULL_VER is
     // 192027508, then the following will display "19.20.27508" (but
     // you normally shouldn't pass _MSC_VER and _MSC_FULL_VER
-    // directly as seen in this example, since the constants
-    // described further below are easier - read on):
+    // directly as seen in this example, since the macros described
+    // further below are easier - read on):
     //
     //     // Displays "19.20.27508"
     //     tcout << MSC_GET_VER_MAJOR(_MSC_VER) << "." <<
@@ -861,9 +963,9 @@
     // seen in the above example) when you wish to pass _MSC_VER
     // itself (to extract the major or minor version number), or
     // _MSC_FULL_VER (to extract the build number), opposed to
-    // passing some other constants instead (besides _MSC_VER or
+    // passing some other macros instead (besides _MSC_VER or
     // _MSC_FULL_VER). When passing _MSC_VER or _MSC_FULL_VER that
-    // is, you can simply rely on the constants MSC_VER_MAJOR,
+    // is, you can simply rely on the macros MSC_VER_MAJOR,
     // MSC_VER_MINOR or MSC_VER_BUILD (respectively) instead, which
     // are #defined further below. They in turn call the following
     // "MSC_GET_VER_?" macros for you, passing _MSC_VER or
@@ -878,11 +980,11 @@
     //
     // You therefore only need to call the following "MSC_GET_VER_?"
     // macros directly when you need to explicitly pass arguments
-    // other than the predefined Microsoft constants _MSC_VER and
+    // other than the predefined Microsoft macros _MSC_VER and
     // _MSC_FULL_VER. For instance, if you wish to extract the major,
     // minor and build numbers for, say, the first release version of
     // Visual Studio 2022 (version 19.30.30705), then you can pass
-    // the following Visual Studio 2022 constants (#defined in this
+    // the following Visual Studio 2022 macros (#defined in this
     // header later on) to these "MSC_GET_VER_?" macros like so:
     //
     //     // Displays "19.30.30705"
@@ -892,8 +994,8 @@
     //
     // Again, you normally only need to call these "MSC_GET_VER_?"
     // macros directly when passing args other than the predefined
-    // Microsoft constants _MSC_VER and _MSC_FULL_VER (since in the
-    // latter case you can just rely on the constants MSC_VER_MAJOR,
+    // Microsoft macros _MSC_VER and _MSC_FULL_VER (since in the
+    // latter case you can just rely on the macros MSC_VER_MAJOR,
     // MSC_VER_MINOR and MSC_VER_BUILD instead, as described above).
     //////////////////////////////////////////////////////////////////
     #define MSC_GET_VER_MAJOR(MSC_VER) ((MSC_VER) / 100) // E.g, if MSC_VER is 1920 then returns 19
@@ -901,16 +1003,16 @@
     #define MSC_GET_VER_BUILD(MSC_FULL_VER) ((MSC_FULL_VER) % 100000) // E.g, if MSC_FULL_VER is 192027508 then returns 27508
 
     ///////////////////////////////////////////////////////////////////
-    // #defined constants storing the compiler's major, minor, build
-    // and revision numbers (for Microsoft C++). We simply strip these
-    // out of the predefined Microsoft constants _MSC_FULL_VER, _MSC_VER,
-    // and _MSC_BUILD. See these here at this writing:
+    // #defined macros storing the compiler's major, minor, build and
+    // revision numbers (for Microsoft C++). We simply strip these out
+    // of the predefined Microsoft macros _MSC_FULL_VER, _MSC_VER, and
+    // _MSC_BUILD. See these here at this writing:
     //
     //    Predefined macros
     //    https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170&redirectedfrom=MSDN
     //
     // Given the following example then, where the version number is
-    // (arbitrarily) 19.20.27508.01, the predefined Microsoft constants
+    // (arbitrarily) 19.20.27508.01, the predefined Microsoft macros
     // would be:
     //
     //    _MSC_FULL_VER = 192027508 (major, minor and build number)
@@ -918,7 +1020,7 @@
     //    _MSC_BUILD = 1 (revision number)
     //
     // The major, minor, build and revision numbers are then extracted
-    // from the above to populate the following constants.
+    // from the above to populate the following macros.
     //
     //     Example (using the above values)
     //     --------------------------------
@@ -935,8 +1037,8 @@
                                         // the actual revision number (so doesn't have to be calculated by us)
 
     /////////////////////////////////////////////////////////////
-    // #defined constants corresponding to the predefined MSFT
-    // constants _MSC_VER and _MSC_FULL_VER. One such constant
+    // #defined macros corresponding to the predefined MSFT
+    // macros _MSC_VER and _MSC_FULL_VER. One such macro
     // exists for each modern version of Visual Studio. MSFT
     // periodically moves this information around however and
     // currently publishes the values of _MSC_VER here:
@@ -947,7 +1049,7 @@
     // Unfortunately they don't publish each _MSC_FULL_VER at
     // this writing (after extensive searching - go figure), but
     // there is the following which is presumably (hopefully) a
-    // reliable source so the MSC_FULL_VER_? constants below were
+    // reliable source so the MSC_FULL_VER_? macros below were
     // picked up from here (not sure where they got it from but
     // hopefully accurate - their citations aren't sufficient):
     //
@@ -956,7 +1058,7 @@
     //
     // Also see the following for details on how to use the macros
     // _MSC_VER and _MSC_FULL_VER in general (they can be compared
-    // against the #defined constants below):
+    // against the #defined macros below):
     //
     //     Visual C++ Compiler Version (By Gabriel Dos Reis of MSFT)
     //     https://devblogs.microsoft.com/cppblog/visual-c-compiler-version/
@@ -1079,7 +1181,7 @@
             // settings? Normally both are #defined in modern
             // versions of Windows meaning all strings will be
             // based on UTF-16 (we only check for either of these
-            // constants though which is fine), but if neither is
+            // macros though which is fine), but if neither is
             // #defined then user is compiling for ANSI normally
             // (ancient now so very rare)
             //////////////////////////////////////////////////////
@@ -1201,13 +1303,16 @@
             #elif defined(CLANG_COMPILER)
                 return _T("Clang");
             #elif defined(INTEL_COMPILER)
-                return _T("Intel oneAPI DPC++/C++");
+                return _T("Intel oneAPI DPC++");
             #else
                 /////////////////////////////////////////////////////
-                // Note: Shouldn't be possible to come through here
-                // at this writing since the same #error message
-                // would have already been displayed earlier (when
-                // the compiler constants just above were #defined)
+                // Note: Shouldn't normally be possible to come
+                // through here at this writing since the same
+                // #error message would have already been displayed
+                // earlier (when the compiler macros just above were
+                // #defined). If we do come through here then a new
+                // compiler macro must have been #defined but not
+                // added above (and should be).
                 /////////////////////////////////////////////////////
                 #error "Unsupported compiler"
             #endif

@@ -20,48 +20,67 @@
 // component of a C++ function (return type, argument types, cv-qualifiers,
 // noexcept specification, etc. - all components comprising a C++ function
 // are available, and write traits to modify these components are also fully
-// supported though not demo'd in this program - see link above for
-// examples). Just run the program to display all available traits for the 3
-// sample functions seen in namespace "TestFuncs" later in this file (traits
+// supported though not demo'd in this program - read on to find examples).
+// 
+// Just run the program to display all available traits for the 3 sample
+// functions seen in namespace "TestFuncs" later in this file (traits
 // displayed to the stdout). You can update these 3 functions with any
 // signature whose traits you want to display and re-run the app (or
-// experiment with any other template in the library). Note however that all
-// 3 sample functions are simply passed to the (function) template
-// "DisplayAllFunctionTraits()" in the library itself, which displays all
-// traits for any function type you pass (via its template arg "F" - see
+// experiment with any other template in the library - again, read on).
+//
+// Note however that all 3 sample functions are simply passed to the
+// (function) template "DisplayAllFunctionTraits()" in the library itself,
+// which displays all traits for any function type you pass (via its
+// template arg "F" - see
 // https://github.com/HexadigmSystems/FunctionTraits/#displayallfunctiontraits
 // for details). You can therefore just call "DisplayAllFunctionTraits()"
 // directly if you wish, passing any function type you want for its template
 // arg "F" (free functions which includes static member functions, pointers
 // and references to free functions, references to pointers to free
-// functions, non-static member function pointers, functors including
-// lambdas, "abominable" functions and "std::function" specializations).
-// Note however that inspecting the code for "DisplayAllFunctionTraits()"
-// itself in "FunctionTraits.h" shows some of the major features of the
-// library at work, so it's a very good learning exercise for your own code
-// (demonstrating what can be accomplished). Moreover,
-// "DisplayAllFunctionTraits()" is designed as a client of the library
-// itself, no different than your own code will be, since it simply relies
-// on the other templates in the library to carry out its own work. It
-// therefore just calls the other templates similar to what you'll do in
-// your own code, so you can see an actual client of the library in action
-// (even though this particular client happens to belong to the library
-// itself). It's also reasonably short for what it does, and you only need
-// to trace into the implementation of "DisplayAllFunctionTraits()" itself,
-// not any of the library's other templates that it calls (which would be an
-// arduous and unnecessary task). Note that other examples of how to use the
-// library are also available at the library's link above. See the "Usage"
+// functions, non-static member function pointers or references to them,
+// functors including lambdas, "abominable" functions and "std::function"
+// specializations).
+//
+// Note that other examples of how to use the library (including write
+// traits) are also available at the library's link above. See the "Usage"
 // section there for full details. You can copy these (usage) examples into
-// function "main()" below if you wish, or experiment with any other
-// template in the library, relying on "DisplayAllFunctionTraits()" whenever
-// you want to display a function's complete traits. This is particularly
-// useful when testing the library's write trait templates so you can see
-// the results of changing any component of a C++ function (return type,
-// parameter types, cv-qualifiers, noexcept specification, etc.). Also see
+// function "main()" if you wish (see examples here:
+// https://github.com/HexadigmSystems/FunctionTraits/#technique2of2examples),
+// or experiment with any other template in the library, relying on
+// "DisplayAllFunctionTraits()" whenever you want to display a function's
+// complete traits (in fact, you can even inspect the latter function itself
+// as a good learning exercise if you wish, since it's written as a client
+// of the library itself, no different than your own code will be - tracing
+// into it therefore shows what can be accomplished but you don't need to
+// trace into any of the library's other implementation details, which would
+// be an arduous and unnecessary task).
+//
+// Note that "DisplayAllFunctionTraits()" is particularly useful when
+// testing the library's write trait templates so you can see the results of
+// changing any component of a C++ function (say, if you call "ReplaceArg_t"
+// to replace (change) a function's existing parameter type, you can then
+// just pass the resulting function type returned by "ReplaceArg_t" to
+// "DisplayAllFunctionTraits()" in order to see the change). Also see
 // "TypeName_v" in the library for converting any C++ type to its
-// user-friendly string equivalent, which is also useful when you just want
-// to display a C++ type - see
-// https://github.com/HexadigmSystems/FunctionTraits/#typename_v.
+// user-friendly string equivalent, which is also very useful when you just
+// want to display a C++ type (so in the case of the "ReplaceArg_t" example
+// just described for instance, you can pass the type it returns to
+// "TypeName_v" to convert it to a string for display purposes). See
+// "TypeName_v" here for details:
+// https://github.com/HexadigmSystems/FunctionTraits/#typename_v
+//
+// A brief summary of the library's main templates can be found here
+// (grouped so you can quickly see which templates target each component of
+// a C++ function type, from return type to noexcept):
+//
+//     Summary of templates in this library
+//     https://github.com/HexadigmSystems/FunctionTraits#summaryoftemplatesinthislibrary
+//
+// And the complete documentation of all templates can be found here (in
+// alphabetical order grouped by read and write traits):
+//
+//     Helper templates (complete, alphabetical list)
+//     https://github.com/HexadigmSystems/FunctionTraits#helpertemplates
 //
 // Lastly, note that within Compiler Explorer (the hosting site for this
 // demo), the program defaults to C++20. If you wish to change this then add
@@ -154,6 +173,20 @@
         class SomeClass
         {
         public:
+
+            ////////////////////////////////////////////////////
+            // Temporarily disable warnings about unsupported
+            // calling conventions so that STDEXT_CC_STDCALL
+            // just below won't trigger any such warnings (when
+            // building for platforms that don't support this
+            // calling convention - it's normally supported on
+            // x86-32 only). GCC, Clang and Intel (oneAPI) for
+            // for instance would display a warning for all
+            // builds except x86-32 (though MSFT doesn't - it
+            // just quietly ignores it normally).
+            ////////////////////////////////////////////////////
+            DIAGNOSTIC_PUSH_AND_IGNORE_UNSUPPORTED_CC_WARNINGS
+
             //////////////////////////////////////////////////////
             // Non-static member function (static functions also
             // supported but processed like a free function so
@@ -162,6 +195,12 @@
             // function's type matters)
             //////////////////////////////////////////////////////
             int STDEXT_CC_STDCALL DoSomething(double &, const std::string_view &) const volatile && noexcept;
+
+            ///////////////////////////////////////////////////
+            // Restore unsupported calling convention warnings
+            // disabled above
+            ///////////////////////////////////////////////////
+            DIAGNOSTIC_POP_IGNORE_UNSUPPORTED_CC_WARNINGS
 
             ///////////////////////////////////////////////////
             // Adding this to make the class a functor (which
@@ -275,6 +314,12 @@
         DisplayMemberFunctionTraits();
         tcout << _T("\n\n");
         DisplayFunctorTraits();
+
+        ////////////////////////////////////////////////
+        // You can test any of the library's templates
+        // here (commenting out or removing above code
+        // if you wish). See top of file for details.
+        ////////////////////////////////////////////////
 
         return 0;
     }

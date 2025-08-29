@@ -50,10 +50,10 @@ export module FunctionTraits;
 // as well however (since macros aren't exported by C++ modules), just
 // #include either "FunctionTraits.h" or "CompilerVersions.h" directly
 // instead (and if so you don't even have to directly code your own
-// "import" statement, as each header does this for you when the
-// constant STDEXT_USE_MODULES is #defined as it normally should be
-// (when using the module version of "FunctionTraits"). See the
-// following for complete details:
+// "import" statement, as each header does this for you when the macro
+// STDEXT_USE_MODULES is #defined as it normally should be (when using
+// the module version of "FunctionTraits"). See the following for
+// complete details:
 //
 //    https://github.com/HexadigmSystems/FunctionTraits#moduleusage
 ////////////////////////////////////////////////////////////////////////
@@ -113,13 +113,19 @@ export namespace StdExt
     #endif
 
     using StdExt::IsConstOrVolatile_v;
+
     using StdExt::IsSpecialization;
     using StdExt::IsSpecialization_v;
-    using StdExt::TemplateArgsTuple;
+    #if defined(USE_CONCEPTS)
+        using StdExt::IsSpecialization_c;
+    #endif
     using StdExt::TemplateArgsTuple_t;
+    using StdExt::TemplateArgsCount_v;
+    using StdExt::IndexLessThanTemplateArgsCount_v;
     using StdExt::IthTemplateArg_t;
     using StdExt::FirstTemplateArg_t;
-    using StdExt::TemplateArg_t;
+    using StdExt::IsSpecializationOf;
+    using StdExt::IsSpecializationOf_v;
     using StdExt::IsTemplateBaseOf_v;
     using StdExt::RemoveCvRef_t;
     using StdExt::RemovePtrRef_t;
@@ -165,9 +171,10 @@ export namespace StdExt
     #endif
 
     using StdExt::MinOfCountOrTupleTypesRemaining_v;
-    using StdExt::SubTuple_t;
+    using StdExt::SubTuple;
     using StdExt::TupleModifyTuple_t;
     using StdExt::TupleModify_t;
+    using StdExt::TupleReplaceType_t;
     using StdExt::TupleInsertTuple_t;
     using StdExt::TupleInsert_t;
     using StdExt::TupleAppendTuple_t;
@@ -212,7 +219,12 @@ export namespace StdExt
         using StdExt::StdFunction_c;
     #endif
 
-    using StdExt::StdFunctionTemplateArg_t;
+    using StdExt::IsValidStdFunctionSpecialization;
+    using StdExt::IsValidStdFunctionSpecialization_v;
+
+    #if defined(USE_CONCEPTS)
+        using StdExt::ValidStdFunction_c;
+    #endif
 
     using StdExt::IsTraitsFreeFunction_v;
     #if defined(USE_CONCEPTS)
@@ -237,11 +249,6 @@ export namespace StdExt
     using StdExt::IsTraitsStaticFunctor_v;
     #if defined(USE_CONCEPTS)
         using StdExt::TraitsStaticFunctor_c;
-    #endif
-
-    using StdExt::IsTraitsNonStaticOrStaticFunctor_v;
-    #if defined(USE_CONCEPTS)
-        using StdExt::TraitsNonStaticOrStaticFunctor_c;
     #endif
 
     using StdExt::IsTraitsFunction_v;
@@ -299,15 +306,15 @@ export namespace StdExt
     // used directly as most will rely on the
     // "FunctionTraits" helper templates taking a
     // function template arg "F" instead (which simply
-    // defer to the following)
+    // defer to the following).
     /////////////////////////////////////////////////////
     using StdExt::FunctionTraitsArgCount_v;
+    using StdExt::FunctionTraitsIndexLessThanArgCount_v;
     #if defined(USE_CONCEPTS)
-        using StdExt::FunctionTraitsIndexLessThanArgCount_v;
         using StdExt::FunctionTraitsIndexLessThanArgCount_c;
     #endif
+    using StdExt::FunctionTraitsIndexLessThanOrEqualToArgCount_v;
     #if defined(USE_CONCEPTS)
-        using StdExt::FunctionTraitsIndexLessThanOrEqualToArgCount_v;
         using StdExt::FunctionTraitsIndexLessThanOrEqualToArgCount_c;
     #endif
     #if defined(USE_CONCEPTS)
@@ -327,26 +334,36 @@ export namespace StdExt
         using StdExt::FunctionTraitsIsMemberFunction_v;
     #endif
     using StdExt::FunctionTraitsFunctionOrigin_v;
+    using StdExt::FunctionTraitsFunctionOriginType_t;
+    using StdExt::FunctionTraitsFunctionOriginTypeName_v;
     #if defined(STDEXT_SUPPORT_DEPRECATED)
         using StdExt::FunctionTraitsIsFunctor_v;
     #endif
     using StdExt::FunctionTraitsFunctionRawType_t;
     using StdExt::FunctionTraitsFunctionRawTypeName_v;
+    using StdExt::FunctionTraitsFunctionReference_v;
+    #if defined(STDEXT_SUPPORT_DEPRECATED)
+        using StdExt::FunctionTraitsMemberFunctionRefQualifier_v;
+    #endif
+    using StdExt::FunctionTraitsFunctionReferenceName_v;
+    #if defined(STDEXT_SUPPORT_DEPRECATED)
+        using StdExt::FunctionTraitsMemberFunctionRefQualifierName_v;
+    #endif
     using StdExt::FunctionTraitsFunctionType_t;
     using StdExt::FunctionTraitsFunctionTypeName_v;
-    #if defined(USE_CONCEPTS)
-        using StdExt::FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v;
-    #endif
     using StdExt::FunctionTraitsIsArgListEmpty_v;
     #if defined(STDEXT_SUPPORT_DEPRECATED)
         using StdExt::FunctionTraitsIsEmptyArgList_v;
     #endif
+    #if defined(USE_CONCEPTS)
+        using StdExt::FunctionTraitsIndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v;
+    #endif
     using StdExt::FunctionTraitsIsArgTypeMatch_v;
-    using StdExt::FunctionTraitsIsArgTypesMatch_v;
     #if defined(USE_CONCEPTS)
         using StdExt::FunctionTraitsIndexLessThanArgCountOrCompareWithVoid_v;
     #endif
     using StdExt::FunctionTraitsIsArgTypeSame_v;
+    using StdExt::FunctionTraitsIsArgTypesMatch_v;
     using StdExt::FunctionTraitsIsArgTypesSame_v;
     using StdExt::FunctionTraitsIsArgTypesSameTuple_v;
     using StdExt::FunctionTraitsIsFunctionConst_v;
@@ -356,14 +373,6 @@ export namespace StdExt
     using StdExt::FunctionTraitsIsFunctionVolatile_v;
     #if defined(STDEXT_SUPPORT_DEPRECATED)
         using StdExt::FunctionTraitsIsMemberFunctionVolatile_v;
-    #endif
-    using StdExt::FunctionTraitsFunctionReference_v;
-    #if defined(STDEXT_SUPPORT_DEPRECATED)
-        using StdExt::FunctionTraitsMemberFunctionRefQualifier_v;
-    #endif
-    using StdExt::FunctionTraitsFunctionReferenceName_v;
-    #if defined(STDEXT_SUPPORT_DEPRECATED)
-        using StdExt::FunctionTraitsMemberFunctionRefQualifierName_v;
     #endif
     using StdExt::FunctionTraitsIsNoexcept_v;
     using StdExt::FunctionTraitsIsReturnTypeMatch_v;
@@ -378,39 +387,31 @@ export namespace StdExt
     using StdExt::FunctionTraitsReturnType_t;
     using StdExt::FunctionTraitsReturnTypeName_v;
 
-    /////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
     // "FunctionTraits" helper templates (write traits)
     // taking a "FunctionTraits" template arg. Rarely
     // used as most will rely on the "FunctionTraits"
     // helper templates taking a function template arg
-    // "F" instead (which simply defer to the following)
-    /////////////////////////////////////////////////////
+    // "F" instead (which simply defer to the following).
+    //////////////////////////////////////////////////////
     #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
         using StdExt::FunctionTraitsAddNoexcept_t;
         using StdExt::FunctionTraitsAddVariadicArgs_t;
+        using StdExt::FunctionTraitsArgsAppend_t;
+        using StdExt::FunctionTraitsArgsAppendTuple_t;
+        using StdExt::FunctionTraitsArgsDelete_t;
+        using StdExt::FunctionTraitsArgsInsert_t;
+        using StdExt::FunctionTraitsArgsInsertTuple_t;
+        using StdExt::FunctionTraitsArgsMakeVoid_t;
+        using StdExt::FunctionTraitsArgsModify_t;
+        using StdExt::FunctionTraitsArgsModifyTuple_t;
         using StdExt::FunctionTraitsFunctionAddConst_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::FunctionTraitsMemberFunctionAddConst_t;
         #endif
-        using StdExt::FunctionTraitsFunctionRemoveConst_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::FunctionTraitsMemberFunctionRemoveConst_t;
-        #endif
-        using StdExt::FunctionTraitsFunctionAddVolatile_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::FunctionTraitsMemberFunctionAddVolatile_t;
-        #endif
-        using StdExt::FunctionTraitsFunctionRemoveVolatile_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::FunctionTraitsMemberFunctionRemoveVolatile_t;
-        #endif
         using StdExt::FunctionTraitsFunctionAddCV_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::FunctionTraitsMemberFunctionAddCV_t;
-        #endif
-        using StdExt::FunctionTraitsFunctionRemoveCV_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::FunctionTraitsMemberFunctionRemoveCV_t;
         #endif
         using StdExt::FunctionTraitsFunctionAddLValueReference_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -420,9 +421,25 @@ export namespace StdExt
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::FunctionTraitsMemberFunctionAddRValueReference_t;
         #endif
+        using StdExt::FunctionTraitsFunctionAddVolatile_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::FunctionTraitsMemberFunctionAddVolatile_t;
+        #endif
+        using StdExt::FunctionTraitsFunctionRemoveConst_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::FunctionTraitsMemberFunctionRemoveConst_t;
+        #endif
+        using StdExt::FunctionTraitsFunctionRemoveCV_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::FunctionTraitsMemberFunctionRemoveCV_t;
+        #endif
         using StdExt::FunctionTraitsFunctionRemoveReference_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::FunctionTraitsMemberFunctionRemoveReference_t;
+        #endif
+        using StdExt::FunctionTraitsFunctionRemoveVolatile_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::FunctionTraitsMemberFunctionRemoveVolatile_t;
         #endif
         using StdExt::FunctionTraitsReplaceMemberFunctionClass_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -430,21 +447,13 @@ export namespace StdExt
         #endif
         using StdExt::FunctionTraitsRemoveNoexcept_t;
         using StdExt::FunctionTraitsRemoveVariadicArgs_t;
-        using StdExt::FunctionTraitsReplaceArgs_t;
-        using StdExt::FunctionTraitsReplaceArgsTuple_t;
-        using StdExt::FunctionTraitsReplaceCallingConvention_t;
-        using StdExt::FunctionTraitsArgsModify_t;
-        using StdExt::FunctionTraitsArgsModifyTuple_t;
-        using StdExt::FunctionTraitsArgsInsert_t;
-        using StdExt::FunctionTraitsArgsInsertTuple_t;
-        using StdExt::FunctionTraitsArgsMakeVoid_t;
-        using StdExt::FunctionTraitsArgsAppend_t;
-        using StdExt::FunctionTraitsArgsAppendTuple_t;
-        using StdExt::FunctionTraitsArgsDelete_t;
         using StdExt::FunctionTraitsReplaceArg_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::FunctionTraitsReplaceNthArg_t;
         #endif
+        using StdExt::FunctionTraitsReplaceArgs_t;
+        using StdExt::FunctionTraitsReplaceArgsTuple_t;
+        using StdExt::FunctionTraitsReplaceCallingConvention_t;
         using StdExt::FunctionTraitsReplaceReturnType_t;
         using StdExt::FunctionTraitsMakeMemberFunctionPtr_t;
     #endif
@@ -452,19 +461,19 @@ export namespace StdExt
     ////////////////////////////////////////////////////
     // "FunctionTraits" helper templates (read traits)
     // taking a function template arg "F". Along with
-    // the write traits just below, these are the
+    // the write traits further below, these are the
     // templates most will normally rely on as fully
     // documented here:
     //
-    //   https://github.com/HexadigmSystems/FunctionTraits/#writetraits
+    //   https://github.com/HexadigmSystems/FunctionTraits/#readtraits
     ////////////////////////////////////////////////////
     using StdExt::ArgCount_v;
+    using StdExt::IndexLessThanArgCount_v;
     #if defined(USE_CONCEPTS)
-        using StdExt::IndexLessThanArgCount_v;
         using StdExt::IndexLessThanArgCount_c;
     #endif
+    using StdExt::IndexLessThanOrEqualToArgCount_v;
     #if defined(USE_CONCEPTS)
-        using StdExt::IndexLessThanOrEqualToArgCount_v;
         using StdExt::IndexLessThanOrEqualToArgCount_c;
     #endif
     #if defined(USE_CONCEPTS)
@@ -484,26 +493,36 @@ export namespace StdExt
         using StdExt::IsMemberFunction_v;
     #endif
     using StdExt::FunctionOrigin_v;
+    using StdExt::FunctionOriginType_t;
+    using StdExt::FunctionOriginTypeName_v;
     #if defined(STDEXT_SUPPORT_DEPRECATED)
         using StdExt::IsFunctor_v;
     #endif
     using StdExt::FunctionRawType_t;
     using StdExt::FunctionRawTypeName_v;
+    using StdExt::FunctionReference_v;
+    #if defined(STDEXT_SUPPORT_DEPRECATED)
+        using StdExt::MemberFunctionRefQualifier_v;
+    #endif
+    using StdExt::FunctionReferenceName_v;
+    #if defined(STDEXT_SUPPORT_DEPRECATED)
+        using StdExt::MemberFunctionRefQualifierName_v;
+    #endif
     using StdExt::FunctionType_t;
     using StdExt::FunctionTypeName_v;
-    #if defined(USE_CONCEPTS)
-        using StdExt::IndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v;
-    #endif
     using StdExt::IsArgListEmpty_v;
     #if defined(STDEXT_SUPPORT_DEPRECATED)
         using StdExt::IsEmptyArgList_v;
     #endif
+    #if defined(USE_CONCEPTS)
+        using StdExt::IndexValidInBothOrReturnFalseIfOneHasArgOtherDoesnt_v;
+    #endif
     using StdExt::IsArgTypeMatch_v;
-    using StdExt::IsArgTypesMatch_v;
     #if defined(USE_CONCEPTS)
         using StdExt::IndexLessThanArgCountOrCompareWithVoid_v;
     #endif
     using StdExt::IsArgTypeSame_v;
+    using StdExt::IsArgTypesMatch_v;
     using StdExt::IsArgTypesSame_v;
     using StdExt::IsArgTypesSameTuple_v;
     using StdExt::IsFunctionConst_v;
@@ -513,14 +532,6 @@ export namespace StdExt
     using StdExt::IsFunctionVolatile_v;
     #if defined(STDEXT_SUPPORT_DEPRECATED)
         using StdExt::IsMemberFunctionVolatile_v;
-    #endif
-    using StdExt::FunctionReference_v;
-    #if defined(STDEXT_SUPPORT_DEPRECATED)
-        using StdExt::MemberFunctionRefQualifier_v;
-    #endif
-    using StdExt::FunctionReferenceName_v;
-    #if defined(STDEXT_SUPPORT_DEPRECATED)
-        using StdExt::MemberFunctionRefQualifierName_v;
     #endif
     using StdExt::IsNoexcept_v;
     using StdExt::IsReturnTypeMatch_v;
@@ -547,29 +558,21 @@ export namespace StdExt
     #if defined(FUNCTION_WRITE_TRAITS_SUPPORTED)
         using StdExt::AddNoexcept_t;
         using StdExt::AddVariadicArgs_t;
+        using StdExt::ArgsAppend_t;
+        using StdExt::ArgsAppendTuple_t;
+        using StdExt::ArgsDelete_t;
+        using StdExt::ArgsInsert_t;
+        using StdExt::ArgsInsertTuple_t;
+        using StdExt::ArgsMakeVoid_t;
+        using StdExt::ArgsModify_t;
+        using StdExt::ArgsModifyTuple_t;
         using StdExt::FunctionAddConst_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::MemberFunctionAddConst_t;
         #endif
-        using StdExt::FunctionRemoveConst_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::MemberFunctionRemoveConst_t;
-        #endif
-        using StdExt::FunctionAddVolatile_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::MemberFunctionAddVolatile_t;
-        #endif
-        using StdExt::FunctionRemoveVolatile_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::MemberFunctionRemoveVolatile_t;
-        #endif
         using StdExt::FunctionAddCV_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::MemberFunctionAddCV_t;
-        #endif
-        using StdExt::FunctionRemoveCV_t;
-        #if defined(STDEXT_SUPPORT_DEPRECATED)
-            using StdExt::MemberFunctionRemoveCV_t;
         #endif
         using StdExt::FunctionAddLValueReference_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -579,9 +582,25 @@ export namespace StdExt
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::MemberFunctionAddRValueReference_t;
         #endif
+        using StdExt::FunctionAddVolatile_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::MemberFunctionAddVolatile_t;
+        #endif
+        using StdExt::FunctionRemoveConst_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::MemberFunctionRemoveConst_t;
+        #endif
+        using StdExt::FunctionRemoveCV_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::MemberFunctionRemoveCV_t;
+        #endif
         using StdExt::FunctionRemoveReference_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::MemberFunctionRemoveReference_t;
+        #endif
+        using StdExt::FunctionRemoveVolatile_t;
+        #if defined(STDEXT_SUPPORT_DEPRECATED)
+            using StdExt::MemberFunctionRemoveVolatile_t;
         #endif
         using StdExt::ReplaceMemberFunctionClass_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
@@ -589,21 +608,13 @@ export namespace StdExt
         #endif
         using StdExt::RemoveNoexcept_t;
         using StdExt::RemoveVariadicArgs_t;
-        using StdExt::ReplaceArgs_t;
-        using StdExt::ReplaceArgsTuple_t;
-        using StdExt::ReplaceCallingConvention_t;
-        using StdExt::ArgsModify_t;
-        using StdExt::ArgsModifyTuple_t;
-        using StdExt::ArgsInsert_t;
-        using StdExt::ArgsInsertTuple_t;
-        using StdExt::ArgsMakeVoid_t;
-        using StdExt::ArgsAppend_t;
-        using StdExt::ArgsAppendTuple_t;
-        using StdExt::ArgsDelete_t;
         using StdExt::ReplaceArg_t;
         #if defined(STDEXT_SUPPORT_DEPRECATED)
             using StdExt::ReplaceNthArg_t;
         #endif
+        using StdExt::ReplaceArgs_t;
+        using StdExt::ReplaceArgsTuple_t;
+        using StdExt::ReplaceCallingConvention_t;
         using StdExt::ReplaceReturnType_t;
         using StdExt::MakeMemberFunctionPtr_t;
     #endif
@@ -615,13 +626,13 @@ export namespace StdExt
         using StdExt::IsHasFunctionTraits_c;
     #endif
 
-    //////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////
     // Always false (undefined) at this writing (for now). May be
     // #defined (or removed) in a future release however (still a
-    // work-in-progress but deferred until reflection is
-    // available in C++26 - will hopefully resolve several issues
-    // required to cleanly implement operator detection).
-    //////////////////////////////////////////////////////////////
+    // work-in-progress but deferred until reflection is available
+    // in C++26 - will hopefully resolve several issues required
+    // to cleanly implement operator detection).
+    ///////////////////////////////////////////////////////////////
     #if defined(STDEXT_SUPPORTS_OPERATOR_DETECTION_TEMPLATES)
         using StdExt::OperatorFunctions;
 
@@ -653,7 +664,7 @@ export namespace StdExt
     using StdExt::ClassHasNonOverloadedOperatorTraits_FunctionCall_v;
 
     // See https://wg21.link/P1169R4 (C++23 or later)
-    #if __cpp_static_call_operator
+    #if CPP23_OR_LATER && __cpp_static_call_operator
         #if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
             using StdExt::ClassHasStaticOperator_FunctionCall;
             using StdExt::ClassHasStaticOperator_FunctionCall_v;
@@ -668,24 +679,26 @@ export namespace StdExt
 
 export namespace StdExt::Private
 {
-    //////////////////////////////////////////////////////////
-    // Both of these are declared in "StdExt::Private" (so
+    //////////////////////////////////////////////////////////////
+    // Both exports below are declared in "StdExt::Private" (so
     // for internal use by the library only) but need to be
     // exported anyway (the 1st below only required though if
-    // the constant just below is #defined). The library's
-    // function detection templates are declared in the
-    // user's own code using the function detection macros
-    // and some of these templates invoke the following
-    // templates (declared in namespace "StdExt::Private").
-    // Because the function detection templates themselves
-    // are declared in the user's own code however (so
-    // declared in the user's own namespace, not the
-    // library's), the following need to be exported so they
-    // can be called from those templates (in whatever
-    // namespace the user declares these templates in).
-    //////////////////////////////////////////////////////////
+    // WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED
+    // just below is #defined). The library's function detection
+    // templates are declared in the user's own code using the
+    // function detection macros and some of these templates
+    // invoke the following templates (declared in namespace
+    // "StdExt::Private"). Because the function detection
+    // templates themselves are declared in the user's own code
+    // however (so declared in the user's own namespace, not the
+    // library's), the following need to be exported so they can
+    // be called from those templates (in whatever namespace the
+    // user declares these templates in).
+    //////////////////////////////////////////////////////////////
+
     #if defined(WRITE_DEPENDENT_FUNCTION_DETECTION_TEMPLATES_SUPPORTED)
         using StdExt::Private::ClassHasFunctionStaticCastTarget_t;
     #endif
+
     using StdExt::Private::InvokeHasFunctionTraits_v;
 } // export namespace StdExt::Private
